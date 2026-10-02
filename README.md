@@ -8,12 +8,14 @@ Phase 2 AWS/ROSA 선행 인프라의 Terraform IaC 저장소. AWS VPC `10.20.0.0
 
 | 티켓 | 이 저장소 범위 | Lead / Support |
 |---|---|---|
-| [P2-IAC-01](https://github.com/321Team/fds-project-baseline/issues/35) | AWS VPC/Subnet/Route/Security, ROSA Prerequisite, IAM/OIDC, State, Variables/Outputs | 이권욱 / 이하영 |
+| [P2-IAC-01](https://github.com/321Team/fds-project-baseline/issues/35) | AWS VPC/Subnet/Route/Security, ROSA Prerequisite, IAM/OIDC, State, Variables/Outputs | 이하영 / 이권욱 |
 | [P2-OCI-01](https://github.com/321Team/fds-project-baseline/issues/36) | OCI Relay Go 판정 시 OCI 측 리소스 모듈. No-Go면 Fallback 결정(D21)을 따른다 | 이권욱 / 이하영 |
-| [P2-VPN-01](https://github.com/321Team/fds-project-baseline/issues/37) | AWS Site-to-Site VPN·Customer Gateway·Route 전파 리소스. On-Prem vpn-gw01 `.51` 설정은 이 저장소 범위가 아니다 | 이권욱 / 이하영 |
-| [DEC-P2-REG-01](https://github.com/321Team/fds-project-baseline/issues/42) | D22가 클라우드 Registry를 선택한 경우에만 해당 리소스 추가 | 이하영 / 이권욱, 이재환 |
+| [P2-VPN-01](https://github.com/321Team/fds-project-baseline/issues/37) | AWS Site-to-Site VPN·Customer Gateway·Route 전파 리소스. On-Prem vpn-gw01 `.51` 설정은 이 저장소 범위가 아니다 | 이재환 / 이권욱 |
+| [DEC-P2-REG-01](https://github.com/321Team/fds-project-baseline/issues/42) | D22가 클라우드 Registry를 선택한 경우에만 해당 리소스 추가 | 이권욱 / 이하영, 이재환 |
 
-Lead·Support는 2026-09-23 Issue 본문 속성표 기준이다. 정확한 Lead·Support·AC는 연결된 Issue와 발행 정본을 따른다.
+Lead·Support는 2026-09-30 승인된 Phase 2 담당 리밸런싱과 현재 Issue 속성표를 따른다. 정확한 Lead·Support·AC는 연결된 Issue와 현행 승인 기록을 따른다.
+
+Stage-A W0 입력은 [`docs/P2-IAC-01_STAGE_A_W0_20261002.md`](docs/P2-IAC-01_STAGE_A_W0_20261002.md)에 기록한다.
 
 ## 다른 저장소와의 경계
 
