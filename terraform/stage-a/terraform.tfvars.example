@@ -1,14 +1,17 @@
 aws_region = "ap-northeast-2"
 vpc_cidr   = "10.20.0.0/16"
 
-# Architecture Freeze must replace these examples with the approved exact AZ/CIDR map.
-subnets = {
-  # private_a = {
-  #   az   = "ap-northeast-2a"
-  #   cidr = "10.20.X.0/24"
-  #   role = "private"
-  # }
-}
+# Architecture Freeze must provide the approved exact AZ/CIDR map.
+#
+# subnets = {
+#   private_a = {
+#     az   = "ap-northeast-2a"
+#     cidr = "10.20.X.0/24"
+#     role = "private"
+#   }
+# }
 
-# Must be fixed by Architecture Freeze before plan.
-vpn_attachment_type = "vgw"
+# Architecture Freeze must explicitly select the approved attachment type.
+# Valid values: "vgw" or "tgw"
+#
+# vpn_attachment_type = "REPLACE_WITH_APPROVED_VALUE"
