@@ -1,17 +1,49 @@
 aws_region = "ap-northeast-2"
 vpc_cidr   = "10.20.0.0/16"
 
-# Architecture Freeze must provide the approved exact AZ/CIDR map.
-#
-# subnets = {
-#   private_a = {
-#     az   = "ap-northeast-2a"
-#     cidr = "10.20.X.0/24"
-#     role = "private"
-#   }
-# }
+transport_adapter_type = "aws_ec2_eip_relay"
 
-# Architecture Freeze must explicitly select the approved attachment type.
-# Valid values: "vgw" or "tgw"
-#
-# vpn_attachment_type = "REPLACE_WITH_APPROVED_VALUE"
+subnets = {
+  private_a = {
+    az      = "ap-northeast-2a"
+    zone_id = "apne2-az1"
+    cidr    = "10.20.10.0/24"
+    role    = "private"
+  }
+  private_b = {
+    az      = "ap-northeast-2b"
+    zone_id = "apne2-az2"
+    cidr    = "10.20.20.0/24"
+    role    = "private"
+  }
+  private_c = {
+    az      = "ap-northeast-2c"
+    zone_id = "apne2-az3"
+    cidr    = "10.20.30.0/24"
+    role    = "private"
+  }
+  public_transport_a = {
+    az      = "ap-northeast-2a"
+    zone_id = "apne2-az1"
+    cidr    = "10.20.110.0/24"
+    role    = "public_transport"
+  }
+}
+
+relay = {
+  subnet_key              = "public_transport_a"
+  private_ip              = "10.20.110.10"
+  instance_type           = "t3.medium"
+  ami_id                  = "ami-079a2667364cee804"
+  ami_owner_id            = "125523088429"
+  root_volume_type        = "gp3"
+  root_volume_gib         = 40
+  root_volume_encrypted   = true
+  allocate_eip            = true
+  auto_public_ipv4        = false
+  source_dest_check       = false
+  public_ssh_enabled      = false
+  ike_ingress_cidrs       = ["0.0.0.0/0"]
+  protected_onprem_cidr   = "10.1.93.0/24"
+  protected_aws_cidr      = "10.20.0.0/16"
+}
