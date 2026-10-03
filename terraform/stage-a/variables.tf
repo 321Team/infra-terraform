@@ -85,7 +85,7 @@ variable "relay" {
   })
 
   validation {
-    condition = (
+    condition = try(
       var.relay.subnet_key == "public_transport_a" &&
       var.relay.private_ip == "10.20.110.10" &&
       var.relay.instance_type == "t3.medium" &&
@@ -101,7 +101,8 @@ variable "relay" {
       length(var.relay.ike_ingress_cidrs) == 1 &&
       var.relay.ike_ingress_cidrs[0] == "0.0.0.0/0" &&
       var.relay.protected_onprem_cidr == "10.1.93.0/24" &&
-      var.relay.protected_aws_cidr == "10.20.0.0/16"
+      var.relay.protected_aws_cidr == "10.20.0.0/16",
+      false
     )
     error_message = "relay must match the D21 2026-10-03 AWS EC2+EIP Relay contract."
   }
