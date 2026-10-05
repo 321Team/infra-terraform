@@ -8,12 +8,14 @@ Phase 2 AWS/ROSA 선행 인프라의 Terraform IaC 저장소. AWS VPC `10.20.0.0
 
 | 티켓 | 이 저장소 범위 | Lead / Support |
 |---|---|---|
-| [P2-IAC-01](https://github.com/321Team/fds-project-baseline/issues/35) | AWS VPC/Subnet/Route/Security, ROSA Prerequisite, IAM/OIDC, State, Variables/Outputs | 이권욱 / 이하영 |
+| [P2-IAC-01](https://github.com/321Team/fds-project-baseline/issues/35) | AWS VPC/Subnet/Route/Security, ROSA Prerequisite, IAM/OIDC, State, Variables/Outputs | 이하영 / 이권욱 |
 | [P2-OCI-01](https://github.com/321Team/fds-project-baseline/issues/36) | OCI Relay Go 판정 시 OCI 측 리소스 모듈. No-Go면 Fallback 결정(D21)을 따른다 | 이권욱 / 이하영 |
-| [P2-VPN-01](https://github.com/321Team/fds-project-baseline/issues/37) | AWS Site-to-Site VPN·Customer Gateway·Route 전파 리소스. On-Prem vpn-gw01 `.51` 설정은 이 저장소 범위가 아니다 | 이권욱 / 이하영 |
-| [DEC-P2-REG-01](https://github.com/321Team/fds-project-baseline/issues/42) | D22가 클라우드 Registry를 선택한 경우에만 해당 리소스 추가 | 이하영 / 이권욱, 이재환 |
+| [P2-VPN-01](https://github.com/321Team/fds-project-baseline/issues/37) | D21 AWS EC2+EIP Relay/ENI·명시적 Route·SG Transport Adapter 리소스. On-Prem vpn-gw01 `.51` 설정은 이 저장소 범위가 아니다 | 이재환 / 이권욱 |
+| [DEC-P2-REG-01](https://github.com/321Team/fds-project-baseline/issues/42) | D22가 클라우드 Registry를 선택한 경우에만 해당 리소스 추가 | 이권욱 / 이하영, 이재환 |
 
-Lead·Support는 2026-09-23 Issue 본문 속성표 기준이다. 정확한 Lead·Support·AC는 연결된 Issue와 발행 정본을 따른다.
+Lead·Support는 2026-09-30 승인된 Phase 2 담당 리밸런싱과 현재 Issue 속성표를 따른다. 정확한 Lead·Support·AC는 연결된 Issue와 현행 승인 기록을 따른다.
+
+Stage-A W0 입력은 [`docs/P2-IAC-01_STAGE_A_W0_20261002.md`](docs/P2-IAC-01_STAGE_A_W0_20261002.md)에 기록한다.
 
 ## 다른 저장소와의 경계
 
@@ -37,3 +39,9 @@ Lead·Support는 2026-09-23 Issue 본문 속성표 기준이다. 정확한 Lead�
 리뷰·병합과 Lead 판단은 [리뷰 정책](docs/REVIEW_POLICY.md)을 따른다. Terraform 코드·변수·모듈은 **코드 변경**이므로 작성자 외 적격 검토자의 독립 리뷰 후 Lead가 병합을 결정한다. 문서만 변경한 PR은 책임 Lead가 판단한다. 사전 검증(Pre-check) 코드는 담당 Lead 권한으로 바로 병합할 수 있으나, 실제 AWS/OCI 계정에 Apply하기 전에는 해당 SHA의 코드 리뷰가 필수다. main 직접 push·force push·자동 병합을 하지 않는다.
 
 이 문서는 운영 통제이며, GitHub branch protection/ruleset이 활성화됐다는 뜻이 아니다.
+
+## 2026-10-03 Current Phase 2 boundary
+
+D21=`aws_ec2_eip_relay`; managed S2S/CGW/VGW-TGW는 selected path 아님. Historical W0와 current contract를 [Stage-A 기록](docs/P2-IAC-01_STAGE_A_W0_20261002.md)에서 분리한다. 현재 code/static scaffold는 PR #3, architecture contract는 [private baseline PR #137](https://github.com/321Team/fds-project-baseline/pull/137)이다. Topology/access/egress/DNS/backend/source contract 미결로 Freeze HOLD. AWS resource create/apply 미실행.
+
+이전 공개 architecture PR #8은 종료된 역사 출처이며 현행 상세 후보는 비공개 baseline PR #137에서 관리한다. 후보 링크 갱신은 Freeze/승인/Apply 완료를 뜻하지 않는다. 적용할 입력은 검토된 exact SHA로 고정한다.
