@@ -42,4 +42,6 @@ Stage-A W0 입력은 [`docs/P2-IAC-01_STAGE_A_W0_20261002.md`](docs/P2-IAC-01_ST
 
 ## 2026-10-03 Current Phase 2 boundary
 
-D21=`aws_ec2_eip_relay`; managed S2S/CGW/VGW-TGW는 selected path 아님. Historical W0와 current contract를 [Stage-A 기록](docs/P2-IAC-01_STAGE_A_W0_20261002.md)에서 분리한다. 현재 code/static scaffold는 PR #3, architecture contract는 [architecture PR #8](https://github.com/321Team/fds-project-architecture/pull/8)이다. Topology/access/egress/DNS/backend/source contract 미결로 Freeze HOLD. AWS resource create/apply 미실행.
+D21=`aws_ec2_eip_relay`; managed S2S/CGW/VGW-TGW는 selected path 아님. Historical W0와 current contract를 [Stage-A 기록](docs/P2-IAC-01_STAGE_A_W0_20261002.md)에서 분리한다. 현재 code/static scaffold는 PR #3, architecture contract는 [private baseline PR #137](https://github.com/321Team/fds-project-baseline/pull/137)이다. Topology/access/egress/DNS/backend/source contract 미결로 Freeze HOLD. AWS resource create/apply 미실행.
+
+이전 공개 architecture PR #8은 종료된 역사 출처이며 현행 상세 후보는 비공개 baseline PR #137에서 관리한다. 후보 링크 갱신은 Freeze/승인/Apply 완료를 뜻하지 않는다. 적용할 입력은 검토된 exact SHA로 고정한다.
