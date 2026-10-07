@@ -71,7 +71,7 @@ CLI 자동 pagination을 유지한다. RC0만 보지 않고 findings 전체를 �
 | 중앙 IAM 검증 | 입력 대기 | 이하영: 전체 정책+검토+변경 case. 권욱: 실제 중앙 검증/판정 접수 |
 | network Plan | 미실행 | 중앙 grant/readback·본인 MFA/state/lock 시험 후 고정 source/입력으로 [기존 절차](plan-runbook.md) 수행 |
 | Relay 생성 | HOLD | #35/#37: Stream10 SSM 지원/정확 Agent·firewalld·repo·Libreswan 근거 및 bootstrap 적합성 |
-| Freeze·유료 Apply | HOLD | #34/#35/#38: 선택한1AZ3대 actual AZ/subnet·용량·운영창, 누적액·지원기간·Marketplace 적격성과 자부담0 |
+| Freeze·유료 Apply | HOLD | #34/#35/#38: 선택한1AZ3대 actual AZ/subnet·용량·운영창, 지원은 사용자 확인 완료. 누적/미반영+잔여 견적의 내부 한도 판단과 자부담0; 지원 재확인 차단은 해제 |
 | route 활성화 | OFF | #37/#38: 실제 source/inner SG·터널·허용/거부·복구 증적 |
 
 AMI 공백을 network Plan의 새로운 필수조건으로 올리거나, network source에 subnet4개가 있다는 이유로 사용자 ROSA1AZ 선택을3AZ로 바꾸지 않는다. 준비 자료는 PR6에만 반영하며 독립 REVIEW/MERGE/PUBLICATION은 별도다.

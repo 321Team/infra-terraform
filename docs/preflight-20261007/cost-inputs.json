@@ -1,10 +1,44 @@
 {
-  "status": "INPUT_PENDING_NOT_ZERO_NOT_EXECUTION_APPROVAL",
+  "status": "SUPPORT_CONFIRMED_BUDGET_ASSESSMENT_PENDING",
   "currency": "USD",
-  "user_confirmed": {"cap": 500, "self_pay_cap": 0, "worker_count": 3, "worker_type": "m5.xlarge", "az_count": 1},
-  "existing_controls": {"target": 400, "hard_stop": 450, "protected_reserve": 50},
-  "support": {"start_kst": null, "end_kst": null, "confirmed_limit": null, "remaining": null, "rosa_marketplace_covered": null, "aws_infrastructure_covered": null, "exclusions": null, "payer": null, "source": null},
-  "current_usage": {"as_of_kst": null, "gross": null, "net": null, "unreported_estimate": null, "source": null},
-  "remaining_estimate": {"worker_ec2": null, "rosa_service_hcp": null, "relay": null, "ebs": null, "public_ipv4": null, "nat": null, "load_balancer": null, "dns_endpoint": null, "transfer": null, "cleanup_residual_backup_tax": null, "pricing_as_of_kst": null, "source": null},
-  "go": "HOLD"
+  "user_confirmed": {
+    "cap": 500,
+    "self_pay_cap": 0,
+    "worker_count": 3,
+    "worker_type": "m5.xlarge",
+    "az_count": 1
+  },
+  "existing_controls": {
+    "target": 400,
+    "hard_stop": 450,
+    "protected_reserve": 50
+  },
+  "support": {
+    "status": "USER_CONFIRMED_ALREADY_PROVIDED",
+    "source": "2026-10-08 user clarification in this thread",
+    "further_support_confirmation_required": false
+  },
+  "current_usage": {
+    "as_of_kst": null,
+    "gross": null,
+    "net": null,
+    "unreported_estimate": null,
+    "source": null
+  },
+  "remaining_estimate": {
+    "worker_ec2": null,
+    "rosa_service_hcp": null,
+    "relay": null,
+    "ebs": null,
+    "public_ipv4": null,
+    "nat": null,
+    "load_balancer": null,
+    "dns_endpoint": null,
+    "transfer": null,
+    "cleanup_residual_backup_tax": null,
+    "pricing_as_of_kst": null,
+    "source": null
+  },
+  "go": "NOT_ASSESSED_USAGE_AND_FORECAST_PENDING",
+  "independent_prework": "CONTINUE_WITHIN_EXISTING_AUTHORIZATION"
 }

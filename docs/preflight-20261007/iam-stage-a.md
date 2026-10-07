@@ -38,7 +38,7 @@ CODEX_ASSISTED. 판정: **FULL_PERMISSIONS=INCOMPLETE / HUMAN_ROLES=ABSENT / CLO
 2. 중앙 지원 이권욱: 기존 승인 범위에서 fresh before backup, ValidatePolicy, 변경 delta 양/음성 simulation → 해당 부여 단계 승인 범위 확인 → grant/readback. 아직 부여 명령을 준비·실행하지 않았다. 정책 수용 전 부분 권한만 부착하지 않는다.
 3. 권욱·하영: 각 본인 MFA IaC role 세션에서 state/lock 정상·거부·중단복구와 대표 업무 API를 검증. 다른 사람 결과를 본인 시험으로 대체하지 않는다.
 4. Plan Gate: 검토 소스·정확 backend/workspace·권한·변수·원본 증적 보존이 준비된 뒤 [network plan](plan-runbook.md). Plan의 state lock 쓰기 가능성을 고려해 순수 읽기 수집과 구분한다.
-5. Apply Gate: 위 조건에 더해 #34 Freeze, 검토한 saved plan, $500/자부담0 비용지원 및 잔여비용, 실행창·복구 조건을 충족해야 함. 이번 작업은 GO가 아니다.
+5. Apply Gate: 위 조건에 더해 #34 Freeze, 검토한 saved plan, $500/자부담0 내부 비용 한도 및 잔여비용, 실행창·복구 조건을 충족해야 함. 이번 작업은 GO가 아니다.
 6. 실제 Relay 생성 후 #37에 instance/ENI/EIP/profile/document/Agent/EBS 인계 → Network exact bind/grant → 권욱·재환 각각 U1. actual ID 부재를 생성 전 source 검토의 순환 차단조건으로 삼지 않는다.
 
 ## 읽기 전용 추가 수집
