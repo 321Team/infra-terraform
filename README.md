@@ -2,7 +2,7 @@
 
 Phase 2 AWS/ROSA 선행 인프라의 Terraform IaC 저장소. AWS VPC `10.20.0.0/16`·Subnet·Route·Security Group, ROSA 선행 조건, IAM/OIDC 최소권한 Role, Terraform State 통제와 Plan/Apply 추적 기록을 관리한다.
 
-**상태: 저장소 초기 구성 단계.** Terraform 코드·Plan·Apply는 아직 없다. 저장소 생성은 P2-IAC-01 착수·AC 충족·G4 판정을 뜻하지 않는다.
+**상태: Stage-A 계약 scaffold와 bootstrap 소비 사전 작업.** 관리 리소스 구현·Terraform Plan/Apply는 아직 없다. 소스 준비는 P2-IAC-01 AC 충족·G4 판정을 뜻하지 않는다.
 
 ## 책임 티켓
 
@@ -45,3 +45,9 @@ Stage-A W0 입력은 [`docs/P2-IAC-01_STAGE_A_W0_20261002.md`](docs/P2-IAC-01_ST
 D21=`aws_ec2_eip_relay`; managed S2S/CGW/VGW-TGW는 selected path 아님. Historical W0와 current contract를 [Stage-A 기록](docs/P2-IAC-01_STAGE_A_W0_20261002.md)에서 분리한다. 현재 code/static scaffold는 PR #3, architecture contract는 [private baseline PR #137](https://github.com/321Team/fds-project-baseline/pull/137)이다. Topology/access/egress/DNS/backend/source contract 미결로 Freeze HOLD. AWS resource create/apply 미실행.
 
 이전 공개 architecture PR #8은 종료된 역사 출처이며 현행 상세 후보는 비공개 baseline PR #137에서 관리한다. 후보 링크 갱신은 Freeze/승인/Apply 완료를 뜻하지 않는다. 적용할 입력은 검토된 exact SHA로 고정한다.
+
+## 2026-10-07 Bootstrap 이후 소스 준비
+
+[중앙 4자원 생성·설정 수신 기록](https://github.com/321Team/fds-project-baseline/issues/35#issuecomment-6031865288)과 [Lead 리뷰](https://github.com/321Team/fds-project-baseline/issues/35#issuecomment-6032041833)를 소비하는 [Stage-A 사전 작업](terraform/stage-a/README.md)을 추가한다. Provider 계정 제한, 채택된 component backend 예시 4개, 기존 Relay profile의 읽기 전용 참조를 제안한다. CloudFormation이 bootstrap 4자원을 계속 소유한다.
+
+완결된 관리 리소스 구현/API·permissions JSON은 이하영 Lead의 후속 입력이다. 이번 변경은 후보 소스이며 role grant·MFA 본인 Runtime·유료 생성·Stage-A GO·전체 AC 인수가 아니다. 담당·일정·기존 Freeze/비용 조건은 유지한다. 계정·ARN·backend 설정 원문은 비공개 구현 입력으로 보존하고, 외부 요약은 식별 값을 마스킹한다.
