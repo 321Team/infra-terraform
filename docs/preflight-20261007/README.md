@@ -32,5 +32,6 @@ PR5의 기존 STATIC/MOCK 증적과 독립 리뷰는 재사용한다. 최초 준
 5. [읽기 전용 수집기](../../scripts/collect-phase2-preflight.py): 새 AMI/IAM/document 입력만 수집. 정책 부여/유료 생성/Plan 기능 없음. [사용법](iam-stage-a.md#읽기-전용-추가-수집).
 6. [권욱 담당 실행 순서](gwonuk-next-actions.md): 직접 결정 완료 항목, 지금 가능한 조회, 타 담당 입력 이후의 중앙 실행을 구분.
 7. [중앙 읽기 조회 접수](central-readonly-receipt.md): 실제 명령별 RC·부재 판정·원본 보존/재해시와 실행 한계.
+8. [중앙 검증 착수·인계](central-validation-handoff.md): 10-08 후속 요청에 따른 전체 정책 제출 항목·변경분 시험·단계별 완료조건. [network 권한 보완표](network-permission-supplement.json)는 provider6.66.0 원본으로6block/15instance와 조건부 복구 경로를 연결한 검토 자료이며 부여 정책이 아니다.
 
 적용 전에는 이 문서의 고정 SHA와 최신 원본의 차이를 확인한다. 문서/수집기 PR 병합은 별도 Lead 판단이며, 이 묶음에 actual tfvars·완결 IAM 정책·유료 실행 승인은 없다. 준비안 원복은 이 PR의 변경만 되돌리는 것으로 충분하고 AWS 복구 작업은 없다.

@@ -1,0 +1,28 @@
+{
+  "kind": "CENTRAL_VALIDATION_PREPARATION_STATIC_RECEIPT",
+  "as_of_kst": "2026-10-08T00:15:07.405427+09:00",
+  "base_pr_head": "238067ced89dc5ed821e8e44331412c95f82cbc0",
+  "terraform_manifest_unchanged": 15,
+  "network_resource_addresses_exact_match": 6,
+  "network_resource_instances": 15,
+  "network_subnet_keys_exact_match": 4,
+  "provider_reference_files_rehashed": 12,
+  "candidate_action_names_found_in_provider_sources": 36,
+  "action_name_check_limit": "String presence only; semantic paths are documented in handoff and supplement. Not an IAM policy validator.",
+  "relative_link_targets_exist": 22,
+  "diff_whitespace": "PASS",
+  "new_code_tests": "NOT_APPLICABLE_DOCUMENTATION_ONLY",
+  "aws_api_this_followup": "NOT_RUN",
+  "validate_policy": "NOT_RUN_INPUT_PENDING",
+  "simulation": "NOT_RUN_INPUT_PENDING",
+  "full_permissions_complete": false,
+  "grant": "NOT_RUN",
+  "plan": "NOT_RUN",
+  "apply": "NOT_RUN",
+  "files": {
+    "README.md": "14de7139abcfcd101bbc019374fe1e602de4a48a9b6d8c720ab4e97acff04f8f",
+    "iam-stage-a.md": "fbd74bc9125661f24d2c677c63e936d4b08cd37fe08fe9dbfb33d08746091ead",
+    "network-permission-supplement.json": "2c07c7e0c190f2d2ccdfe24f91f3908ddc4b597e868121ef99d5bb7cd7c982ea",
+    "central-validation-handoff.md": "f13a59d7734d7910f0e939fd995b1d98b4ba30fe728ae69f47fd964b28d554c1"
+  }
+}

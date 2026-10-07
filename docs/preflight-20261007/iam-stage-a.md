@@ -16,6 +16,8 @@ CODEX_ASSISTED. 판정: **FULL_PERMISSIONS=INCOMPLETE / HUMAN_ROLES=ABSENT / CLO
 
 기존 14행 inventory는 주로 vpn을 대상으로 한다. `terraform/network/main.tf`의 **6개 resource block / 15개 resource instance**(VPC1, subnet4, IGW1, route-table4, association4, default route1)와 AZ data source의 개별 coverage 행이 없다. 기존의 “14행은 전체 정책이 아님”이라는 한계를 구체화한 것이며 새 AC가 아니다.
 
+10-08 후속: [network 보완 inventory](network-permission-supplement.json)에 resource6행·15instance와 AZ data3개, shared tag/조건부 정리 경로를 provider6.66.0 원본·SHA와 연결했다. **자료의 network 행 공백은 보완했지만 기존14행 원본과 완결 IAM 정책의 부재는 그대로다.** [중앙 검증 인계](central-validation-handoff.md)의 제출 항목을 #35가 수용·통합한 뒤 검증한다. 모든 후보 action을 자동 Allow하는 파일이 아니다.
+
 | source | 전체 정책 작성 때 빠뜨리지 않을 작업군 |
 |---|---|
 | aws_vpc.project | VPC 생성/조회/삭제, DNS support/hostname 속성 설정 및 조회 |

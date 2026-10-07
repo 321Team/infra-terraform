@@ -1,0 +1,354 @@
+{
+  "kind": "NETWORK_SOURCE_API_SUPPLEMENT_NOT_DEPLOYABLE_POLICY",
+  "created_at_kst": "2026-10-08T00:11:46.478786+09:00",
+  "terraform_source_commit": "0eabe8daa75a6b9bf960fe1ea5eeaf6a8818f216",
+  "terraform_source_file_sha256": "f17ef751d08bd83248401eba25f060129ffe76687b8e9c52872e8c4ce524894f",
+  "provider_version": "6.66.0",
+  "scope": "Supplement to validation/components-20261007/resource-api-inventory.json; does not replace its 14 rows or certify the full network/vpn policy",
+  "resource_blocks": 6,
+  "resource_instances": 15,
+  "full_permissions_complete": false,
+  "aws_api_executed_this_followup": false,
+  "grant_authorized_by_this_file": false,
+  "rows": [
+    {
+      "source_address": "aws_vpc.project",
+      "instances": 1,
+      "create": [
+        "ec2:CreateVpc",
+        "ec2:ModifyVpcAttribute"
+      ],
+      "read": [
+        "ec2:DescribeVpcs",
+        "ec2:DescribeVpcAttribute",
+        "ec2:DescribeNetworkAcls",
+        "ec2:DescribeRouteTables",
+        "ec2:DescribeSecurityGroups"
+      ],
+      "update": [
+        "ec2:ModifyVpcAttribute"
+      ],
+      "delete": [
+        "ec2:DeleteVpc"
+      ],
+      "scope_review": "New VPC request tags; existing owned VPC resource tags. Read helpers query default NACL/main route table/default SG; their read failures are logged warnings, not permission success. Do not grant mutation of these default resources.",
+      "source": [
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_.go#L199",
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_.go#L276",
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_.go#L392",
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_.go#L575",
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/find.go#L1833",
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/find.go#L2072",
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/find.go#L2121"
+      ]
+    },
+    {
+      "source_address": "aws_subnet.project",
+      "instances": 4,
+      "keys": [
+        "private_a",
+        "private_b",
+        "private_c",
+        "public_transport_a"
+      ],
+      "create": [
+        "ec2:CreateSubnet",
+        "ec2:ModifySubnetAttribute"
+      ],
+      "read": [
+        "ec2:DescribeSubnets"
+      ],
+      "update": [
+        "ec2:ModifySubnetAttribute"
+      ],
+      "delete": [
+        "ec2:DescribeNetworkInterfaces",
+        "ec2:DeleteSubnet"
+      ],
+      "scope_review": "New subnet request tags and existing project VPC scopes separated; map_public_ip_on_launch=false is compared to live attributes, so ModifySubnetAttribute is conditional. Delete always starts with ENI enumeration. Approved four CIDRs/AZ bindings belong to source checks, not a claim that arbitrary IAM conditions constrain every API field.",
+      "source": [
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_subnet.go#L212",
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_subnet.go#L412",
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_subnet.go#L503",
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_subnet.go#L735",
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_network_interface.go#L1662"
+      ]
+    },
+    {
+      "source_address": "aws_internet_gateway.transport",
+      "instances": 1,
+      "create": [
+        "ec2:CreateInternetGateway",
+        "ec2:AttachInternetGateway"
+      ],
+      "read": [
+        "ec2:DescribeInternetGateways"
+      ],
+      "update": [
+        "ec2:DetachInternetGateway",
+        "ec2:AttachInternetGateway"
+      ],
+      "delete": [
+        "ec2:DetachInternetGateway",
+        "ec2:DeleteInternetGateway"
+      ],
+      "scope_review": "New IGW request tags; attach/detach must scope both project VPC and owned IGW. Never add permission to attach another project/default VPC just to satisfy dependency checks.",
+      "source": [
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_internet_gateway.go#L69",
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_internet_gateway.go#L121",
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_internet_gateway.go#L144",
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_internet_gateway.go#L177",
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_internet_gateway.go#L201"
+      ]
+    },
+    {
+      "source_address": "aws_route_table.subnet",
+      "instances": 4,
+      "keys": [
+        "private_a",
+        "private_b",
+        "private_c",
+        "public_transport_a"
+      ],
+      "create": [
+        "ec2:CreateRouteTable"
+      ],
+      "read": [
+        "ec2:DescribeRouteTables"
+      ],
+      "update": [],
+      "delete": [
+        "ec2:DisassociateRouteTable",
+        "ec2:DeleteRouteTable"
+      ],
+      "scope_review": "New route-table request tags and existing project VPC scoped separately. Current source has no inline routes or VGW propagation. Delete helper iterates all actual associations; foreign associations require STOP/owner resolution before destroy. ENI-target routes add conditional DescribeNetworkInterfaces during refresh after vpn route activation.",
+      "source": [
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_route_table.go#L178",
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_route_table.go#L223",
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_route_table.go#L356",
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_route_table.go#L873"
+      ]
+    },
+    {
+      "source_address": "aws_route_table_association.subnet",
+      "instances": 4,
+      "keys": [
+        "private_a",
+        "private_b",
+        "private_c",
+        "public_transport_a"
+      ],
+      "create": [
+        "ec2:AssociateRouteTable"
+      ],
+      "read": [
+        "ec2:DescribeRouteTables"
+      ],
+      "update": [
+        "ec2:ReplaceRouteTableAssociation",
+        "ec2:AssociateRouteTable"
+      ],
+      "delete": [
+        "ec2:DisassociateRouteTable"
+      ],
+      "scope_review": "Review current/new route-table and subnet scopes. Association has no independent project tag surface. Replace fallback recreates if association disappears; verify both actions with owned and foreign-resource cases.",
+      "source": [
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_route_table_association.go#L77",
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_route_table_association.go#L143",
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_route_table_association.go#L242"
+      ]
+    },
+    {
+      "source_address": "aws_route.transport_internet",
+      "instances": 1,
+      "create": [
+        "ec2:CreateRoute"
+      ],
+      "read": [
+        "ec2:DescribeRouteTables"
+      ],
+      "update": [
+        "ec2:ReplaceRoute"
+      ],
+      "delete": [
+        "ec2:DeleteRoute"
+      ],
+      "scope_review": "Only owned public_transport_a route table and accepted 0.0.0.0/0 -> transport IGW source. Route table IAM scope is not proof that destination/target fields are enforced. Negative plan/source checks retain the private table and On-Prem route boundary.",
+      "source": [
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_route.go#L203",
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_route.go#L303",
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_route.go#L380",
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_route.go#L462"
+      ]
+    }
+  ],
+  "data_sources": [
+    {
+      "source_address": "data.aws_availability_zone.adopted",
+      "instances": 3,
+      "actions": [
+        "ec2:DescribeAvailabilityZones"
+      ],
+      "scope_review": "Separate read statement; only reviewed zone ID/name mapping in source. Four network subnets do not imply a three-AZ ROSA selection.",
+      "source": [
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/ec2_availability_zone_data_source.go#L91",
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/find.go#L49"
+      ]
+    }
+  ],
+  "shared_tag_lifecycle": {
+    "actions": [
+      "ec2:CreateTags",
+      "ec2:DeleteTags",
+      "ec2:DescribeTags"
+    ],
+    "review": "Create-time tagging needs ec2:CreateAction-specific review. Follow-up tag mutation must preserve ownership tags and deny retagging unrelated resources. DescribeTags helper is available; per-resource middleware path remains a review item, not an asserted unconditional trace.",
+    "source": [
+      "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/tags_gen.go#L60",
+      "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/tags_gen.go#L170"
+    ]
+  },
+  "conditional_paths_not_default_grants": [
+    {
+      "trigger": "Subnet delete encounters lingering service ENIs",
+      "actions": [
+        "ec2:DetachNetworkInterface",
+        "ec2:DeleteNetworkInterface"
+      ],
+      "decision": "Do not grant broad ENI cleanup. Resolve service ownership and approved cleanup path first; keep boundary denial if not accepted.",
+      "source": [
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_network_interface.go#L1662",
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_network_interface.go#L1695"
+      ]
+    },
+    {
+      "trigger": "Subnet DeleteSubnet returns DependencyViolation; GuardDuty endpoint handling",
+      "actions": [
+        "ec2:DescribeVpcs",
+        "ec2:DescribeVpcEndpoints",
+        "ec2:ModifyVpcEndpoint"
+      ],
+      "decision": "Exception recovery review only; do not disable monitoring or expand endpoint mutation automatically.",
+      "source": [
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_subnet.go#L434",
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_subnet.go#L877"
+      ]
+    },
+    {
+      "trigger": "VPC DeleteVpc returns DependencyViolation; GuardDuty endpoint/SG handling",
+      "actions": [
+        "ec2:DescribeVpcEndpoints",
+        "ec2:DeleteVpcEndpoints",
+        "ec2:DescribeSecurityGroups",
+        "ec2:DeleteSecurityGroup"
+      ],
+      "decision": "Exception recovery review only. Existing protected service resources must retain their ownership boundary.",
+      "source": [
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_.go#L416",
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_.go#L812",
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_.go#L855"
+      ]
+    },
+    {
+      "trigger": "Route-table refresh encounters an ENI target after later vpn route activation",
+      "actions": [
+        "ec2:DescribeNetworkInterfaces"
+      ],
+      "decision": "Read dependency; not evidence that route activation is currently allowed.",
+      "source": [
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_route_table.go#L901"
+      ]
+    }
+  ],
+  "excluded_current_source_paths": [
+    "IPv6 CIDR association/disassociation",
+    "IPAM allocation/release lookup",
+    "VPC tenancy mutation",
+    "VGW route propagation",
+    "inline route table mutation",
+    "default VPC adoption"
+  ],
+  "authorization_reference": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ec2.html",
+  "policy_completion_remaining": [
+    "Action/Resource/Condition statements and dependent ARN coverage for all network/vpn resources",
+    "read actions with no resource-level support separated from scoped writes",
+    "resource ownership and protected tag denies",
+    "RunInstances/EBS KMS/PassRole and state/backend existing candidate integration",
+    "central ValidatePolicy and changed positive/negative simulations",
+    "human role grant/readback and individual MFA runtime"
+  ],
+  "provider_source_manifest": [
+    {
+      "file": "vpc_.go",
+      "sha256": "3871f541c15839bcb0d4dd8098887bc2b9816ac0eb753399c79d3f65d3ad6727",
+      "bytes": 32093,
+      "url": "https://raw.githubusercontent.com/hashicorp/terraform-provider-aws/v6.66.0/internal/service/ec2/vpc_.go"
+    },
+    {
+      "file": "vpc_subnet.go",
+      "sha256": "4ecadfb2f091f106552834bf7730168a130b879ab1248ea32fa99468aa4c7028",
+      "bytes": 36197,
+      "url": "https://raw.githubusercontent.com/hashicorp/terraform-provider-aws/v6.66.0/internal/service/ec2/vpc_subnet.go"
+    },
+    {
+      "file": "vpc_internet_gateway.go",
+      "sha256": "d98b619ae767f0f8dab2d74a57cc552947fa77b4f8c6b0db5e09a7f6e4fdf303",
+      "bytes": 8934,
+      "url": "https://raw.githubusercontent.com/hashicorp/terraform-provider-aws/v6.66.0/internal/service/ec2/vpc_internet_gateway.go"
+    },
+    {
+      "file": "vpc_route_table.go",
+      "sha256": "e93f3ba255f36b9249c89fa7b3d0f57f9fd4d0337836acdf8b24586cce9fa6de",
+      "bytes": 28920,
+      "url": "https://raw.githubusercontent.com/hashicorp/terraform-provider-aws/v6.66.0/internal/service/ec2/vpc_route_table.go"
+    },
+    {
+      "file": "vpc_route_table_association.go",
+      "sha256": "a34db2ca50d4b15c57b27036f3efa6394dc62263a5d729d107c9276eb6ade966",
+      "bytes": 8925,
+      "url": "https://raw.githubusercontent.com/hashicorp/terraform-provider-aws/v6.66.0/internal/service/ec2/vpc_route_table_association.go"
+    },
+    {
+      "file": "vpc_route.go",
+      "sha256": "09c438370f79cde5ca90ad34e2994e261632c31fe43ed8243bfd891cb09e4dc5",
+      "bytes": 18845,
+      "url": "https://raw.githubusercontent.com/hashicorp/terraform-provider-aws/v6.66.0/internal/service/ec2/vpc_route.go"
+    },
+    {
+      "file": "find.go",
+      "sha256": "d8a9427a50d2f9289ba7fb4d98c1fb714dee7f7b95f8f593d8cc785eacff9e4f",
+      "bytes": 212732,
+      "url": "https://raw.githubusercontent.com/hashicorp/terraform-provider-aws/v6.66.0/internal/service/ec2/find.go"
+    },
+    {
+      "file": "wait.go",
+      "sha256": "86ebb1bc3a3d30c09109e5f451c29b35a9ca590ab72b7b6ad4b6da8b6b8526db",
+      "bytes": 143412,
+      "url": "https://raw.githubusercontent.com/hashicorp/terraform-provider-aws/v6.66.0/internal/service/ec2/wait.go"
+    },
+    {
+      "file": "status.go",
+      "sha256": "55d19605879e2f82d9173da88ff7450d444571f656d16c9e80988e2f23f1d281",
+      "bytes": 47403,
+      "url": "https://raw.githubusercontent.com/hashicorp/terraform-provider-aws/v6.66.0/internal/service/ec2/status.go"
+    },
+    {
+      "file": "tags_gen.go",
+      "sha256": "883191caaa59afeaca1aebaf44869690196910e0bf0e448cf0adf5a9707851f3",
+      "bytes": 6021,
+      "url": "https://raw.githubusercontent.com/hashicorp/terraform-provider-aws/v6.66.0/internal/service/ec2/tags_gen.go"
+    },
+    {
+      "file": "ec2_availability_zone_data_source.go",
+      "url": "https://raw.githubusercontent.com/hashicorp/terraform-provider-aws/v6.66.0/internal/service/ec2/ec2_availability_zone_data_source.go",
+      "bytes": 4123,
+      "sha256": "a4b38f82d748af62a0ef2b2c15ade2188004f2c505e208fae7877a608829ab24"
+    },
+    {
+      "file": "vpc_network_interface.go",
+      "url": "https://raw.githubusercontent.com/hashicorp/terraform-provider-aws/v6.66.0/internal/service/ec2/vpc_network_interface.go",
+      "bytes": 55414,
+      "sha256": "2e322c9e025a03a24b3521ffb0ce279f50626ba780a9b1c1e73b3ebf4c6f5316"
+    }
+  ]
+}
