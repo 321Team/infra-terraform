@@ -1,5 +1,5 @@
 {
-  "status": "SUPPORT_CONFIRMED_BUDGET_ASSESSMENT_PENDING",
+  "status": "REPORT_BASED_TRACKING_CONFIRMED",
   "currency": "USD",
   "user_confirmed": {
     "cap": 500,
@@ -18,27 +18,30 @@
     "source": "2026-10-08 user clarification in this thread",
     "further_support_confirmation_required": false
   },
-  "current_usage": {
-    "as_of_kst": null,
-    "gross": null,
-    "net": null,
-    "unreported_estimate": null,
-    "source": null
+  "independent_prework": "CONTINUE_WITHIN_EXISTING_AUTHORIZATION",
+  "tracking": {
+    "source": "EDUCATION_PROVIDER_REPORT",
+    "source_confirmed_by": "2026-10-08 user instruction in this thread",
+    "independent_billing_query_required": false,
+    "independent_estimate_required": false,
+    "cadence": "EXISTING_PROVIDER_REPORT_FLOW",
+    "automation_created": false
   },
-  "remaining_estimate": {
-    "worker_ec2": null,
-    "rosa_service_hcp": null,
-    "relay": null,
-    "ebs": null,
-    "public_ipv4": null,
-    "nat": null,
-    "load_balancer": null,
-    "dns_endpoint": null,
-    "transfer": null,
-    "cleanup_residual_backup_tax": null,
-    "pricing_as_of_kst": null,
-    "source": null
+  "latest_report": {
+    "status": "NOT_RECEIVED_IN_THIS_TASK",
+    "reference": null,
+    "issued_at": null,
+    "received_kst": null,
+    "period": null,
+    "currency": null,
+    "reported_usage": null,
+    "reported_expected_total": null,
+    "basis_as_reported": null
   },
-  "go": "NOT_ASSESSED_USAGE_AND_FORECAST_PENDING",
-  "independent_prework": "CONTINUE_WITHIN_EXISTING_AUTHORIZATION"
+  "assessment": {
+    "status": "NOT_ASSESSED_NO_REPORT_RECEIVED",
+    "usage_vs_thresholds": null,
+    "expected_total_vs_thresholds": null,
+    "followup": null
+  }
 }

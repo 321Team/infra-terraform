@@ -35,7 +35,7 @@ Plan RC0=변경 없음 / RC2=차이 있음(검토 대상) / RC1=실패. 새 빈 
 
 ## 2. network Apply와 실제 handoff 사이의 경계
 
-network Apply는 이 문서에 실행 명령을 넣지 않았다. **#34 Freeze·기존 비용 한도/자부담0·실행창·saved plan 검토·권한/복구 조건**을 충족한 별도 판단이 필요하다. Apply가 수행된 뒤 `terraform output -json network_handoff`의 비밀 없는 값만 #35가 검증·인계한다. network source에 subnet4개가 있다는 사실이 ROSA 3AZ 결정을 뜻하지 않는다.
+network Apply는 이 문서에 실행 명령을 넣지 않았다. **#34 Freeze·교육장 리포트 기준 기존 비용 한도/자부담0·실행창·saved plan 검토·권한/복구 조건**을 충족한 별도 판단이 필요하다. Apply가 수행된 뒤 `terraform output -json network_handoff`의 비밀 없는 값만 #35가 검증·인계한다. network source에 subnet4개가 있다는 사실이 ROSA 3AZ 결정을 뜻하지 않는다.
 
 ## 3. vpn Plan의 필수 입력
 

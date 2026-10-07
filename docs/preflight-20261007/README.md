@@ -6,7 +6,7 @@ CODEX_ASSISTED. #34 결정 입력 → #35 IAM/Stage-A Gate → #37 SG·AMI → T
 
 - 사전 작업: 결정 입력·Gate 점검·SG/AMI 문서 검증·Plan 절차 준비 수행.
 - Architecture Freeze: HOLD. Human Role Grant / Cloud Plan / Apply / Relay·ROSA Runtime: NOT_RUN 또는 실제 완료 증적 미확인.
-- 비용: 사용자 2026-10-07 답변으로 **총상한 USD 500, 팀 자부담 USD 0** 확인. 기존 Target ≤400 / Hard Stop 450 / Reserve 50 유지. 2026-10-08 사용자 정정으로 교육장 지원은 이미 제공 중임을 확정했다. 미확인은 누적/미반영 및 잔여 견적에 따른 내부 한도 판정이다. 지원 자체의 재확인은 요구하지 않는다.
+- 비용: 사용자 2026-10-07 답변으로 **총상한 USD 500, 팀 자부담 USD 0** 확인. 기존 Target ≤400 / Hard Stop 450 / Reserve 50 유지. 2026-10-08 사용자 정정으로 교육장 지원은 이미 제공 중임을 확정했다. 사용액·예상 총비용은 교육장 리포트 금액으로 추적한다. 최신 금액은 이 작업에 미접수이며 자체 조회/견적 확보는 선행조건이 아니다. 지원 자체의 재확인은 요구하지 않는다.
 - 설계 방향: 후속 사용자 선택으로 **1 AZ·m5.xlarge 3대, worker 1대 장애·복구 시험 준비** 수신. AZ 전체 장애 대응을 새 P0 필수조건으로 추가하지 않음. actual AZ/subnet·용량·비용·생성 GO는 별도 잔여다.
 - 현행 발행 정본은 docs-v3.1.21. 최신 main/후속 결정과 정본의 이력을 구분하며 AC·담당·일정·종결을 변경하지 않는다.
 
@@ -38,4 +38,4 @@ PR5의 기존 STATIC/MOCK 증적과 독립 리뷰는 재사용한다. 최초 준
 
 ## 2026-10-08 권욱 선행 작업 전체 착수
 
-[사용액·한도 관리 입력표](cost-support-request.md), [운영창/정리안](operating-teardown-plan.md), [지원 AMI 대안 실조회](ami-alternative-review.md), [본인 U1·lock/거부/복구 준비](gwonuk-u1-plan.md)를 추가했다. 지원은 확정, 누적 사용액은 SCP 조회 거부로 미확인, AMI 후보 metadata는 실제 RC0/원본 재해시 완료. 설정 방향이 이미 결정된 Session document는 다시 결정받지 않고 actual ownership/readback만 잔여로 둔다. 실제 Grant/Plan/Apply/Runtime은 미실행이다.
+[사용액·한도 관리 입력표](cost-support-request.md), [운영창/정리안](operating-teardown-plan.md), [지원 AMI 대안 실조회](ami-alternative-review.md), [본인 U1·lock/거부/복구 준비](gwonuk-u1-plan.md)를 추가했다. 지원 및 교육장 리포트 기준 추적은 확정, 최신 보고금액은 이 작업에 미접수, AMI 후보 metadata는 실제 RC0/원본 재해시 완료. 설정 방향이 이미 결정된 Session document는 다시 결정받지 않고 actual ownership/readback만 잔여로 둔다. 실제 Grant/Plan/Apply/Runtime은 미실행이다.
