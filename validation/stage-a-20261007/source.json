@@ -1,0 +1,22 @@
+{
+  "Repository": "321Team/infra-terraform",
+  "CandidateHead": "d506ffa434257d970eb3781756b25c9a6c41af14",
+  "BaselineMerge": "40ac664b83485745ab86b5018b8e19c386484cc8",
+  "TerraformVersion": "1.16.4",
+  "AWSProviderVersion": "6.66.0",
+  "Scope": "PINNED_SCAFFOLD_STATIC_ONLY",
+  "Files": {
+    "terraform/backends/network.hcl.example": "e6c4ddf2036b3d46cb7243cc3b0a2b57976d6f6f660795cd4d549417fda920ff",
+    "terraform/backends/rosa-prereq.hcl.example": "1147bd59c8f22fdb8b2ba66d0335db16c8dfbd9b5742af3c3f61fb6141129958",
+    "terraform/backends/rosa-runtime.hcl.example": "412c3f95aca9f7ee2d4ee5a8b87820961cc1c78bf4baaa1cbbd5ff81f25aeb77",
+    "terraform/backends/vpn.hcl.example": "abdda61dea092f7c3ce467e3db2faf9393d7a0b3634f4353c0fe93bf4e8cfc46",
+    "terraform/stage-a/.terraform.lock.hcl": "ca1132bd3809dd28ae89b5c9a529d25247b5b90bdba8cf190f3731fcab70cd81",
+    "terraform/stage-a/README.md": "be38bfee67dd40c9c2ea61992dc482f83f3302a832d147a36181e4564528c01d",
+    "terraform/stage-a/bootstrap-references.tf": "d9d4440f1dad16d4cdd9b8a39d32ee1673d6d37d4af3a8138557c3ffe66de679",
+    "terraform/stage-a/outputs.tf": "d0ed6b8ee96e0c35651e7d85d708ffb6497bc3df55182dae9420bf9ea717e675",
+    "terraform/stage-a/providers.tf": "369f3ef47ec5a358992303121296a598423afef923b0931c0e2f0a74c8d25c9f",
+    "terraform/stage-a/terraform.tfvars.example": "e3bb4073febad98cc09cb3dfd3305e63fa7e9b1ed9eb00383ff687791e6b7660",
+    "terraform/stage-a/variables.tf": "87f6f9fe2ff0041c1ecb3ad670d6633085a32e1f2af356d88c6c9fa84025c2a4",
+    "terraform/stage-a/versions.tf": "3200883f3cb7082fdaaf73c7586d9a50565306cd477e8ac7f9e98eb9ec61b310"
+  }
+}
