@@ -5,6 +5,7 @@ PR #4의 Stage-A 정적 검증 기반이 main에 병합된 뒤, 별도 `terrafor
 ## 기준·추적
 
 - 선행 [PR #4](https://github.com/321Team/infra-terraform/pull/4): 2026-10-07 19:49:15 KST 병합, `da452938714a770b43ad44641be0b80123c73f8d`. 병합 직전 HEAD `0168220efa6bd141efaa8e52f6104a7cf77e0858`의 독립 APPROVED와 사용자 조건부 병합 요청을 확인했다. CI 검사 0건은 NOT_RUN이다. 사용자 제출 Linux Stage-A 수신 결과와 로컬 무결성 검토를 구분하며, 제출한 원본 capture 전체를 독립 재해시했다고 주장하지 않는다.
+- [하영의 19:58:16 KST 재승인](https://github.com/321Team/infra-terraform/pull/4#pullrequestreview-5441279411)은 같은 최종 HEAD에 대한 병합 후 기록이다. 요청한 비차단 문서 보완은 [STATIC 성공 접수 기록](../validation/stage-a-20261007/RESULT_RECEIPT_20261007.md)과 README·인계 문서에 반영했다. 이 승인은 PR #5에 승계되지 않는다.
 - 중앙 기준 조회 SHA: `bbae7d7b52d3084187b328b97a70b59e5980ffe4`, [PR #137](https://github.com/321Team/fds-project-baseline/pull/137) 병합 반영. 이 중앙 문서의 제안 항목을 승인된 실행값으로 승격하지 않는다.
 - 책임: [#35 AWS/ROSA IaC](https://github.com/321Team/fds-project-baseline/issues/35) 이하영, 지원 이권욱; [#37 Hybrid VPN](https://github.com/321Team/fds-project-baseline/issues/37) 이재환. 담당·일정·AC는 변경하지 않는다.
 - [source.json](../validation/components-20261007/source.json)은 로컬 v1.2 후보와 동일한 15개 파일의 SHA256, 원본 ZIP hash, 버전과 테스트 수를 고정한다. SHA 일치는 무결성이며 승인이나 Runtime 성공이 아니다.
