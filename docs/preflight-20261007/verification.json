@@ -1,0 +1,158 @@
+{
+  "kind": "LOCAL_STATIC_AND_MOCK_RECEIPT_NOT_AWS_EVIDENCE",
+  "as_of_kst": "2026-10-07T23:40:18.588709+09:00",
+  "host": "14ZB95N-GPLCL",
+  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+  "terraform_source_commit": "0eabe8daa75a6b9bf960fe1ea5eeaf6a8818f216",
+  "baseline_observed_commit": "81365568fd0b946ad93e4d82ae8191add5fcacd0",
+  "terraform_manifest_checks": [
+    {
+      "path": "terraform/network/.terraform.lock.hcl",
+      "sha256": "19d9d35be5e84e592d2714ebf7ecd11a75610fd3addc2c22a8d1f9445a6ca38f",
+      "matches_existing_manifest": true
+    },
+    {
+      "path": "terraform/network/backend.hcl.example",
+      "sha256": "e6c4ddf2036b3d46cb7243cc3b0a2b57976d6f6f660795cd4d549417fda920ff",
+      "matches_existing_manifest": true
+    },
+    {
+      "path": "terraform/network/main.tf",
+      "sha256": "f17ef751d08bd83248401eba25f060129ffe76687b8e9c52872e8c4ce524894f",
+      "matches_existing_manifest": true
+    },
+    {
+      "path": "terraform/network/outputs.tf",
+      "sha256": "230dccf8537643aeed9bd2ddd2dd50f9d273fccdc3e4271aa97aa1f66b08c494",
+      "matches_existing_manifest": true
+    },
+    {
+      "path": "terraform/network/tests/network.tftest.hcl",
+      "sha256": "dc55c247820f4243858c43e4a932e8fe5b3b8aae88b332d24ebb9ac52a874435",
+      "matches_existing_manifest": true
+    },
+    {
+      "path": "terraform/network/versions.tf",
+      "sha256": "e653faf7197736809b47bb46b8830a3f5efbe6ddb137f36ac04f436fa0ff3bca",
+      "matches_existing_manifest": true
+    },
+    {
+      "path": "terraform/vpn/.terraform.lock.hcl",
+      "sha256": "19d9d35be5e84e592d2714ebf7ecd11a75610fd3addc2c22a8d1f9445a6ca38f",
+      "matches_existing_manifest": true
+    },
+    {
+      "path": "terraform/vpn/backend.hcl.example",
+      "sha256": "abdda61dea092f7c3ce467e3db2faf9393d7a0b3634f4353c0fe93bf4e8cfc46",
+      "matches_existing_manifest": true
+    },
+    {
+      "path": "terraform/vpn/bootstrap.sh.tftpl",
+      "sha256": "f270cc5701916d21ee8f77ec11e96621f576e0be25892810ba1c3850467954be",
+      "matches_existing_manifest": true
+    },
+    {
+      "path": "terraform/vpn/main.tf",
+      "sha256": "e8985c87310647f1102af7432f83ce42955251891cd9ad594b2400788ad4d47b",
+      "matches_existing_manifest": true
+    },
+    {
+      "path": "terraform/vpn/outputs.tf",
+      "sha256": "ea9f3d9a5e2be0a339f515ef11cac05efc4ae593f3968cdf7e3cab1aa24e8367",
+      "matches_existing_manifest": true
+    },
+    {
+      "path": "terraform/vpn/session-document.tf",
+      "sha256": "60adebd8f88a4326096cc383594e17053402105f206765fa5556b831bf83b96c",
+      "matches_existing_manifest": true
+    },
+    {
+      "path": "terraform/vpn/tests/vpn.tftest.hcl",
+      "sha256": "d2f0f7171e9da5fc5af47de54a7d1e12e8358e47b56c5139cbfe069a6d94eda2",
+      "matches_existing_manifest": true
+    },
+    {
+      "path": "terraform/vpn/variables.tf",
+      "sha256": "7e357db8903b6abcf7568daf50bc6933d6a4510b72560cfd9e8316fdeedbb1bc",
+      "matches_existing_manifest": true
+    },
+    {
+      "path": "terraform/vpn/versions.tf",
+      "sha256": "10834006cf0aeca35c112e635b752fecf154da3a0c5ea87c40cb54504870fcca",
+      "matches_existing_manifest": true
+    }
+  ],
+  "relative_links_checked": [
+    {
+      "document": "iam-stage-a.md",
+      "target": "../../validation/components-20261007/resource-api-inventory.json"
+    },
+    {
+      "document": "iam-stage-a.md",
+      "target": "plan-runbook.md"
+    },
+    {
+      "document": "README.md",
+      "target": "decision-inputs.md"
+    },
+    {
+      "document": "README.md",
+      "target": "iam-stage-a.md"
+    },
+    {
+      "document": "README.md",
+      "target": "sg-ami.md"
+    },
+    {
+      "document": "README.md",
+      "target": "plan-runbook.md"
+    },
+    {
+      "document": "README.md",
+      "target": "../../scripts/collect-phase2-preflight.py"
+    },
+    {
+      "document": "README.md",
+      "target": "iam-stage-a.md#읽기-전용-추가-수집"
+    },
+    {
+      "document": "sg-ami.md",
+      "target": "../../terraform/vpn/bootstrap.sh.tftpl"
+    }
+  ],
+  "new_source_hashes": {
+    "docs/preflight-20261007/decision-inputs.md": "e484d03fcc2743ccd754948fe1885b08db063170a9b67181d9199988f6741113",
+    "docs/preflight-20261007/iam-stage-a.md": "8f92b5647daf58418e7fe201ba295e92041fa9acc1a7eb30e83681ec783cc828",
+    "docs/preflight-20261007/plan-runbook.md": "0b652727a95d5df6efd678e64b775841ecb8d0f4480299263fe4d5a7549a9460",
+    "docs/preflight-20261007/README.md": "564e49fc3aa25f0a14ae746ac9be18760f44857957cc561daa8306c8f6ffa62c",
+    "docs/preflight-20261007/sg-ami.md": "ade5c6cb7915cbe4dd6a274a7391562a9d4068e81956d005ae31707f3ff08bbd",
+    "scripts/collect-phase2-preflight.py": "c25063e93f242f5cc97e6ca0952c514eb530633c387b44b2bba0ad01013f99f8",
+    "tests/test_phase2_preflight.py": "3ab7c38addf7dde732411c662fc7afd622d2b513d5ec0fa43b3b113870b84447"
+  },
+  "offline_tests": {
+    "command": [
+      "C:\\Users\\Admin\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests",
+      "-p",
+      "test_phase2_preflight.py",
+      "-v"
+    ],
+    "return_code": 0,
+    "tests": 9,
+    "result": "PASS",
+    "basis": "Codex tool captured stdout/stderr, 2026-10-07 23:38-23:39 KST; synthetic subprocess runner; no AWS CLI invocation",
+    "raw_capture_in_repository": false
+  },
+  "ci": "NOT_RUN",
+  "terraform_reexecution": "NOT_RUN",
+  "aws_readonly": "NOT_RUN",
+  "iam_grant": "NOT_RUN",
+  "plan": "NOT_RUN",
+  "apply": "NOT_RUN",
+  "ami_runtime": "NOT_VERIFIED",
+  "publication": "NOT_RUN"
+}
