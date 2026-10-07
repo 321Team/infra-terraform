@@ -1,6 +1,6 @@
 {
   "Repository": "321Team/infra-terraform",
-  "CandidateHead": "d506ffa434257d970eb3781756b25c9a6c41af14",
+  "CandidateHead": "7b69552dbd22ca7c9d24095e080f41d1585dfc5c",
   "BaselineMerge": "40ac664b83485745ab86b5018b8e19c386484cc8",
   "TerraformVersion": "1.16.4",
   "AWSProviderVersion": "6.66.0",
@@ -15,8 +15,10 @@
     "terraform/stage-a/bootstrap-references.tf": "d9d4440f1dad16d4cdd9b8a39d32ee1673d6d37d4af3a8138557c3ffe66de679",
     "terraform/stage-a/outputs.tf": "d0ed6b8ee96e0c35651e7d85d708ffb6497bc3df55182dae9420bf9ea717e675",
     "terraform/stage-a/providers.tf": "369f3ef47ec5a358992303121296a598423afef923b0931c0e2f0a74c8d25c9f",
-    "terraform/stage-a/terraform.tfvars.example": "e3bb4073febad98cc09cb3dfd3305e63fa7e9b1ed9eb00383ff687791e6b7660",
+    "terraform/stage-a/terraform.tfvars.example": "3980a97526d7f7120c45f203527735449ba7d077ebda4b84faf70ae8e13c2f8e",
     "terraform/stage-a/variables.tf": "87f6f9fe2ff0041c1ecb3ad670d6633085a32e1f2af356d88c6c9fa84025c2a4",
     "terraform/stage-a/versions.tf": "3200883f3cb7082fdaaf73c7586d9a50565306cd477e8ac7f9e98eb9ec61b310"
-  }
+  },
+  "PreviousCandidateHead": "d506ffa434257d970eb3781756b25c9a6c41af14",
+  "SourceDelta": "terraform.tfvars.example relay alignment only; values unchanged; other 11 inputs byte identical"
 }
