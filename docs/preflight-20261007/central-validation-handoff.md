@@ -70,7 +70,7 @@ CLI 자동 pagination을 유지한다. RC0만 보지 않고 findings 전체를 �
 |---|---|---|
 | 중앙 IAM 검증 | 입력 대기 | 이하영: 전체 정책+검토+변경 case. 권욱: 실제 중앙 검증/판정 접수 |
 | network Plan | 미실행 | 중앙 grant/readback·본인 MFA/state/lock 시험 후 고정 source/입력으로 [기존 절차](plan-runbook.md) 수행 |
-| Relay 생성 | HOLD | #35/#37: Stream10 SSM 지원/정확 Agent·firewalld·repo·Libreswan 근거 및 bootstrap 적합성 |
+| Relay 생성 | HOLD | #35/#37: PR7 Stream9/Agent bootstrap 후보 독립 리뷰·수용, exact repo·Libreswan 입력 및 생성 후 readback |
 | Freeze·유료 Apply | HOLD | #34/#35/#38: 선택한1AZ3대 actual AZ/subnet·용량·운영창, 지원은 사용자 확인 완료. 교육장 리포트의 사용액·예상 총비용 기준 한도 추적과 자부담0; 지원 재확인/자체 조회·견적 차단은 해제 |
 | route 활성화 | OFF | #37/#38: 실제 source/inner SG·터널·허용/거부·복구 증적 |
 
@@ -79,3 +79,7 @@ AMI 공백을 network Plan의 새로운 필수조건으로 올리거나, network
 ## 10-08 후속 정합화
 
 Session document 구성 방향은 [#37 기존 결정6013422735](https://github.com/321Team/fds-project-baseline/issues/37#issuecomment-6013422735)으로 확정되어 있다. 다시 구성값을 결정받지 않는다. #35의 account-wide ownership 수용·fresh absence·실행 Gate·실제 생성/readback이 남으며 default false를 자동 변경하지 않는다. [권욱 본인 U1 패킷](gwonuk-u1-plan.md)의 exact lock fixture/경쟁·정리 및 음성시험 구분도 full policy 검토에 연결한다.
+
+## 10-08 PR7 연결 후속
+
+[소스 연결표](source-alignment-20261008.md)를 현재 준비 기준으로 추가한다. 위00:07 조회 이력은 그대로 보존하며 이후 PR7이 생성되어 리뷰 요청 중이다. 수집기는 Stream9 metadata를 대상으로 갱신했고 후보 SHA를 기록하지만 실제 AWS 재조회는 이번 변경에 포함하지 않았다. 전체 IAM 정책·grant를 완료했다고 표시하지 않는다.

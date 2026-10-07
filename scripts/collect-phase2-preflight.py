@@ -13,8 +13,10 @@ import tempfile
 
 ACCOUNT = "774055931866"
 REGION = "ap-northeast-2"
-AMI = "ami-079a2667364cee804"
+AMI = "ami-08d855918a18d0cf9"
 OWNER = "125523088429"
+# Candidate binding is provenance, never a merge, permission or execution grant.
+TERRAFORM_CANDIDATE = "e4ee0bff2d6aba92a0b147b86e1f4759f315eded"
 READS = {
     ("sts", "get-caller-identity"), ("ec2", "describe-images"),
     ("iam", "get-role"), ("iam", "list-attached-role-policies"),
@@ -148,6 +150,9 @@ def run(parent, runner=subprocess.run):
                "started_kst": datetime.now(timezone(timedelta(hours=9))).isoformat(),
                "host": platform.node(), "platform": platform.platform(),
                "source_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+               "expected_ami": AMI, "expected_ami_owner": OWNER,
+               "terraform_candidate_sha": TERRAFORM_CANDIDATE,
+               "terraform_candidate_status": "REVIEW_PENDING_NOT_EXECUTION_APPROVAL",
                "aws_mutation": "NOT_RUN", "plan": "NOT_RUN", "stage_a_ready": "NO",
                "ami_os_packages_services": "NOT_VERIFIED",
                "effective_permissions": "NOT_TESTED", "grant": "NOT_RUN"}

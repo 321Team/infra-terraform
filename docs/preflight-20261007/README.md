@@ -2,6 +2,10 @@
 
 CODEX_ASSISTED. #34 결정 입력 → #35 IAM/Stage-A Gate → #37 SG·AMI → Terraform Plan 준비 순서로 최신 원본을 대조했다. 이 묶음은 준비 자료이며 승인된 Terraform 소스나 AWS 설정을 바꾸지 않는다.
 
+## 2026-10-08 후속 소스 연결
+
+[PR7 소스 연결표](source-alignment-20261008.md)와 [기계 판독 참조](source-binding-20261008.json)를 추가했다. 수집기는 Stream9 후보 AMI를 조회하며 결과에 후보 SHA와 실행 승인 아님을 기록한다. 기존 실제 Stream10/Stream9 조회 원본은 수정하지 않았다. **이 PR6의 Terraform은 이전 main 상태로 유지되며 PR7 코드를 포함하지 않는다.** 실제 Plan에는 최종 검토·병합·수용한 별도 checkout을 사용한다.
+
 ## 현재 판정
 
 - 사전 작업: 결정 입력·Gate 점검·SG/AMI 문서 검증·Plan 절차 준비 수행.
@@ -27,7 +31,7 @@ PR5의 기존 STATIC/MOCK 증적과 독립 리뷰는 재사용한다. 최초 준
 
 1. [#34 결정 입력](decision-inputs.md): 이권욱의 비용·N-1/AZ 방향 선택을 기록. exact 생명주기와 실행 Gate 잔여를 구분함.
 2. [#35 IAM/Stage-A Gate](iam-stage-a.md): 이하영이 전체 permissions·정책/소스 검토를 완결하고 기존 중앙 부여 경로 및 각 본인 시험을 연결.
-3. [#37 SG/AMI 사전검증](sg-ami.md): 이하영·이재환이 AMI 지원/패키지/서비스 근거 및 최종 tuple을 수신. 초기 생성과 route 활성화 조건을 분리.
+3. [#37 SG/AMI 사전검증](sg-ami.md): Stream9·SG 결정과 PR7 구현 후보를 연결하고 이하영·이재환이 exact 패키지/repo 및 후속 Runtime 근거를 완결. 초기 생성과 route 활성화 조건을 분리.
 4. [Plan 실행 준비](plan-runbook.md): network plan → 별도 승인 network apply → 실제 handoff → vpn plan → 별도 승인 vpn apply → #37 증적 후 route plan.
 5. [읽기 전용 수집기](../../scripts/collect-phase2-preflight.py): 새 AMI/IAM/document 입력만 수집. 정책 부여/유료 생성/Plan 기능 없음. [사용법](iam-stage-a.md#읽기-전용-추가-수집).
 6. [권욱 담당 실행 순서](gwonuk-next-actions.md): 직접 결정 완료 항목, 지금 가능한 조회, 타 담당 입력 이후의 중앙 실행을 구분.

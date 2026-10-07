@@ -1,0 +1,70 @@
+{
+  "started_utc": "2026-10-07T16:46:01.086859+00:00",
+  "finished_utc": "2026-10-07T16:46:03.228678+00:00",
+  "host": "14ZB95N-GPLCL",
+  "base_prepare_sha": "4d1b445323f1e5ce18066c2638be2b008a653346",
+  "referenced_candidate_sha": "e4ee0bff2d6aba92a0b147b86e1f4759f315eded",
+  "command": [
+    "C:\\Users\\Admin\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tests",
+    "-p",
+    "test_phase2_preflight.py",
+    "-v"
+  ],
+  "exit_code": 0,
+  "collector_mock_tests": 11,
+  "stdout_sha256": "4f1a024f1835c87c13c41cc9ff2f19fd53b5704e271bd59652ba6e89f9862446",
+  "stderr_sha256": "50f78fd2da43edff175a01aa033b7c58bc30e6f030741a3495d78cb9d74beb75",
+  "terraform_current_files_unchanged": 15,
+  "candidate_git_blob_manifest_files_checked": 16,
+  "historical_receipts_unchanged": [
+    "central-readonly-receipt.md",
+    "ami-alternative-review.md",
+    "verification.json",
+    "followup-verification.json",
+    "central-validation-verification.json",
+    "own-prework-verification.json",
+    "cost-correction-verification.json",
+    "report-basis-verification.json"
+  ],
+  "relative_links_checked": 41,
+  "source_files": {
+    "scripts/collect-phase2-preflight.py": "b541c7e76de2b7dc8171d70e0608dd79745e27691891990d638e22f076d0401d",
+    "tests/test_phase2_preflight.py": "552dde4b9db4c147b5bab7374e3d266a6d41aca7aba13c376f150c051a548987"
+  },
+  "scope": "MOCK_AND_STATIC_ONLY",
+  "AWS_READ_ONLY_THIS_REVISION": "NOT_RUN",
+  "AWS_MUTATION": "NOT_RUN",
+  "CLOUD_PLAN": "NOT_RUN",
+  "CLOUD_APPLY": "NOT_RUN",
+  "CI": "NOT_RUN",
+  "independent_review": "NOT_PERFORMED_PRECHECK",
+  "execution_approval": "NOT_GRANTED",
+  "document_static_finished_utc": "2026-10-07T16:47:27.805398+00:00",
+  "document_sha256": {
+    "README.md": "a63bc6fe5c4caebce6c96364e4cd973193fa5fdb316aaa9409d6b623eea78bf3",
+    "decision-inputs.md": "e1e3e65e1561110eb08f684aec68b61be6e73d3b17a7e4c21ad2cef7e654dc5e",
+    "iam-stage-a.md": "96c4dd9043fbcc34a7faf27585dfd3d9c1a6380a72ea28438c04b0d31181d3da",
+    "sg-ami.md": "107fb6082c0e139fdc2ec090ff7ba593874f4f6f92397d2f3675b8fc10a41984",
+    "plan-runbook.md": "46e95212cb511223d26bf703b5f3bb6f3b572868dd8495a789c4ece9a51044dc",
+    "source-alignment-20261008.md": "fabaa36f926d2d43f75a29733c099b3da4b6c67d581069769131affb9ebf0074",
+    "central-validation-handoff.md": "398d2ae194f7b8f70b7f59d8dc6c6bd82c7ce53c431358ec20f466aa5c4658d4",
+    "gwonuk-next-actions.md": "e8e001ffc805f533cece7f32af01d06a2b2a140bb21181b50186dd06f8fc1348"
+  },
+  "plan_syntax": {
+    "exit_code": 0,
+    "command": [
+      "C:\\Users\\Admin\\.codex\\.chatgpt-projects\\g-p-6a85069945708191b56059da202e4461\\work\\phase2-sequence-20261007\\relay-review-tools\\portablegit\\bin\\bash.exe",
+      "--noprofile",
+      "--norc",
+      "-n",
+      "/c/Users/Admin/AppData/Local/Temp/fds-plan-syntax-6_8f4y4i/plan.sh"
+    ],
+    "scope": "bash -n only; no commands executed",
+    "snippet_sha256": "c5f7847f038ab907fd0c4cd6d225a2bbf5429e6a7329f770bdb63018573ed2e1"
+  }
+}

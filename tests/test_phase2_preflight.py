@@ -12,7 +12,7 @@ spec.loader.exec_module(m)
 
 
 class CollectorTests(unittest.TestCase):
-    def make_runner(self, account=None, bad_image=False, denial=False, timeout=False):
+    def make_runner(self, account=None, bad_image=False, denial=False, timeout=False, old_image=False):
         self.calls = []
         def runner(cmd, **kwargs):
             self.calls.append(cmd)
@@ -22,8 +22,11 @@ class CollectorTests(unittest.TestCase):
             if service == "sts":
                 data = {"Account": account or m.ACCOUNT, "Arn": "SYNTHETIC_ONLY"}
             elif service == "ec2":
+                self.assertEqual(cmd[cmd.index("--image-ids") + 1], "ami-08d855918a18d0cf9")
                 data = {"Images": [] if bad_image else [{"ImageId": m.AMI, "OwnerId": m.OWNER,
                     "State": "available", "Architecture": "x86_64", "RootDeviceType": "ebs"}]}
+                if old_image:
+                    data["Images"][0]["ImageId"] = "ami-079a2667364cee804"
             else:
                 error = "AccessDenied" if denial else ("NoSuchEntity" if service == "iam" else "InvalidDocument")
                 return subprocess.CompletedProcess(cmd, 254, b"", f"An error occurred ({error}) when calling the operation".encode())
@@ -58,6 +61,21 @@ class CollectorTests(unittest.TestCase):
         self.assertEqual(result["ami_os_packages_services"], "NOT_VERIFIED")
         self.assertEqual(result["session_document"], "NOT_FOUND_REVIEW_REQUIRED")
         self.assertTrue(all(tuple(c[1:3]) in m.READS for c in self.calls))
+
+    def test_old_stream10_response_stops_before_role_reads(self):
+        rc, result = self.execute(old_image=True)
+        self.assertEqual(rc, 2)
+        self.assertEqual(result["stop_reason"], "AMI_IDENTITY_OR_AVAILABILITY_MISMATCH")
+        self.assertEqual(len(self.calls), 2)
+
+    def test_receipt_binds_candidate_without_claiming_approval(self):
+        rc, result = self.execute()
+        self.assertEqual(rc, 0)
+        self.assertEqual(result["expected_ami"], "ami-08d855918a18d0cf9")
+        self.assertEqual(result["terraform_candidate_sha"], "e4ee0bff2d6aba92a0b147b86e1f4759f315eded")
+        self.assertEqual(result["terraform_candidate_status"], "REVIEW_PENDING_NOT_EXECUTION_APPROVAL")
+        self.assertEqual(result["plan"], "NOT_RUN")
+        self.assertEqual(result["stage_a_ready"], "NO")
 
     def test_access_denied_is_not_absence(self):
         rc, result = self.execute(denial=True)

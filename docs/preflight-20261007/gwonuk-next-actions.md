@@ -29,7 +29,7 @@ CODEX_ASSISTED. 2026-10-07 사용자 “내가 착수해야 되는 부분 진행
 |---|---|---|
 | #35 이하영: actual resource/API/완결 permissions와 검토 source | 중앙 fresh before backup·ValidatePolicy·변경 delta 양/음성 검증, 기존 승인 범위에서 grant/readback 준비 | full 정책/소스/권한 경계 일치. 실제 부여의 승인 범위 확인 전 AWS 쓰기 없음 |
 | 중앙 grant/readback 완료 | 권욱 본인 MFA IaC 역할 시험, state/lock·거부·복구 | 본인 실행 원본. 하영/재환 결과로 대체하지 않음 |
-| #35/#38 이하영: 1AZ3대 actual AZ/subnet·용량·정확 운영창·cost-to-complete; #37 이재환: source/SG/복구; 기존 DNS/Registry/보안 미결 | #34 Freeze와 비용/생명주기 판단 | 선택 방향 충족 + 자부담0 + 기존 필수조건. actual ID는 생성 후 관측 계약으로 분리 |
+| #35/#38 이하영: 1AZ3대 actual AZ/subnet·용량·정확 운영창; #37 이재환: source/SG/복구; 기존 DNS/Registry/보안 미결 | #34 Freeze와 비용/생명주기 판단 | 선택 방향 충족 + 자부담0 + 기존 필수조건. actual ID는 생성 후 관측 계약으로 분리 |
 | 실제 Relay/Agent/document/EBS handoff와 Network exact bind | 권욱 본인 Network U1 | 실제 세션·허용/거부 증적; 팀원 독립 실행을 대체하지 않음 |
 
 권욱에게 남은 일이 없다고 표시하지 않는다. 지금 미완결 정책을 대신 승인하거나 역할을 먼저 만드는 것은 선행조건 역전이다. 준비 문서·결정 기록 변경과 중앙 AWS 읽기 조회를 수행했으며, CloudShell 파일 외 AWS 설정 변경·rollback 대상은 없다. 기존 #35/#37 책임, 일정, AC, 비용 설정 보류는 유지한다.
@@ -37,3 +37,7 @@ CODEX_ASSISTED. 2026-10-07 사용자 “내가 착수해야 되는 부분 진행
 ## 10-08 전체 선행 작업 결과
 
 우리 쪽 준비를 중앙 정책 대기로 한정하지 않는다. 사용액 조회/한도 관리 입력표·운영창/삭제 순서·AMI 대안 서울 실조회·본인 U1/state-lock/음성/복구 절차를 [README 후속 묶음](README.md#2026-10-08-권욱-선행-작업-전체-착수)으로 연결했다. 이전 문의안은 교육장 리포트 추적 절차로 대체했고 외부 발송하지 않았다. 원본 없이 cost GO를 내리거나 본인 역할 시험을 중앙 root로 대신 실행하지 않았다.
+
+## 10-08 후속 준비값
+
+PR7 Stream9/SG 구현 후보를 [소스 연결표](source-alignment-20261008.md)로 연결했다. 비용 판단 원본은 교육장 사용액·예상 총비용 리포트이며 담당자의 별도 cost-to-complete 제출을 필수조건으로 요구하지 않는다. 리뷰·미결 계약을 취합하고 최종 실행 SHA와 본인 권한 입력이 준비되면 단계별 검증으로 이어간다.

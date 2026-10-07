@@ -41,6 +41,10 @@ CODEX_ASSISTED. 판정: **FULL_PERMISSIONS=INCOMPLETE / HUMAN_ROLES=ABSENT / CLO
 5. Apply Gate: 위 조건에 더해 #34 Freeze, 검토한 saved plan, $500/자부담0 내부 비용 한도(교육장 리포트 기준 추적), 실행창·복구 조건을 충족해야 함. 이번 작업은 GO가 아니다.
 6. 실제 Relay 생성 후 #37에 instance/ENI/EIP/profile/document/Agent/EBS 인계 → Network exact bind/grant → 권욱·재환 각각 U1. actual ID 부재를 생성 전 source 검토의 순환 차단조건으로 삼지 않는다.
 
+## 10-08 새 AMI·소스 소비
+
+PR7의 후보 SHA·AMI와 IAM delta는 [소스 연결표](source-alignment-20261008.md)에 고정했다. 수집기의 AMI는 Stream9로 바뀌었으며 summary에 기대 AMI/owner·후보 SHA를 기록한다. 수집 성공은 후보 metadata 확인일 뿐 코드 승인/Plan GO가 아니다. RunInstances image ARN도 새 AMI와 대조하고 최종 전체 정책을 검토한다. 이전 14행 inventory와 network 보완표의 작성 당시 근거는 보존한다.
+
 ## 읽기 전용 추가 수집
 
 대상: 채택 중앙 계정(끝 1866), 서울 CloudShell. 이권욱의 기존 중앙 사전조회 승인 범위에서 실행하며, 이번에는 로그인된 중앙 root identity를 STS로 확인했다. 중앙 사전조회와 이후 본인 MFA 역할 시험을 구분한다. 일반 Terraform Plan/Apply를 root로 수행하는 승인이 아니다. 새 권한 부여는 이 수집 절차에 포함하지 않는다. Python3/AWS CLI가 필요하다. SHA가 고정된 이 PR의 `scripts/collect-phase2-preflight.py` 한 파일을 CloudShell 개인 경로에 업로드한다. 전달 파일의 SHA256을 해당 Git blob에서 산출한 SHA256과 비교한 뒤:

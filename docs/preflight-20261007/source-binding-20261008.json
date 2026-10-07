@@ -1,0 +1,22 @@
+{
+  "status": "PREPARATION_ONLY_NOT_EXECUTION_APPROVAL",
+  "candidate_pr": "https://github.com/321Team/infra-terraform/pull/7",
+  "candidate_sha": "e4ee0bff2d6aba92a0b147b86e1f4759f315eded",
+  "candidate_manifest_path": "validation/relay-stream9-20261008/source.json",
+  "candidate_manifest_sha256": "fdd37c85a9f8bfae4cb3907550bb14f0bd3cdbf362200f0fed4a3df63c7a1d76",
+  "candidate_component_file_counts": {
+    "network": 6,
+    "vpn": 10
+  },
+  "expected_ami": "ami-08d855918a18d0cf9",
+  "owner": "125523088429",
+  "region": "ap-northeast-2",
+  "pr6_terraform_base": "0eabe8daa75a6b9bf960fe1ea5eeaf6a8818f216",
+  "accepted_execution_sha": null,
+  "accepted_execution_manifest_sha256": null,
+  "execution_approval_reference": null,
+  "live_tfvars_created": false,
+  "cloud_plan": "NOT_RUN",
+  "cloud_apply": "NOT_RUN",
+  "cost_source": "EDUCATION_PROVIDER_REPORTED_USAGE_AND_TOTAL_FORECAST"
+}

@@ -23,7 +23,7 @@ CODEX_ASSISTED. Architecture Freeze HOLD. 2026-10-07 이권욱의 직접 응답�
 
 - **USER_SELECTED_DESIGN_DIRECTION:** 1 AZ, m5.xlarge worker 3대, worker 1대 장애·복구 시험을 준비한다.
 - **AZ 범위:** AZ 전체 장애 대응은 새 P0 필수조건으로 추가하지 않는다. 제시된 단일 AZ 중단 위험을 포함한 설계 방향 선택이며 기존 승인 요구를 삭제하지 않는다.
-- **소비할 입력:** 이하영은 실제 AZ/subnet·machine pool·남은 2대의 platform/app 수용 용량 및 cost-to-complete를 이 방향으로 구체화한다. 선택과 다른 대수/AZ로 자동 대체하지 않는다.
+- **소비할 입력:** 이하영은 실제 AZ/subnet·machine pool·남은 2대의 platform/app 수용 용량을 이 방향으로 구체화한다. 비용은 교육장 리포트의 예상 총비용으로 추적한다. 선택과 다른 대수/AZ로 자동 대체하지 않는다.
 - **경계:** 새 #38 AC 체크/인수, 장애 주입 실행, topology/version 최종 Freeze, 한도 내 비용 판단, 유료 생성 GO는 아직 아니다. N-1 성공은 실제 workload/복구 증적으로 판단한다.
 
 ## 결정별 현재 상태
@@ -42,6 +42,6 @@ CODEX_ASSISTED. Architecture Freeze HOLD. 2026-10-07 이권욱의 직접 응답�
 
 ## Freeze 소비 경계
 
-MachinePool/AZ/subnet이 결정되면 #37의 worker source 후보를 좁힐 수 있다. 실제 worker SG ID는 생성 후 관측 대상이며 Freeze 전 필수 actual ID로 요구하지 않는다. DNS/관리 경로, D22 Registry, source/DB 경계 등 기존 미결은 관련 담당 결정에 연결하며 네 값만으로 전체 Freeze를 선언하지 않는다.
+#37의6041369929 결정으로 worker source 방식은 실제 private subnet CIDR1개로 확정됐다. MachinePool/AZ/subnet key 값을 구체화하고 PR7 조건과 연결한다. 실제 worker SG ID는 생성 후 관측 대상이며 Freeze 전 필수 actual ID로 요구하지 않는다. DNS/관리 경로와 source/DB 경계 등 생성 전 계약은 관련 담당 결정에 연결하며 네 값만으로 전체 Freeze를 선언하지 않는다. Basic Ready 이후 최종 D22/cold-pull과 조건부 P1 DNS/Operator의 후속 actual을 초기 생성 전 필수 증적으로 당기지 않는다. [단계별 잔여](source-alignment-20261008.md)를 따른다.
 
 책임: #34 이권욱 / #35·#38 입력 이하영 / #37 tuple·복구 이재환. 기존 담당·기한을 변경하거나 상시 이중 승인 단계를 만들지 않는다.
