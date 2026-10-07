@@ -1,6 +1,7 @@
 output "stage_a_contract" {
   description = "Architecture-frozen Stage-A inputs only. No AWS resource is created by the scaffold."
   value = {
+    stage_a_ready          = false
     aws_region             = var.aws_region
     vpc_cidr               = var.vpc_cidr
     transport_adapter_type = var.transport_adapter_type

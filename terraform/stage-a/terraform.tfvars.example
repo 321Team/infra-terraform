@@ -31,19 +31,19 @@ subnets = {
 }
 
 relay = {
-  subnet_key              = "public_transport_a"
-  private_ip              = "10.20.110.10"
-  instance_type           = "t3.medium"
-  ami_id                  = "ami-079a2667364cee804"
-  ami_owner_id            = "125523088429"
-  root_volume_type        = "gp3"
-  root_volume_gib         = 40
-  root_volume_encrypted   = true
-  allocate_eip            = true
-  auto_public_ipv4        = false
-  source_dest_check       = false
-  public_ssh_enabled      = false
-  ike_ingress_cidrs       = ["0.0.0.0/0"]
-  protected_onprem_cidr   = "10.1.93.0/24"
-  protected_aws_cidr      = "10.20.0.0/16"
+  subnet_key            = "public_transport_a"
+  private_ip            = "10.20.110.10"
+  instance_type         = "t3.medium"
+  ami_id                = "ami-079a2667364cee804"
+  ami_owner_id          = "125523088429"
+  root_volume_type      = "gp3"
+  root_volume_gib       = 40
+  root_volume_encrypted = true
+  allocate_eip          = true
+  auto_public_ipv4      = false
+  source_dest_check     = false
+  public_ssh_enabled    = false
+  ike_ingress_cidrs     = ["0.0.0.0/0"]
+  protected_onprem_cidr = "10.1.93.0/24"
+  protected_aws_cidr    = "10.20.0.0/16"
 }
