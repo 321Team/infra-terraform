@@ -6,7 +6,13 @@ AI 사용: CODEX_ASSISTED. 책임: #35 Execution Lead 이하영, 중앙 지원 �
 
 Terraform 입력은 infra-terraform 후보 `7b69552dbd22ca7c9d24095e080f41d1585dfc5c`의 12개 파일이다. 이전 입력 `d506ffa434257d970eb3781756b25c9a6c41af14`에서 `terraform.tfvars.example`의 relay 속성 15개에 있는 과다 공백 두 칸씩만 제거했다. 값·키·식은 동일하며 나머지 입력 11개, backend 4개와 provider lock은 byte 동일하다. `validation/stage-a-20261007/source.json`은 수정 입력의 SHA-256을 기록한다. 실제 실행에는 패키지 archive SHA-256과 실행 보조 코드·인계 문서의 최종 PR HEAD를 함께 기록한다.
 
-사용자 전달 CloudShell 결과(캡처 시작 UTC `2026-10-07T08:56:44.565321+00:00`)에서 Terraform 1.16.4 linux_amd64 version 및 본문 fmt는 RC0이고, 첫 번째 예제 `terraform.tfvars.example`의 fmt-check는 RC3으로 STOP했다. 후속 backend 예제 4개·init·provider 선택·validate는 NOT_RUN이다. 이전 source manifest와 helper hash도 일치했다. 수정 후보의 실제 fmt/init/validate는 재실행 대기다. 작성 환경에는 Terraform이 없고 공식 release 연결은 proxy timeout이므로 서식 수정과 값 불변 확인을 실제 Terraform PASS로 표시하지 않는다. 보조 코드 unittest는 MOCK 검증이며 실제 실행을 대신하지 않는다. 독립 리뷰·merge·AWS 실행·role grant·개인 runtime·Stage-A GO는 각각 별도 상태다. Draft 해제 전 실제 CLI 결과를 받는다.
+**현재 STATIC 판정은 PASS(사용자 실행 출력 접수)이며 PR #4는 병합 완료다.** [성공 접수 코멘트](https://github.com/321Team/infra-terraform/pull/4#issuecomment-6035501266)의 캡처 시작 시각은 UTC `2026-10-07T09:48:57.191377+00:00` / KST 18:48:57.191377이다. version·본문 fmt·예제 fmt 5개·init·provider-version·validate의 10단계 RC0, WarningCount=0, source/lock 불변, manifest 36개 보존 PASS와 최종 RC0를 접수했다. 이 기록은 assistant의 CloudShell 직접 실행 또는 원본 capture 직접 수신/재해시가 아니다.
+
+이전 UTC 08:56:44.565321 시작 실행의 tfvars 예제 fmt RC3 STOP, 후속 단계 NOT_RUN 및 용량 부족 이력은 보존한다. 성공 실행과 혼합하지 않는다. [상태·해시·증거 한계](../validation/stage-a-20261007/RESULT_RECEIPT_20261007.md)에 과거 이력과 현재 판정을 구분했다.
+
+최종 PR #4 HEAD `0168220efa6bd141efaa8e52f6104a7cf77e0858`는 19:49:15 KST에 `da452938714a770b43ad44641be0b80123c73f8d`로 병합됐다. 병합 전 재환의 정확 HEAD APPROVED와 사용자 조건부 병합 지시를 확인했으며, [하영의 같은 HEAD 재승인](https://github.com/321Team/infra-terraform/pull/4#pullrequestreview-5441279411)은 **병합 후 19:58:16 KST** 등록됐다. 후자의 승인을 병합 전 근거로 소급하지 않는다. CI 0건은 NOT_RUN이며 Stage-A GO·업무 권한·Runtime·AC 인수와 구분한다.
+
+아래는 재현용 원본 패키지 절차다. 원본 archive와 PACKAGE_SHA256SUMS는 변경하지 않았다. 현재 checkout의 이 문서와 README는 접수 결과를 반영했으므로 checkout은 별도 CHECKOUT_SHA256SUMS로 검증한다. 원본 PACKAGE_SHA256SUMS를 현재 checkout에 적용하지 않는다.
 
 ## CloudShell 격리 실행
 
@@ -49,6 +55,8 @@ helper와 보조 시험 코드는 변경하지 않았다. 이미 CloudShell에�
 
 현재 확정된 최소 privilege 연결은 Relay role 한 개에 대한 `iam:PassRole` + `iam:PassedToService=ec2.amazonaws.com`, 기존 GetRole/GetInstanceProfile 조회, 승인된 backend 부분 정책이다. EC2 `RunInstances`의 여러 resource 유형, tag-on-create, encrypted EBS/KMS, SSM document lifecycle 등은 실제 코드가 선택한 구성과 공식 authorization reference를 대조해 full policy에 채운다. 아직 구현되지 않은 자원의 action을 일괄 허용하지 않는다.
 
-다음 순서는 (1) 이 scaffold 정적 결과·독립 리뷰, (2) #35 담당자의 network/VPN resource source와 API inventory 및 완결 policy PR, (3) 중앙 fresh backup·ValidatePolicy·양/음성 simulation·적용/readback, (4) 본인 MFA AssumeRole·reviewed plan·기존 유료 자원 GO 조건 후 실행, (5) #37 exact ID/document/EBS 인계와 각 본인 runtime 결과다. 기존 14건 bootstrap 시험과 46/9 부분 simulation은 변경 영향이 없으므로 반복하지 않는다.
+후속 구현은 [Draft PR #5](https://github.com/321Team/infra-terraform/pull/5)에 착수했다. network/VPN 소스와 모의 검증, 부분 API inventory·PassRole reference를 작성했으며 전체 IAM permissions JSON은 미완결이다. [후보 인계 문서](NETWORK_VPN_CANDIDATE_20261007.md)의 실제 생성 전 미결과 원본 증적을 따른다. 후보의 새 구현 제안이나 mock 값을 채택값으로 승격하지 않는다.
+
+진행 순서는 (1) 완료된 scaffold STATIC 접수·정확 HEAD 리뷰·병합, (2) 진행 중인 #35 network/VPN resource source·API inventory 및 완결 policy PR, (3) 중앙 fresh backup·ValidatePolicy·양/음성 simulation·적용/readback, (4) 본인 MFA AssumeRole·reviewed plan·기존 유료 자원 GO 조건 후 실행, (5) #37 exact ID/document/EBS 인계와 각 본인 runtime 결과다. 기존 14건 bootstrap 시험과 46/9 부분 simulation은 변경 영향이 없으므로 반복하지 않는다.
 
 현재 `AWS_MUTATION=NOT_RUN`, `ROLE_GRANT=NOT_RUN`, `USER_RUNTIME=NOT_TESTED`, `STAGE_A_READINESS=NOT_ASSESSED`다. 이 인계는 현행 담당·AC·Freeze·비용 통제를 바꾸지 않는다.

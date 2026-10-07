@@ -8,3 +8,13 @@
 *.tf text eol=lf
 *.tfvars text eol=lf
 *.hcl text eol=lf
+terraform/network/*.example text eol=lf
+terraform/vpn/*.example text eol=lf
+terraform/vpn/*.tftpl text eol=lf
+# Preserve captured bytes, including Windows stdout/stderr, for SHA256 checks.
+validation/components-20261007/** -text whitespace=cr-at-eol
+validation/stage-a-20261007/CHECKOUT_SHA256SUMS text eol=lf
+terraform/backends/*.example text eol=lf
+terraform/stage-a/*.example text eol=lf
+validation/stage-a-20261007/PACKAGE_SHA256SUMS text eol=lf
+validation/stage-a-20261007/ARCHIVE_SHA256SUMS text eol=lf

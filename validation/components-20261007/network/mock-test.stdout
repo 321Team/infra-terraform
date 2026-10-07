@@ -1,0 +1,8 @@
+tests\network.tftest.hcl... in progress
+  run "disabled_without_execution_switch"... pass
+  run "adopted_geometry_and_minimum_public_route"... pass
+  run "wrong_account_az_mapping_is_rejected"... pass
+tests\network.tftest.hcl... tearing down
+tests\network.tftest.hcl... pass
+
+Success! 3 passed, 0 failed.

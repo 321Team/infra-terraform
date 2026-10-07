@@ -1,0 +1,42 @@
+{
+  "records": [
+    {
+      "name": "helper-unittest",
+      "argv": [
+        "C:\\Users\\soldesk\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_validate_components.py",
+        "-v"
+      ],
+      "started_at_utc": "2026-10-07T10:59:58.120655+00:00",
+      "finished_at_utc": "2026-10-07T10:59:58.433383+00:00",
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "02f0de7addec71d3ace8d2cc277c294d274f827e9cd6b8733b310bd46317d761"
+    },
+    {
+      "name": "bootstrap-syntax",
+      "argv": [
+        "C:/Program Files/Git/bin/bash.exe",
+        "-n",
+        "C:\\Users\\soldesk\\.codex\\.chatgpt-projects\\g-p-6a85069945708191b56059da202e4461\\phase2-p0-20261007\\infra-terraform\\validation\\components-20261007\\helper-and-shell\\bootstrap.MOCK.sh"
+      ],
+      "exit_code": 0,
+      "started_at_utc": "2026-10-07T11:02:01.337813+00:00",
+      "finished_at_utc": "2026-10-07T11:02:01.394012+00:00",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "helper_sha256": "590827ae44e1f6b082e8eb88339aaf4dd1bbb7cedca613a943c42f0da8dbf689",
+  "test_sha256": "fcd928ac5c7e53d65af7eb3c4d504325962fe14b63775a17f6c4ccbaae9eecbb",
+  "template_sha256": "f270cc5701916d21ee8f77ec11e96621f576e0be25892810ba1c3850467954be",
+  "render_sha256": "4171bd5a2e6a2d324f0936b446550f5193163ce3ee464c3cef0da87f1a8189ac",
+  "runtime": "NOT_RUN",
+  "shell_check": "SYNTAX_ONLY_SYNTHETIC_RENDER"
+}
