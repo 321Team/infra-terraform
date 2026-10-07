@@ -1,6 +1,6 @@
 # #35 IAM / Stage-A Gate
 
-CODEX_ASSISTED. 판정: **FULL_PERMISSIONS=INCOMPLETE / HUMAN_ROLE_GRANT=NOT_VERIFIED / CLOUD_PLAN=NOT_RUN / STAGE_A_READY=NO**.
+CODEX_ASSISTED. 판정: **FULL_PERMISSIONS=INCOMPLETE / HUMAN_ROLES=ABSENT / CLOUD_PLAN=NOT_RUN / STAGE_A_READY=NO**. 2026-10-07 23:56 KST 중앙 읽기 조회에서 두 역할의 NoSuchEntity를 직접 수신했다. [실행 접수](central-readonly-receipt.md).
 
 ## 기존 완료 근거와 잔여
 
@@ -41,7 +41,7 @@ CODEX_ASSISTED. 판정: **FULL_PERMISSIONS=INCOMPLETE / HUMAN_ROLE_GRANT=NOT_VER
 
 ## 읽기 전용 추가 수집
 
-대상: 채택 계정(끝 1866), 서울 CloudShell. 실행자: 이권욱 또는 이하영의 **이미 승인된 읽기 권한 세션**. 새 권한 요청·root 전환은 이 절차에 포함하지 않는다. Python3/AWS CLI가 필요하다. SHA가 고정된 이 PR의 `scripts/collect-phase2-preflight.py` 한 파일을 CloudShell 개인 경로에 업로드한다. 전달 파일의 SHA256을 해당 Git blob에서 산출한 SHA256과 비교한 뒤:
+대상: 채택 중앙 계정(끝 1866), 서울 CloudShell. 이권욱의 기존 중앙 사전조회 승인 범위에서 실행하며, 이번에는 로그인된 중앙 root identity를 STS로 확인했다. 중앙 사전조회와 이후 본인 MFA 역할 시험을 구분한다. 일반 Terraform Plan/Apply를 root로 수행하는 승인이 아니다. 새 권한 부여는 이 수집 절차에 포함하지 않는다. Python3/AWS CLI가 필요하다. SHA가 고정된 이 PR의 `scripts/collect-phase2-preflight.py` 한 파일을 CloudShell 개인 경로에 업로드한다. 전달 파일의 SHA256을 해당 Git blob에서 산출한 SHA256과 비교한 뒤:
 
 ```bash
 python3 collect-phase2-preflight.py --output-parent "$HOME"

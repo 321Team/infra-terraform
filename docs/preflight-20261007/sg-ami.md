@@ -1,6 +1,6 @@
 # #37 SG·AMI 사전검증
 
-CODEX_ASSISTED. Terraform 기준 `0eabe8daa75a6b9bf960fe1ea5eeaf6a8818f216`. STATIC 문서·소스 대조이며 AWS/OS Runtime 미실행.
+CODEX_ASSISTED. Terraform 기준 `0eabe8daa75a6b9bf960fe1ea5eeaf6a8818f216`. STATIC 문서·소스 대조에 더해 2026-10-07 23:56 KST 중앙 DescribeImages를 실제 수행했다. exact AMI/owner와 available/x86_64/ebs, 이름 CentOS Stream 10 x86_64 20260330을 재확인했다. [원본 접수](central-readonly-receipt.md). OS/Agent/터널 Runtime은 미실행이다.
 
 ## SG 입력 정리
 
