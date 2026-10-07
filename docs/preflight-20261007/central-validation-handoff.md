@@ -75,3 +75,7 @@ CLI 자동 pagination을 유지한다. RC0만 보지 않고 findings 전체를 �
 | route 활성화 | OFF | #37/#38: 실제 source/inner SG·터널·허용/거부·복구 증적 |
 
 AMI 공백을 network Plan의 새로운 필수조건으로 올리거나, network source에 subnet4개가 있다는 이유로 사용자 ROSA1AZ 선택을3AZ로 바꾸지 않는다. 준비 자료는 PR6에만 반영하며 독립 REVIEW/MERGE/PUBLICATION은 별도다.
+
+## 10-08 후속 정합화
+
+Session document 구성 방향은 [#37 기존 결정6013422735](https://github.com/321Team/fds-project-baseline/issues/37#issuecomment-6013422735)으로 확정되어 있다. 다시 구성값을 결정받지 않는다. #35의 account-wide ownership 수용·fresh absence·실행 Gate·실제 생성/readback이 남으며 default false를 자동 변경하지 않는다. [권욱 본인 U1 패킷](gwonuk-u1-plan.md)의 exact lock fixture/경쟁·정리 및 음성시험 구분도 full policy 검토에 연결한다.

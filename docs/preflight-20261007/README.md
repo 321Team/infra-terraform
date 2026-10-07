@@ -35,3 +35,7 @@ PR5의 기존 STATIC/MOCK 증적과 독립 리뷰는 재사용한다. 최초 준
 8. [중앙 검증 착수·인계](central-validation-handoff.md): 10-08 후속 요청에 따른 전체 정책 제출 항목·변경분 시험·단계별 완료조건. [network 권한 보완표](network-permission-supplement.json)는 provider6.66.0 원본으로6block/15instance와 조건부 복구 경로를 연결한 검토 자료이며 부여 정책이 아니다.
 
 적용 전에는 이 문서의 고정 SHA와 최신 원본의 차이를 확인한다. 문서/수집기 PR 병합은 별도 Lead 판단이며, 이 묶음에 actual tfvars·완결 IAM 정책·유료 실행 승인은 없다. 준비안 원복은 이 PR의 변경만 되돌리는 것으로 충분하고 AWS 복구 작업은 없다.
+
+## 2026-10-08 권욱 선행 작업 전체 착수
+
+[비용지원 문의·입력표](cost-support-request.md), [운영창/정리안](operating-teardown-plan.md), [지원 AMI 대안 실조회](ami-alternative-review.md), [본인 U1·lock/거부/복구 준비](gwonuk-u1-plan.md)를 추가했다. 비용은 SCP 조회 거부로 미확인, AMI 후보 metadata는 실제 RC0/원본 재해시 완료. 설정 방향이 이미 결정된 Session document는 다시 결정받지 않고 actual ownership/readback만 잔여로 둔다. 실제 Grant/Plan/Apply/Runtime은 미실행이다.

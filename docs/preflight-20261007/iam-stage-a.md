@@ -52,3 +52,7 @@ python3 collect-phase2-preflight.py --output-parent "$HOME"
 수집기는 STS account 확인 후 exact AMI metadata, IaC/Network role trust·정책 **목록**, 기본 session document metadata/content만 읽는다. 정책 목록은 정책 내용/실효권한 검증이 아니다. state/Secret/Parameter/user-data/토큰은 읽지 않는다. IAM `NoSuchEntity`만 ABSENT, SSM `InvalidDocument`는 NOT_FOUND_REVIEW_REQUIRED, AccessDenied/timeout/기타 오류는 STOP. 문서 부재 결과도 생성·소유 승인으로 쓰지 않는다.
 
 성공: `COLLECTION=COMPLETE`, 명령별 RC/UTC/KST/host/source hash·원본 stdout/stderr·SHA256SUMS 보존. **COLLECTION 성공이어도 STAGE_A_READY=NO**, AMI 내부 패키지·서비스=NOT_VERIFIED. 오류 시 원본을 보존하고 후속 grant/plan/apply로 넘어가지 않는다. AWS 변경이 없으므로 AWS 원복은 없고, 수집 디렉터리를 삭제하지 않는다. 원본은 비공개로 보관하고 공유 전 식별값을 마스킹한 사본을 별도로 만든다. `--debug`, credentials 출력, 일반 계정으로 업무 apply는 사용하지 않는다.
+
+## 10-08 기존 Session document 결정 정합화
+
+[#37 결정6013422735](https://github.com/321Team/fds-project-baseline/issues/37#issuecomment-6013422735)의 무로그/무KMS/RunAs 없음 구성은 이미 결정됐다. 새 선택 요청이 아니라 #35 계정 문서 소유 수용·fresh absence·생성 후 readback이 잔여다. [본인 시험 패킷](gwonuk-u1-plan.md)에 구성/권한/Runtime을 분리했다.

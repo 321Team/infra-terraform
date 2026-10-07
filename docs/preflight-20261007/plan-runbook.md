@@ -61,3 +61,7 @@ Relay 생성 후 #37 Agent/본인 세션·XFRM/SA·host FORWARD·양단 반환·
 매 회차 증적: host/계정·본인 session/UTC·KST, source·policy·input hash, backend/workspace/toolchain/lock, 각 명령/RC/timeout/원본, saved plan SHA256, 검토 대상 SHA·수용 범위, 실행 이후 actual ID·readback. SHA256은 무결성이고 시험 성공은 별도 결과다.
 
 Plan 실패 시 원본 보존·원인 수정 후 새 회차. live writer·lock ID·실행 상태 확인 없이 force-unlock하지 않는다. Apply 부분 실패 시 일괄 destroy하지 않고 실제 before/state/생성 자원을 대조한다. 중앙 CFn/보존 EBS/EIP/account 문서의 소유를 유지하고 승인한 대상만 복구한다. source/input/state 변경 또는 plan 유효성 상실 시 기존 saved plan 재사용 금지.
+
+## 10-08 입력 해석 보완
+
+Session document의 무로그/무KMS/RunAs 없음 방향은 이미 #37에서 결정됐다. 실제 소유/부재 및 생성 Gate 수용 후 create_session_document=true이면 TCP443 1개·route OFF의 빈 vpn state 예상치는8create이며, 문서OFF일 때7create다. [기존 결정과 본인 시험](gwonuk-u1-plan.md)을 따른다. 아직 live tfvars/Plan을 실행하지 않았으며 이 예상 개수로 saved plan 검토를 대체하지 않는다.

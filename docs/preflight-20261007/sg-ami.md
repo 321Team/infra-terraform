@@ -52,3 +52,7 @@ sysctl net.ipv4.ip_forward
 Agent 공급/서비스 준비를 구현하면 bootstrap 소스 변경으로 분류해 exact HEAD 리뷰·STATIC/MOCK 후 승인된 격리 Runtime을 거친다. user_data 변경은 Relay 교체·EIP 재연결·Network ARN 재결속·본인 U1·PSK 재입력을 유발할 수 있다. 실패 시 cloud-init 원본을 제한 경로에 보존하고 route OFF, 추가 생성 중단. PSK/credentials는 로그·AMI·tfvars·plan/state에 넣지 않는다.
 
 성공 조건: OS 지원 근거 + exact AMI/패키지·GPG/TLS·Enforcing·firewalld 사전조건 + bootstrap 실행 결과 + SSM Agent Online + 본인 세션. 마지막 두 항목은 실제 생성 후 Runtime이며 생성 전 actual instance ID를 요구하는 순환 Gate를 만들지 않는다.
+
+## 10-08 대안 조사 결과
+
+[Stream9 후보 조사·원본 접수](ami-alternative-review.md): 공식 서울 AMI ami-08d855918a18d0cf9/owner125523088429를00:28:59 KST 실제 DescribeImages RC0로 확인했다. 지원표상 OS 후보를 확보했지만 패키지/Agent/firewalld는 미검증이며 source 교체·Runtime은 미실행이다.
