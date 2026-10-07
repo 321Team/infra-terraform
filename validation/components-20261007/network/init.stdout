@@ -1,0 +1,6 @@
+Initializing provider plugins...
+- Reusing previous version of hashicorp/aws from the dependency lock file
+- Installing hashicorp/aws v6.66.0...
+- Installed hashicorp/aws v6.66.0 (signed by HashiCorp)
+
+Terraform has been successfully initialized!

@@ -1,0 +1,143 @@
+{
+  "started_at_utc": "2026-10-07T10:58:43.659456+00:00",
+  "host": "server01",
+  "source_root": "C:\\Users\\soldesk\\.codex\\.chatgpt-projects\\g-p-6a85069945708191b56059da202e4461\\phase2-p0-20261007\\infra-terraform\\terraform\\vpn",
+  "isolated_cwd": "C:\\Users\\soldesk\\AppData\\Local\\Temp\\fds-static-vpn-y32y_uyg\\source",
+  "component": "vpn",
+  "terraform_sha256": "d1f5754b41b44c7e4ce7283780d2ccb9492f2c32c9629555686fc29fa8067349",
+  "source_manifest_sha256": "b902e389b0b4d0f317dd8bd184e4139b250697721f81b1993bcad14bba5409da",
+  "source_before": {
+    ".terraform.lock.hcl": "19d9d35be5e84e592d2714ebf7ecd11a75610fd3addc2c22a8d1f9445a6ca38f",
+    "backend.hcl.example": "abdda61dea092f7c3ce467e3db2faf9393d7a0b3634f4353c0fe93bf4e8cfc46",
+    "bootstrap.sh.tftpl": "f270cc5701916d21ee8f77ec11e96621f576e0be25892810ba1c3850467954be",
+    "main.tf": "e8985c87310647f1102af7432f83ce42955251891cd9ad594b2400788ad4d47b",
+    "outputs.tf": "ea9f3d9a5e2be0a339f515ef11cac05efc4ae593f3968cdf7e3cab1aa24e8367",
+    "session-document.tf": "60adebd8f88a4326096cc383594e17053402105f206765fa5556b831bf83b96c",
+    "tests/vpn.tftest.hcl": "d2f0f7171e9da5fc5af47de54a7d1e12e8358e47b56c5139cbfe069a6d94eda2",
+    "variables.tf": "7e357db8903b6abcf7568daf50bc6933d6a4510b72560cfd9e8316fdeedbb1bc",
+    "versions.tf": "10834006cf0aeca35c112e635b752fecf154da3a0c5ea87c40cb54504870fcca"
+  },
+  "credentials_inherited": false,
+  "backend_initialized": false,
+  "cloud_plan": "NOT_RUN",
+  "cloud_apply": "NOT_RUN",
+  "CI": "NOT_RUN",
+  "test_type": "MOCK_PROVIDER_PLAN_ONLY",
+  "records": [
+    {
+      "name": "version",
+      "argv": [
+        "C:\\Users\\soldesk\\.codex\\.chatgpt-projects\\g-p-6a85069945708191b56059da202e4461\\phase2-p0-20261007\\followup\\tools\\terraform-1.16.4\\terraform.exe",
+        "version",
+        "-json"
+      ],
+      "exit_code": 0,
+      "started_at_utc": "2026-10-07T10:58:43.788457+00:00",
+      "finished_at_utc": "2026-10-07T10:58:43.824457+00:00",
+      "timeout": false,
+      "stdout_sha256": "e91d54b4576937de709ec12dc2f0ccb98c6a28a1d6407948219882a1c025b121",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "fmt",
+      "argv": [
+        "C:\\Users\\soldesk\\.codex\\.chatgpt-projects\\g-p-6a85069945708191b56059da202e4461\\phase2-p0-20261007\\followup\\tools\\terraform-1.16.4\\terraform.exe",
+        "fmt",
+        "-check",
+        "-recursive",
+        "-diff"
+      ],
+      "exit_code": 0,
+      "started_at_utc": "2026-10-07T10:58:43.835457+00:00",
+      "finished_at_utc": "2026-10-07T10:58:43.882456+00:00",
+      "timeout": false,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "backend-example-fmt",
+      "argv": [
+        "C:\\Users\\soldesk\\.codex\\.chatgpt-projects\\g-p-6a85069945708191b56059da202e4461\\phase2-p0-20261007\\followup\\tools\\terraform-1.16.4\\terraform.exe",
+        "fmt",
+        "-check",
+        "-"
+      ],
+      "exit_code": 0,
+      "started_at_utc": "2026-10-07T10:58:43.891956+00:00",
+      "finished_at_utc": "2026-10-07T10:58:43.924957+00:00",
+      "timeout": false,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "init",
+      "argv": [
+        "C:\\Users\\soldesk\\.codex\\.chatgpt-projects\\g-p-6a85069945708191b56059da202e4461\\phase2-p0-20261007\\followup\\tools\\terraform-1.16.4\\terraform.exe",
+        "init",
+        "-backend=false",
+        "-input=false",
+        "-lockfile=readonly",
+        "-no-color"
+      ],
+      "exit_code": 0,
+      "started_at_utc": "2026-10-07T10:58:43.934457+00:00",
+      "finished_at_utc": "2026-10-07T10:58:53.687286+00:00",
+      "timeout": false,
+      "stdout_sha256": "add9ea45d8beb051771a354096746007ab407ad920e86931470d5122048a626b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "validate",
+      "argv": [
+        "C:\\Users\\soldesk\\.codex\\.chatgpt-projects\\g-p-6a85069945708191b56059da202e4461\\phase2-p0-20261007\\followup\\tools\\terraform-1.16.4\\terraform.exe",
+        "validate",
+        "-json"
+      ],
+      "exit_code": 0,
+      "started_at_utc": "2026-10-07T10:58:53.699285+00:00",
+      "finished_at_utc": "2026-10-07T10:58:56.250285+00:00",
+      "timeout": false,
+      "stdout_sha256": "4cd9eddc4d07c5aff74dadb6b3544f98186f6705ac60e0d94d545fc42b45b9b6",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "mock-test",
+      "argv": [
+        "C:\\Users\\soldesk\\.codex\\.chatgpt-projects\\g-p-6a85069945708191b56059da202e4461\\phase2-p0-20261007\\followup\\tools\\terraform-1.16.4\\terraform.exe",
+        "test",
+        "-no-color"
+      ],
+      "exit_code": 0,
+      "started_at_utc": "2026-10-07T10:58:56.262786+00:00",
+      "finished_at_utc": "2026-10-07T10:58:58.206595+00:00",
+      "timeout": false,
+      "stdout_sha256": "20583c9f1d4a8c16f45fa58f83ade77f773aa6e4bf05171350c8d71891f2d1d4",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "pass": true,
+  "finished_at_utc": "2026-10-07T10:58:58.218094+00:00",
+  "source_after": {
+    ".terraform.lock.hcl": "19d9d35be5e84e592d2714ebf7ecd11a75610fd3addc2c22a8d1f9445a6ca38f",
+    "backend.hcl.example": "abdda61dea092f7c3ce467e3db2faf9393d7a0b3634f4353c0fe93bf4e8cfc46",
+    "bootstrap.sh.tftpl": "f270cc5701916d21ee8f77ec11e96621f576e0be25892810ba1c3850467954be",
+    "main.tf": "e8985c87310647f1102af7432f83ce42955251891cd9ad594b2400788ad4d47b",
+    "outputs.tf": "ea9f3d9a5e2be0a339f515ef11cac05efc4ae593f3968cdf7e3cab1aa24e8367",
+    "session-document.tf": "60adebd8f88a4326096cc383594e17053402105f206765fa5556b831bf83b96c",
+    "tests/vpn.tftest.hcl": "d2f0f7171e9da5fc5af47de54a7d1e12e8358e47b56c5139cbfe069a6d94eda2",
+    "variables.tf": "7e357db8903b6abcf7568daf50bc6933d6a4510b72560cfd9e8316fdeedbb1bc",
+    "versions.tf": "10834006cf0aeca35c112e635b752fecf154da3a0c5ea87c40cb54504870fcca"
+  },
+  "copy_after": {
+    ".terraform.lock.hcl": "19d9d35be5e84e592d2714ebf7ecd11a75610fd3addc2c22a8d1f9445a6ca38f",
+    "backend.hcl.example": "abdda61dea092f7c3ce467e3db2faf9393d7a0b3634f4353c0fe93bf4e8cfc46",
+    "bootstrap.sh.tftpl": "f270cc5701916d21ee8f77ec11e96621f576e0be25892810ba1c3850467954be",
+    "main.tf": "e8985c87310647f1102af7432f83ce42955251891cd9ad594b2400788ad4d47b",
+    "outputs.tf": "ea9f3d9a5e2be0a339f515ef11cac05efc4ae593f3968cdf7e3cab1aa24e8367",
+    "session-document.tf": "60adebd8f88a4326096cc383594e17053402105f206765fa5556b831bf83b96c",
+    "tests/vpn.tftest.hcl": "d2f0f7171e9da5fc5af47de54a7d1e12e8358e47b56c5139cbfe069a6d94eda2",
+    "variables.tf": "7e357db8903b6abcf7568daf50bc6933d6a4510b72560cfd9e8316fdeedbb1bc",
+    "versions.tf": "10834006cf0aeca35c112e635b752fecf154da3a0c5ea87c40cb54504870fcca"
+  },
+  "source_unchanged": true
+}

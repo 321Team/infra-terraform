@@ -1,0 +1,15 @@
+{
+  "status": "PARTIAL_REFERENCE_ONLY_NOT_FULL_ROLE_POLICY",
+  "scope": "Previously adopted exact PassRole, shown without attaching or replacing any policy",
+  "statement": {
+    "Sid": "PassOnlyAdoptedRelayRoleToEc2",
+    "Effect": "Allow",
+    "Action": "iam:PassRole",
+    "Resource": "arn:aws:iam::774055931866:role/FDS-Relay-SSM",
+    "Condition": {
+      "StringEquals": {
+        "iam:PassedToService": "ec2.amazonaws.com"
+      }
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "bootstrap-syntax.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "bootstrap-syntax.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "bootstrap.MOCK.sh": "4171bd5a2e6a2d324f0936b446550f5193163ce3ee464c3cef0da87f1a8189ac",
+  "helper-unittest.stderr": "02f0de7addec71d3ace8d2cc277c294d274f827e9cd6b8733b310bd46317d761",
+  "helper-unittest.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "summary.json": "1a07187a3b08c74f1a928134c72cdbb459b937980561ac77da6e75e7a9596ed2"
+}

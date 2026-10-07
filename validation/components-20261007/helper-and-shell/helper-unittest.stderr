@@ -1,0 +1,8 @@
+test_changed_test_or_source_is_rejected_before_launch (test_validate_components.IsolationTests.test_changed_test_or_source_is_rejected_before_launch) ... ok
+test_extra_auto_tfvars_is_rejected_before_launch (test_validate_components.IsolationTests.test_extra_auto_tfvars_is_rejected_before_launch) ... ok
+test_parent_credentials_and_cli_overrides_are_not_inherited (test_validate_components.IsolationTests.test_parent_credentials_and_cli_overrides_are_not_inherited) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.172s
+
+OK

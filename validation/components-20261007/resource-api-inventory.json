@@ -1,0 +1,192 @@
+{
+  "created_at_utc": "2026-10-07T10:37:04.270496+00:00",
+  "status": "REVIEW_DRAFT_NOT_AN_IAM_POLICY",
+  "provider_version": "6.66.0",
+  "aws_api_executed": false,
+  "full_permissions_complete": false,
+  "scope": "Source-guided candidate API coverage; not a complete active-call trace or effective-policy simulation",
+  "rows": [
+    {
+      "source_address": "aws_security_group.relay",
+      "api_candidates": [
+        "ec2:CreateSecurityGroup",
+        "ec2:DescribeSecurityGroups",
+        "ec2:RevokeSecurityGroupEgress",
+        "ec2:DeleteSecurityGroup"
+      ],
+      "scope_and_gaps": "Project VPC + new SG; create-time tags and existing resource tags differ. Initial default egress revoke is necessary, including the provider IPv6 attempt.",
+      "scoping_status": "REVIEW_REQUIRED",
+      "source_url": "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_security_group.go"
+    },
+    {
+      "source_address": "aws_vpc_security_group_ingress_rule.ike",
+      "api_candidates": [
+        "ec2:AuthorizeSecurityGroupIngress",
+        "ec2:DescribeSecurityGroupRules",
+        "ec2:ModifySecurityGroupRules",
+        "ec2:RevokeSecurityGroupIngress"
+      ],
+      "scope_and_gaps": "Only owned Relay SG/rule identities; UDP500/4500 contract is in reviewed source, not proven by generic IAM action allow.",
+      "scoping_status": "REVIEW_REQUIRED",
+      "source_url": "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_security_group_ingress_rule.go"
+    },
+    {
+      "source_address": "aws_vpc_security_group_egress_rule.reviewed",
+      "api_candidates": [
+        "ec2:AuthorizeSecurityGroupEgress",
+        "ec2:DescribeSecurityGroupRules",
+        "ec2:ModifySecurityGroupRules",
+        "ec2:RevokeSecurityGroupEgress"
+      ],
+      "scope_and_gaps": "Owned SG/rules; accepted service/destination tuples still required. Shared rule update implementation is in ingress source.",
+      "scoping_status": "REVIEW_REQUIRED",
+      "source_url": "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_security_group_egress_rule.go"
+    },
+    {
+      "source_address": "aws_instance.relay",
+      "api_candidates": [
+        "ec2:RunInstances",
+        "ec2:DescribeInstances",
+        "ec2:DescribeInstanceAttribute",
+        "ec2:DescribeInstanceTypes",
+        "ec2:DescribeVolumes",
+        "ec2:DescribeTags",
+        "ec2:ModifyInstanceAttribute",
+        "ec2:ModifyInstanceCreditSpecification",
+        "ec2:ModifyInstanceMetadataOptions",
+        "ec2:StartInstances",
+        "ec2:StopInstances",
+        "ec2:TerminateInstances"
+      ],
+      "scope_and_gaps": "RunInstances needs separate image/subnet/security-group/instance/network-interface/volume scopes; conditional update/read helpers need final transitive audit. No arbitrary role attachment.",
+      "scoping_status": "REVIEW_REQUIRED",
+      "source_url": "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/ec2_instance.go"
+    },
+    {
+      "source_address": "aws_eip.relay",
+      "api_candidates": [
+        "ec2:AllocateAddress",
+        "ec2:DescribeAddresses",
+        "ec2:ReleaseAddress"
+      ],
+      "scope_and_gaps": "Owned regional elastic-ip; no BYOIP/IPAM/address transfer/network-border override in current source.",
+      "scoping_status": "REVIEW_REQUIRED",
+      "source_url": "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/ec2_eip.go"
+    },
+    {
+      "source_address": "aws_eip_association.relay",
+      "api_candidates": [
+        "ec2:AssociateAddress",
+        "ec2:DescribeAddresses",
+        "ec2:DisassociateAddress"
+      ],
+      "scope_and_gaps": "Exact Relay EIP and primary ENI; allow_reassociation=false.",
+      "scoping_status": "REVIEW_REQUIRED",
+      "source_url": "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/ec2_eip_association.go"
+    },
+    {
+      "source_address": "aws_route.onprem",
+      "api_candidates": [
+        "ec2:CreateRoute",
+        "ec2:DescribeRouteTables",
+        "ec2:ReplaceRoute",
+        "ec2:DeleteRoute"
+      ],
+      "scope_and_gaps": "Only reviewed target route tables in project VPC and 10.1.93.0/24; no shared/default VPC routes.",
+      "scoping_status": "REVIEW_REQUIRED",
+      "source_url": "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_route.go"
+    },
+    {
+      "source_address": "aws_ssm_document.session_preferences",
+      "api_candidates": [
+        "ssm:CreateDocument",
+        "ssm:DescribeDocument",
+        "ssm:GetDocument",
+        "ssm:DescribeDocumentPermission",
+        "ssm:ListTagsForResource",
+        "ssm:AddTagsToResource",
+        "ssm:RemoveTagsFromResource"
+      ],
+      "scope_and_gaps": "Exact regional account-owned SSM-SessionManagerRunShell; opt-in create only. Lifecycle update/default-version and protected deletion are distinct review items.",
+      "scoping_status": "REVIEW_REQUIRED",
+      "source_url": "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ssm/document.go"
+    },
+    {
+      "source_address": "data.aws_ami.relay",
+      "api_candidates": [
+        "ec2:DescribeImages"
+      ],
+      "scope_and_gaps": "Exact AMI + owner filters; account/region validity to be read live later.",
+      "scoping_status": "REVIEW_REQUIRED",
+      "source_url": "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/ec2_ami_data_source.go"
+    },
+    {
+      "source_address": "data.aws_iam_instance_profile.relay",
+      "api_candidates": [
+        "iam:GetInstanceProfile"
+      ],
+      "scope_and_gaps": "arn:aws:iam::774055931866:instance-profile/FDS-Relay-SSM only; no create/update/attach/import.",
+      "scoping_status": "REVIEW_REQUIRED",
+      "source_url": "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/iam/instance_profile_data_source.go"
+    },
+    {
+      "source_address": "data.aws_kms_key.ebs",
+      "api_candidates": [
+        "kms:DescribeKey"
+      ],
+      "scope_and_gaps": "Resolve alias/aws/ebs in Seoul to its actual key ARN. Key service usage/CreateGrant requirements must be resolved against the actual AWS-managed key boundary, not broad KMS writes.",
+      "scoping_status": "REVIEW_REQUIRED",
+      "source_url": "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/kms/key_data_source.go"
+    },
+    {
+      "source_address": "handoff data sources",
+      "api_candidates": [
+        "ec2:DescribeVpcs",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeRouteTables"
+      ],
+      "scope_and_gaps": "Readonly live comparison before creation/route activation.",
+      "scoping_status": "REVIEW_REQUIRED",
+      "source_url": "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/find.go"
+    },
+    {
+      "source_address": "tag lifecycle",
+      "api_candidates": [
+        "ec2:CreateTags",
+        "ec2:DeleteTags"
+      ],
+      "scope_and_gaps": "CreateAction for create-time tagging; exact approved tag keys/values and owned resource scopes for updates. No account-wide tag write.",
+      "scoping_status": "REVIEW_REQUIRED",
+      "source_url": "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/tags_gen.go"
+    },
+    {
+      "source_address": "RunInstances dependency",
+      "api_candidates": [
+        "iam:PassRole"
+      ],
+      "scope_and_gaps": "Exact FDS-Relay-SSM role and iam:PassedToService=ec2.amazonaws.com only.",
+      "scoping_status": "REVIEW_REQUIRED",
+      "source_url": "https://docs.aws.amazon.com/service-authorization/latest/reference/list_ec2.html"
+    }
+  ],
+  "excluded_default_grants": [
+    "iam:*",
+    "kms:*",
+    "ssm:SendCommand",
+    "ssm:ModifyDocumentPermission",
+    "ec2:*",
+    "s3:DeleteObject on state payload",
+    "bootstrap bucket/profile/role mutation"
+  ],
+  "remaining": [
+    "accepted runtime input and exact source review",
+    "all resource-level/dependent-action conditions",
+    "actual EBS key/service path",
+    "provider transitive reads/conditional updates",
+    "cleanup ownership and retry paths",
+    "ValidatePolicy",
+    "positive/negative simulation",
+    "effective role readback",
+    "individual user runtime"
+  ]
+}
