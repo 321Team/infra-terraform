@@ -4,7 +4,7 @@ CODEX_ASSISTED. 2026-10-08. **운영/삭제 창 제안이며 일정 확정·생�
 
 ## 원본 일정과 차이
 
-- [#39](https://github.com/321Team/fds-project-baseline/issues/39): 상단 운영 기록은 G4 목표10-13, 발행 Description은10-14로 표시되어 있다. 정본과 운영 기록의 날짜 차이를 유지하고 임의로 한쪽을 고치지 않는다. 실제 G4 PASS가 ROSA 실행 선행조건이다.
+- [#39](https://github.com/321Team/fds-project-baseline/issues/39): G4 계획일은 **10-14**다. [#52의 9월30일 결정](https://github.com/321Team/fds-project-baseline/issues/52#issuecomment-5907902770)과 현행 발행 Description/속성표가 일치한다. 9월24일 기록의10-13은 과거 이력이며 새 날짜 승인을 요구하지 않는다. 실제 G4 PASS가 ROSA 실행 선행조건이다.
 - [#38](https://github.com/321Team/fds-project-baseline/issues/38):10-15 Basic Ready,10-19 Full. Full 이후에도 [#50](https://github.com/321Team/fds-project-baseline/issues/50)의10-22 Final Regression이 남는다. 따라서10-19 즉시 전체 삭제를 기본안으로 삼을 수 없다.
 - [#48](https://github.com/321Team/fds-project-baseline/issues/48), [#51](https://github.com/321Team/fds-project-baseline/issues/51)은 P1 조건부이며 이를 위해 P0 가동기간을 자동 연장하지 않는다.
 
