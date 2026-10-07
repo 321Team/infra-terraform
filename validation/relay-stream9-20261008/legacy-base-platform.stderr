@@ -1,0 +1,25 @@
+test_static_flow_is_isolated_exact_commands_and_no_credentials (test_stage_a_static.StaticTests.test_static_flow_is_isolated_exact_commands_and_no_credentials) ... FAIL
+test_unexpected_state_and_symlink_stop_before_commands (test_stage_a_static.StaticTests.test_unexpected_state_and_symlink_stop_before_commands) ... ERROR
+
+======================================================================
+ERROR: test_unexpected_state_and_symlink_stop_before_commands (test_stage_a_static.StaticTests.test_unexpected_state_and_symlink_stop_before_commands)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Admin\AppData\Local\Temp\fds-original-tests-0rlook7e\tests\test_stage_a_static.py", line 88, in test_unexpected_state_and_symlink_stop_before_commands
+    file.symlink_to(external)
+  File "C:\Users\Admin\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\pathlib.py", line 1386, in symlink_to
+    os.symlink(target, self, target_is_directory)
+OSError: [WinError 1314] 클라이언트가 필요한 권한을 가지고 있지 않습니다: 'C:\\Users\\Admin\\AppData\\Local\\Temp\\tmpfwlt6a9e\\external' -> 'C:\\Users\\Admin\\AppData\\Local\\Temp\\tmpfwlt6a9e\\repo\\terraform\\stage-a\\providers.tf'
+
+======================================================================
+FAIL: test_static_flow_is_isolated_exact_commands_and_no_credentials (test_stage_a_static.StaticTests.test_static_flow_is_isolated_exact_commands_and_no_credentials)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Admin\AppData\Local\Temp\fds-original-tests-0rlook7e\tests\test_stage_a_static.py", line 71, in test_static_flow_is_isolated_exact_commands_and_no_credentials
+    self.assertEqual(capture.stat().st_mode & 0o777, 0o700)
+AssertionError: 511 != 448
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.498s
+
+FAILED (failures=1, errors=1)

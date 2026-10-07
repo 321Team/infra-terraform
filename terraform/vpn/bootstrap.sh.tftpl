@@ -1,33 +1,72 @@
 #!/bin/bash
-# LOCAL CANDIDATE: contains no tunnel config, PSK, credentials or remote script fetch.
+# Candidate first boot: no tunnel config, PSK, forwarding enablement or remote script.
 set -euo pipefail
 umask 077
+export LC_ALL=C
 test "$(id -u)" = 0
-test -f /etc/redhat-release
-command -v dnf >/dev/null
+. /etc/os-release
+test "$ID" = centos
+test "$VERSION_ID" = 9
+test "$(uname -m)" = x86_64
 test "$(getenforce)" = Enforcing
-systemctl is-active --quiet firewalld
+command -v dnf >/dev/null
 
-# Proposed fail-closed bootstrap boundary: #37 enables forwarding only after
-# accepted XFRM/firewall/plaintext-deny rules. Do not declare tunnel readiness.
+# Leave the relay closed before any installation and on all subsequent failures.
 printf 'net.ipv4.ip_forward = 0\n' > /etc/sysctl.d/90-fds-relay-bootstrap.conf
 sysctl -w net.ipv4.ip_forward=0
-
-# EIP association is later than instance launch. Use bounded package retries.
-installed=false
-for attempt in $(seq 1 20); do
-  if dnf -y --setopt=timeout=15 --setopt=retries=1 install '${libreswan_package_spec}'; then
-    installed=true
-    break
-  fi
-  sleep 15
-done
-test "$installed" = true
+retry() {
+  local attempt
+  for attempt in $(seq 1 20); do
+    if "$@"; then return 0; fi
+    sleep 15
+  done
+  return 1
+}
+# EIP attaches after launch; bounded retries permit that delay. Repository GPG/TLS
+# remain mandatory. HTTP egress, if ever needed, requires a separate #37 input.
+retry dnf -y --setopt=timeout=15 --setopt=retries=1 --setopt=*.gpgcheck=1 --setopt=*.sslverify=1 install firewalld gnupg2 '${libreswan_package_spec}'
+command -v curl >/dev/null || retry dnf -y --setopt=timeout=15 --setopt=retries=1 --setopt=*.gpgcheck=1 --setopt=*.sslverify=1 install curl-minimal
+systemctl enable --now firewalld
+systemctl is-enabled --quiet firewalld
+systemctl is-active --quiet firewalld
+test "$(getenforce)" = Enforcing
+test "$(sysctl -n net.ipv4.ip_forward)" = 0
 command -v ipsec >/dev/null
-rpm -q libreswan
-# No unsigned/unpinned Agent installer fallback. Missing Agent is a handoff STOP.
-systemctl cat amazon-ssm-agent.service >/dev/null
+rpm -q libreswan firewalld
+test "$(rpm -q --queryformat '%%{NAME}-%%{VERSION}-%%{RELEASE}' libreswan)" = '${libreswan_package_spec}'
+
+# Public key is vendored from AWS signature documentation, not downloaded at boot.
+# Exact Seoul release, payload hash and signer are fixed in this reviewed source.
+agent_version=3.3.5390.0
+agent_sha=85369679511b67f8f01824043ae17a679b6f21edd78229ccd1d5acd6c347f82f
+agent_signer=1C5B395CBE5E74E2F1CA21592784DBF388D19D46
+agent_base="https://s3.ap-northeast-2.amazonaws.com/amazon-ssm-ap-northeast-2/$agent_version/linux_amd64"
+work=$(mktemp -d /var/tmp/fds-agent-XXXXXX)
+trap 'printf "FDS_BOOTSTRAP_STOP line=%s evidence=%s\n" "$LINENO" "$work" >&2' ERR
+export GNUPGHOME="$work/keyring"
+mkdir -m 700 "$GNUPGHOME"
+cat > "$work/signer.asc" <<'FDS_AGENT_SIGNING_KEY'
+${agent_signing_key}
+FDS_AGENT_SIGNING_KEY
+fingerprint=$(gpg --batch --with-colons --show-keys "$work/signer.asc" | awk -F: '$1 == "fpr" { print $10; exit }')
+test "$fingerprint" = "$agent_signer"
+gpg --batch --import "$work/signer.asc"
+retry curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' --connect-timeout 10 --max-time 120 "$agent_base/amazon-ssm-agent.rpm" -o "$work/agent.rpm"
+retry curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' --connect-timeout 10 --max-time 60 "$agent_base/amazon-ssm-agent.rpm.sig" -o "$work/agent.rpm.sig"
+printf '%s  %s\n' "$agent_sha" "$work/agent.rpm" | sha256sum --check -
+gpg --batch --status-fd 1 --verify "$work/agent.rpm.sig" "$work/agent.rpm" > "$work/signature.status"
+# The isolated keyring contains only the pinned key; still require the exact signer.
+awk -v signer="$agent_signer" '$1 == "[GNUPG:]" && $2 == "VALIDSIG" && $3 == signer { found=1 } END { exit !found }' "$work/signature.status"
+test "$(rpm -qp --queryformat '%%{NAME} %%{VERSION} %%{ARCH}' "$work/agent.rpm")" = "amazon-ssm-agent $agent_version x86_64"
+rpm --import "$work/signer.asc"
+retry dnf -y --setopt=timeout=15 --setopt=retries=1 --setopt=localpkg_gpgcheck=1 --setopt=*.gpgcheck=1 --setopt=*.sslverify=1 install "$work/agent.rpm"
+test "$(rpm -q --queryformat '%%{VERSION}' amazon-ssm-agent)" = "$agent_version"
 systemctl enable --now amazon-ssm-agent.service
 systemctl is-active --quiet amazon-ssm-agent.service
+systemctl is-enabled --quiet amazon-ssm-agent.service
+systemctl is-active --quiet firewalld
+test "$(getenforce)" = Enforcing
+test "$(sysctl -n net.ipv4.ip_forward)" = 0
+rpm -q amazon-ssm-agent firewalld libreswan
 printf 'FDS_RELAY_BOOTSTRAP=LOCAL_SERVICE_CHECKS_COMPLETE\n'
 printf 'AGENT_ONLINE=NOT_VERIFIED; FORWARDING=DISABLED; TUNNEL=NOT_CONFIGURED\n'

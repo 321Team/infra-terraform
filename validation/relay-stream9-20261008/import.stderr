@@ -1,0 +1,7 @@
+gpg: keybox '/c/Users/Admin/AppData/Local/Temp/fds-gpg-v7nhwa4h/pubring.kbx' created
+gpg: key 2784DBF388D19D46: 1 signature not checked due to a missing key
+gpg: /c/Users/Admin/AppData/Local/Temp/fds-gpg-v7nhwa4h/trustdb.gpg: trustdb created
+gpg: key 2784DBF388D19D46: public key "SSM Agent <ssm-agent-signer@amazon.com>" imported
+gpg: Total number processed: 1
+gpg:               imported: 1
+gpg: no ultimately trusted keys found

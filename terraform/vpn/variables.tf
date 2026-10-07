@@ -69,13 +69,17 @@ variable "relay_egress" {
     description = string
   }))
   default     = {}
-  description = "Reviewed single-port IPv4 egress tuples. Empty until repository/Agent/IKE needs and scope are accepted."
+  description = "#37 tuple: one TCP443 world egress plus optional evidenced TCP80. Empty remains disabled."
   validation {
-    condition = alltrue([for r in var.relay_egress :
-      contains(["tcp", "udp"], r.protocol) && r.port >= 1 && r.port <= 65535 && floor(r.port) == r.port &&
-      can(cidrnetmask(r.cidr_ipv4)) && length(trimspace(r.description)) > 0
-    ])
-    error_message = "Use explicit TCP/UDP single-port IPv4 tuples and a reason; no all-protocol rule."
+    condition = length(var.relay_egress) == 0 || (
+      length(var.relay_egress) == length(toset([for r in var.relay_egress : r.port])) &&
+      contains([for r in var.relay_egress : r.port], 443) &&
+      alltrue([for r in var.relay_egress :
+        r.protocol == "tcp" && contains([443, 80], r.port) &&
+        r.cidr_ipv4 == "0.0.0.0/0" && length(trimspace(r.description)) > 0
+      ])
+    )
+    error_message = "Only the adopted TCP443 tuple and conditional TCP80 tuple are accepted; no UDP/SSH/arbitrary egress."
   }
 }
 
@@ -105,4 +109,26 @@ variable "tunnel_readiness_reference" {
   type        = string
   default     = ""
   description = "Actual Agent/SA/firewall/source/return/negative evidence reference required before route activation."
+}
+
+variable "http_repository_evidence_reference" {
+  type        = string
+  default     = ""
+  description = "#37 actual repository/mirror evidence and TCP80 acceptance before adding HTTP egress. Not inferred from errors."
+}
+
+variable "worker_subnet_key" {
+  type        = string
+  default     = ""
+  description = "Actual #38 one-AZ worker private subnet key; empty until accepted, with no inner ingress or routes."
+  validation {
+    condition     = contains(["", "private_a", "private_b", "private_c"], var.worker_subnet_key)
+    error_message = "Choose exactly one reviewed private subnet key, never the transport subnet or whole VPC."
+  }
+}
+
+variable "worker_source_reference" {
+  type        = string
+  default     = ""
+  description = "#34/#38 accepted worker subnet/source contract. A reference is not Runtime evidence."
 }

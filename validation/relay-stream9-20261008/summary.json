@@ -1,0 +1,70 @@
+{
+  "recorded_at_utc": "2026-10-07T16:28:33.240809+00:00",
+  "host": "14ZB95N-GPLCL",
+  "base_commit": "0eabe8daa75a6b9bf960fe1ea5eeaf6a8818f216",
+  "scope": "LOCAL_STATIC_AND_MOCK_WITH_REAL_VENDOR_SIGNATURE_CHECK",
+  "source_manifest": "source.json",
+  "source_manifest_sha256": "fdd37c85a9f8bfae4cb3907550bb14f0bd3cdbf362200f0fed4a3df63c7a1d76",
+  "terraform": {
+    "result": "PASS",
+    "runs": 22,
+    "detail": "terraform-summary.json",
+    "capture_filename_mapping": "Original capture entries are preserved verbatim; prepend terraform- to locate each copied file here."
+  },
+  "bootstrap_mock": {
+    "result": "PASS",
+    "unit_methods": 3,
+    "scenarios": 13,
+    "observed_exit_code": 0,
+    "stderr": "bootstrap-mock.stderr",
+    "reproduce": "FDS_TEST_BASH=<Bash executable> python -m unittest discover -s tests -p test_relay_bootstrap.py -v",
+    "scope": "Command doubles; no real package/service/AWS mutation"
+  },
+  "validator_unit": {
+    "result": "PASS",
+    "unit_methods": 3,
+    "observed_exit_code": 0,
+    "stderr": "validator-tests.stderr",
+    "reproduce": "python -m unittest discover -s tests -p test_validate_components.py -v"
+  },
+  "rendered_bash_syntax": {
+    "result": "PASS",
+    "observed_exit_code": 0,
+    "rendered_bytes": 6338,
+    "stdout": "bash-syntax.stdout",
+    "stderr": "bash-syntax.stderr",
+    "scope": "bash -n; fixed real public key and TEST_ONLY Libreswan input"
+  },
+  "agent_signature": {
+    "result": "PASS",
+    "observed_import_exit_code": 0,
+    "observed_verify_exit_code": 0,
+    "fingerprint": "1C5B395CBE5E74E2F1CA21592784DBF388D19D46",
+    "stdout": "signature.stdout",
+    "stderr": "signature.stderr",
+    "source": "agent-download.json",
+    "metadata": "agent-package-metadata.json",
+    "scope": "Actual downloaded RPM detached signature verified locally; not Linux install or Agent Online"
+  },
+  "whole_python_suite": {
+    "result": "NOT_ALL_PASS",
+    "observed_tests": 14,
+    "passed": 12,
+    "failures": 1,
+    "errors": 1,
+    "limitation": "Two unchanged Stage-A tests fail on Windows chmod semantics and symlink privilege. Both reproduced on exact base commit; no test weakening or skip added.",
+    "base_reproduction_exit_code": 1,
+    "base_reproduction_stderr": "legacy-base-platform.stderr",
+    "encoding_note": "Raw stderr bytes retained; Windows error text may use platform encoding."
+  },
+  "independent_review": "PENDING",
+  "merge": "NOT_DONE",
+  "CI": "NOT_RUN",
+  "AWS_API_this_change": "NOT_RUN",
+  "IAM_GRANT": "NOT_RUN",
+  "cloud_plan": "NOT_RUN",
+  "cloud_apply": "NOT_RUN",
+  "Linux_AMI_Agent_VPN_ROSA_RUNTIME": "NOT_RUN",
+  "publication": "NOT_DONE",
+  "followup": "Exact-HEAD independent code review, live input contracts and full IAM policy review before existing execution gates."
+}

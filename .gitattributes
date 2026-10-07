@@ -13,6 +13,8 @@ terraform/vpn/*.example text eol=lf
 terraform/vpn/*.tftpl text eol=lf
 # Preserve captured bytes, including Windows stdout/stderr, for SHA256 checks.
 validation/components-20261007/** -text whitespace=cr-at-eol
+validation/relay-stream9-20261008/** -text whitespace=cr-at-eol,-blank-at-eol
+terraform/vpn/amazon-ssm-agent.gpg text eol=lf
 validation/stage-a-20261007/CHECKOUT_SHA256SUMS text eol=lf
 terraform/backends/*.example text eol=lf
 terraform/stage-a/*.example text eol=lf

@@ -60,10 +60,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--terraform", required=True, type=Path)
     parser.add_argument("--component", required=True, choices=["network", "vpn"])
+    parser.add_argument("--manifest", type=Path, default=MANIFEST, help="Reviewed source/hash manifest; historical default is unchanged")
     args = parser.parse_args()
     binary = args.terraform.resolve(strict=True)
     root = REPO / "terraform" / args.component
-    manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    manifest_path = args.manifest.resolve(strict=True)
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     expected = manifest["components"][args.component]["files"]
     # Exact set rejects unexpected auto.tfvars, override files, state and tests.
     if snapshot(root) != expected:
@@ -79,7 +81,7 @@ def main():
         "started_at_utc": now(), "host": socket.gethostname(),
         "source_root": str(root), "isolated_cwd": str(work),
         "component": args.component, "terraform_sha256": sha(binary),
-        "source_manifest_sha256": sha(MANIFEST), "source_before": expected,
+        "source_manifest_sha256": sha(manifest_path), "source_before": expected,
         "credentials_inherited": False, "backend_initialized": False,
         "cloud_plan": "NOT_RUN", "cloud_apply": "NOT_RUN", "CI": "NOT_RUN",
         "test_type": "MOCK_PROVIDER_PLAN_ONLY", "records": [], "pass": False,

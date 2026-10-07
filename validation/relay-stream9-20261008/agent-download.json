@@ -1,0 +1,17 @@
+{
+  "key_source": "https://docs.aws.amazon.com/systems-manager/latest/userguide/verify-agent-signature.html",
+  "version": "3.3.5390.0",
+  "key_sha256": "aaa3f054d9c0fb037e3e110e213cf721392429baa4a65c9e5e8b558b64c80fba",
+  "files": {
+    "amazon-ssm-agent.rpm": {
+      "url": "https://s3.ap-northeast-2.amazonaws.com/amazon-ssm-ap-northeast-2/3.3.5390.0/linux_amd64/amazon-ssm-agent.rpm",
+      "bytes": 27573537,
+      "sha256": "85369679511b67f8f01824043ae17a679b6f21edd78229ccd1d5acd6c347f82f"
+    },
+    "amazon-ssm-agent.rpm.sig": {
+      "url": "https://s3.ap-northeast-2.amazonaws.com/amazon-ssm-ap-northeast-2/3.3.5390.0/linux_amd64/amazon-ssm-agent.rpm.sig",
+      "bytes": 595,
+      "sha256": "15454839825bccd1ed3346e2467712b07de4abed0dc289b635c7f16a9aede7dd"
+    }
+  }
+}
