@@ -55,7 +55,7 @@ variables {
   cpu_credit_mode            = "standard"
   egress_contract_reference  = "MOCK-ONLY-NOT-AN-APPROVAL"
   relay_egress = {
-    fixture = { protocol = "tcp", port = 443, cidr_ipv4 = "192.0.2.10/32", description = "MOCK TEST-NET destination; not an operational egress decision" }
+    fixture = { protocol = "tcp", port = 443, cidr_ipv4 = "0.0.0.0/0", description = "MOCK adopted tuple; no AWS call" }
   }
   network_handoff = {
     region   = "ap-northeast-2"
@@ -86,7 +86,7 @@ override_data {
 }
 override_data {
   target = data.aws_ami.relay
-  values = { id = "ami-079a2667364cee804" }
+  values = { id = "ami-08d855918a18d0cf9" }
 }
 override_data {
   target = data.aws_iam_instance_profile.relay
@@ -175,6 +175,8 @@ run "early_route_activation_is_rejected" {
 run "reviewed_route_targets_only" {
   command = plan
   variables {
+    worker_subnet_key          = "private_a"
+    worker_source_reference    = "MOCK-ONLY-NOT-ACCEPTANCE"
     activate_onprem_routes     = true
     onprem_route_keys          = ["private_a"]
     tunnel_readiness_reference = "MOCK-ONLY-NOT-RUNTIME"
@@ -195,6 +197,8 @@ run "reviewed_route_targets_only" {
 run "wrong_route_association_is_rejected" {
   command = plan
   variables {
+    worker_subnet_key          = "private_a"
+    worker_source_reference    = "MOCK-ONLY-NOT-ACCEPTANCE"
     activate_onprem_routes     = true
     onprem_route_keys          = ["private_a"]
     tunnel_readiness_reference = "MOCK-ONLY-NOT-RUNTIME"
@@ -207,4 +211,115 @@ run "wrong_route_association_is_rejected" {
     }
   }
   expect_failures = [aws_route.onprem]
+}
+
+override_data {
+  target = data.aws_subnet.worker
+  values = {
+    vpc_id                  = "vpc-00000000000000001"
+    cidr_block              = "10.20.10.0/24"
+    availability_zone_id    = "apne2-az1"
+    map_public_ip_on_launch = false
+  }
+}
+run "stream9_and_no_unselected_worker" {
+  command = plan
+  assert {
+    condition     = aws_instance.relay.ami == "ami-08d855918a18d0cf9" && length(aws_vpc_security_group_ingress_rule.worker_db) == 0
+    error_message = "Stream9 candidate and empty worker boundary must be preserved."
+  }
+}
+run "accepted_single_worker_subnet" {
+  command = plan
+  variables {
+    worker_subnet_key       = "private_a"
+    worker_source_reference = "MOCK-ONLY"
+  }
+  assert {
+    condition = (
+      length(aws_vpc_security_group_ingress_rule.worker_db) == 1 &&
+      aws_vpc_security_group_ingress_rule.worker_db[0].cidr_ipv4 == "10.20.10.0/24" &&
+      aws_vpc_security_group_ingress_rule.worker_db[0].from_port == 5432 &&
+      aws_vpc_security_group_ingress_rule.worker_db[0].to_port == 5432 &&
+      aws_vpc_security_group_ingress_rule.worker_db[0].ip_protocol == "tcp" &&
+      length(aws_route.onprem) == 0
+    )
+    error_message = "Only the exact worker subnet DB ingress may be added before separate route acceptance."
+  }
+}
+run "worker_without_reference_rejected" {
+  command = plan
+  variables { worker_subnet_key = "private_a" }
+  expect_failures = [aws_security_group.relay]
+}
+run "transport_as_worker_rejected" {
+  command = plan
+  variables { worker_subnet_key = "public_transport_a" }
+  expect_failures = [var.worker_subnet_key]
+}
+run "wrong_actual_worker_rejected" {
+  command = plan
+  variables {
+    worker_subnet_key       = "private_a"
+    worker_source_reference = "MOCK-ONLY"
+  }
+  override_data {
+    target = data.aws_subnet.worker[0]
+    values = {
+      vpc_id                  = "vpc-00000000000000099"
+      cidr_block              = "10.20.10.0/24"
+      availability_zone_id    = "apne2-az1"
+      map_public_ip_on_launch = false
+    }
+  }
+  expect_failures = [data.aws_subnet.worker]
+}
+run "http_without_repo_evidence_rejected" {
+  command = plan
+  variables {
+    relay_egress = {
+      https = { protocol = "tcp", port = 443, cidr_ipv4 = "0.0.0.0/0", description = "MOCK" }
+      http  = { protocol = "tcp", port = 80, cidr_ipv4 = "0.0.0.0/0", description = "MOCK" }
+    }
+  }
+  expect_failures = [aws_security_group.relay]
+}
+run "accepted_conditional_http" {
+  command = plan
+  variables {
+    http_repository_evidence_reference = "MOCK-ONLY-NOT-APPROVAL"
+    relay_egress = {
+      https = { protocol = "tcp", port = 443, cidr_ipv4 = "0.0.0.0/0", description = "MOCK" }
+      http  = { protocol = "tcp", port = 80, cidr_ipv4 = "0.0.0.0/0", description = "MOCK" }
+    }
+  }
+  assert {
+    condition     = length(aws_vpc_security_group_egress_rule.reviewed) == 2
+    error_message = "Only explicitly evidenced conditional HTTP is accepted."
+  }
+}
+run "udp_egress_rejected" {
+  command = plan
+  variables {
+    relay_egress = { ike = { protocol = "udp", port = 500, cidr_ipv4 = "0.0.0.0/0", description = "MOCK" } }
+  }
+  expect_failures = [var.relay_egress]
+}
+run "wrong_route_subnet_rejected" {
+  command = plan
+  variables {
+    worker_subnet_key          = "private_a"
+    worker_source_reference    = "MOCK-ONLY"
+    activate_onprem_routes     = true
+    onprem_route_keys          = ["private_b"]
+    tunnel_readiness_reference = "MOCK-ONLY"
+  }
+  override_data {
+    target = data.aws_route_table.selected["private_b"]
+    values = {
+      vpc_id       = "vpc-00000000000000001"
+      associations = [{ subnet_id = "subnet-00000000000000002", main = false, route_table_association_id = "rtbassoc-00000000000000002", route_table_id = "rtb-00000000000000002", gateway_id = "" }]
+    }
+  }
+  expect_failures = [aws_security_group.relay]
 }

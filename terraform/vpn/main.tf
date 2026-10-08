@@ -15,7 +15,7 @@ data "aws_ami" "relay" {
   owners = ["125523088429"]
   filter {
     name   = "image-id"
-    values = ["ami-079a2667364cee804"]
+    values = ["ami-08d855918a18d0cf9"]
   }
   filter {
     name   = "state"
@@ -40,7 +40,23 @@ data "aws_kms_key" "ebs" {
   key_id = "alias/aws/ebs"
 }
 
-# This root owns only its Relay SG. No additional inner ingress is inferred.
+data "aws_subnet" "worker" {
+  count = var.worker_subnet_key == "" ? 0 : 1
+  id    = var.network_handoff.subnets[var.worker_subnet_key].id
+  lifecycle {
+    postcondition {
+      condition = (
+        self.vpc_id == var.network_handoff.vpc_id &&
+        self.cidr_block == var.network_handoff.subnets[var.worker_subnet_key].cidr &&
+        self.availability_zone_id == var.network_handoff.subnets[var.worker_subnet_key].zone_id &&
+        !self.map_public_ip_on_launch
+      )
+      error_message = "Actual worker subnet must match the reviewed single private subnet handoff."
+    }
+  }
+}
+
+# #37 tuple 6041369929: exactly one worker subnet; no default worker choice.
 resource "aws_security_group" "relay" {
   name_prefix = "fds-relay-"
   description = "D21 Relay outer IKE/NAT-T; not full hybrid readiness"
@@ -51,7 +67,9 @@ resource "aws_security_group" "relay" {
     precondition {
       condition = (
         var.execution_enabled && terraform.workspace == "default" &&
-        length(var.relay_egress) > 0 && length(trimspace(var.egress_contract_reference)) > 0
+        length(var.relay_egress) > 0 && length(trimspace(var.egress_contract_reference)) > 0 &&
+        (alltrue([for r in var.relay_egress : r.port != 80]) || length(trimspace(var.http_repository_evidence_reference)) > 0) &&
+        (var.worker_subnet_key == "" || length(trimspace(var.worker_source_reference)) > 0)
       )
       error_message = "Disabled candidate, wrong workspace, or missing reviewed egress contract. Existing GO/role/Freeze requirements still apply."
     }
@@ -67,7 +85,11 @@ resource "aws_security_group" "relay" {
       error_message = "Live VPC/subnet identity, geometry, AZ or automatic public IP differs from the handoff."
     }
     precondition {
-      condition     = !var.activate_onprem_routes || (length(var.onprem_route_keys) > 0 && length(trimspace(var.tunnel_readiness_reference)) > 0)
+      condition = !var.activate_onprem_routes || (
+        var.worker_subnet_key != "" &&
+        var.onprem_route_keys == toset([var.worker_subnet_key]) &&
+        length(trimspace(var.tunnel_readiness_reference)) > 0
+      )
       error_message = "Do not activate routes before exact target keys and actual tunnel readiness evidence are supplied."
     }
   }
@@ -81,6 +103,16 @@ resource "aws_vpc_security_group_ingress_rule" "ike" {
   from_port         = tonumber(each.key)
   to_port           = tonumber(each.key)
   description       = "D21 outer IKE/NAT-T only"
+}
+
+resource "aws_vpc_security_group_ingress_rule" "worker_db" {
+  count             = var.worker_subnet_key == "" ? 0 : 1
+  security_group_id = aws_security_group.relay.id
+  cidr_ipv4         = data.aws_subnet.worker[0].cidr_block
+  ip_protocol       = "tcp"
+  from_port         = 5432
+  to_port           = 5432
+  description       = "Reviewed worker subnet to DB path; destination enforced by host FORWARD and DB controls"
 }
 
 resource "aws_vpc_security_group_egress_rule" "reviewed" {
@@ -102,7 +134,10 @@ resource "aws_instance" "relay" {
   source_dest_check           = false
   vpc_security_group_ids      = [aws_security_group.relay.id]
   iam_instance_profile        = data.aws_iam_instance_profile.relay.name
-  user_data                   = templatefile("${path.module}/bootstrap.sh.tftpl", { libreswan_package_spec = var.libreswan_package_spec })
+  user_data = templatefile("${path.module}/bootstrap.sh.tftpl", {
+    libreswan_package_spec = var.libreswan_package_spec
+    agent_signing_key      = file("${path.module}/amazon-ssm-agent.gpg")
+  })
   user_data_replace_on_change = true
   tags                        = { Name = "fds-relay" }
 
@@ -142,7 +177,7 @@ resource "aws_route" "onprem" {
   route_table_id         = var.network_handoff.subnets[each.key].route_table_id
   destination_cidr_block = "10.1.93.0/24"
   network_interface_id   = aws_instance.relay.primary_network_interface_id
-  depends_on             = [aws_eip_association.relay]
+  depends_on             = [aws_eip_association.relay, aws_vpc_security_group_ingress_rule.worker_db]
   lifecycle {
     precondition {
       condition = (

@@ -1,0 +1,4 @@
+gpg: key 2784DBF388D19D46: 1 signature not checked due to a missing key
+gpg: key 2784DBF388D19D46: "SSM Agent <ssm-agent-signer@amazon.com>" not changed
+gpg: Total number processed: 1
+gpg:              unchanged: 1

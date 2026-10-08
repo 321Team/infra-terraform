@@ -1,0 +1,9 @@
+gpg: key 2784DBF388D19D46: 1 signature not checked due to a missing key
+gpg: /c/Users/soldesk/.codex/.chatgpt-projects/g-p-6a85069945708191b56059da202e4461/.codex-review/r12/gpg-home/trustdb.gpg: trustdb created
+gpg: key 2784DBF388D19D46: public key "SSM Agent <ssm-agent-signer@amazon.com>" imported
+gpg: error running '/usr/bin/gpg-agent': exit status 2
+gpg: failed to start gpg-agent '/usr/bin/gpg-agent': General error
+gpg: can't connect to the gpg-agent: General error
+gpg: Total number processed: 1
+gpg:               imported: 1
+gpg: no ultimately trusted keys found

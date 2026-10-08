@@ -1,0 +1,8 @@
+test_failures_stop_before_unverified_agent_install (test_relay_bootstrap.BootstrapTests.test_failures_stop_before_unverified_agent_install) ... ok
+test_post_install_failures_never_claim_success (test_relay_bootstrap.BootstrapTests.test_post_install_failures_never_claim_success) ... ok
+test_success_orders_verification_before_install_and_start (test_relay_bootstrap.BootstrapTests.test_success_orders_verification_before_install_and_start) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 9.386s
+
+OK
