@@ -72,7 +72,7 @@ class CollectorTests(unittest.TestCase):
         rc, result = self.execute()
         self.assertEqual(rc, 0)
         self.assertEqual(result["expected_ami"], "ami-08d855918a18d0cf9")
-        self.assertEqual(result["terraform_candidate_sha"], "28ddb32d1dfcde5d2415070dbbc8b2656e8f5bcb")
+        self.assertEqual(result["terraform_candidate_sha"], "127921559e41f9667ccaf855bf6a3d3c2876fd5d")
         self.assertEqual(result["terraform_candidate_status"], "REVIEW_PENDING_NOT_EXECUTION_APPROVAL")
         self.assertEqual(result["plan"], "NOT_RUN")
         self.assertEqual(result["stage_a_ready"], "NO")

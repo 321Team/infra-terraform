@@ -1,14 +1,14 @@
 # PR6 준비값과 PR7 구현 후보 연결
 
-CODEX_ASSISTED. 2026-10-08. PR7 HEAD `28ddb32d1dfcde5d2415070dbbc8b2656e8f5bcb`에 대한 독립 리뷰 대기 중에 수행한 준비 작업이다. PR7의 RPM key import 의존성 제거 후 PR6 수집기의 후보 SHA와 manifest 참조를 갱신했다. PR6 Terraform 및 조회 API 범위는 그대로다. Stream9 userland 실설치는 조직 Actions 비활성화로 미검증이며 PR7 병합 전 확인사항으로 남아 있다. 승인 SHA나 실제 실행값을 임의 확정하지 않았다.
+CODEX_ASSISTED. 2026-10-08. PR7 HEAD `127921559e41f9667ccaf855bf6a3d3c2876fd5d`에 대한 독립 리뷰 대기 중에 수행한 준비 작업이다. PR7의 RPM key import 의존성 제거 후 PR6 수집기의 후보 SHA와 manifest 참조를 갱신했다. PR6 Terraform 및 조회 API 범위는 그대로다. Stream9 userland 실설치는 조직 Actions 비활성화로 미검증이며 PR7 병합 전 확인사항으로 남아 있다. 승인 SHA나 실제 실행값을 임의 확정하지 않았다.
 
 ## 소스·증적 경계
 
 | 항목 | 이번 준비값 | 소비 조건 |
 |---|---|---|
-| 새 Relay 소스 | [PR7 28ddb32](https://github.com/321Team/infra-terraform/pull/7), Stream9 `ami-08d855918a18d0cf9` / owner125523088429 | 독립 exact-HEAD 리뷰·Lead 병합 판단 별도 |
+| 새 Relay 소스 | [PR7 1279215](https://github.com/321Team/infra-terraform/pull/7), Stream9 `ami-08d855918a18d0cf9` / owner125523088429 | 독립 exact-HEAD 리뷰·Lead 병합 판단 별도 |
 | PR6의 Terraform | 이전 main `0eabe8daa75a6b9bf960fe1ea5eeaf6a8818f216` 유지 | **새 Relay Plan을 이 checkout에서 실행하지 않음** |
-| 후보 manifest | [PR7 source.json](https://github.com/321Team/infra-terraform/blob/28ddb32d1dfcde5d2415070dbbc8b2656e8f5bcb/validation/relay-agent-rpm-20261008/source.json), network6/vpn10파일 | SHA256은 [참조 JSON](source-binding-20261008.json)에 고정. 과거15파일 manifest는 과거 소스용 |
+| 후보 manifest | [PR7 source.json](https://github.com/321Team/infra-terraform/blob/127921559e41f9667ccaf855bf6a3d3c2876fd5d/validation/relay-agent-rpm-20261008/source.json), network6/vpn10파일 | SHA256은 [참조 JSON](source-binding-20261008.json)에 고정. 과거15파일 manifest는 과거 소스용 |
 | 읽기 수집기 | Stream9 exact AMI 조회, summary에 AMI/owner/후보 SHA/미승인 상태 기록 | 기존 승인된 중앙 조회 범위만. CloudShell 실행은 이번에 하지 않음 |
 | 실제 실행 source | 아직 미확정(null) | 최종 병합 SHA·manifest·정책·명시 입력과 해당 단계 수용 근거를 실행 전 기록 |
 | 과거 AWS 증적 | 23:56 Stream10 및00:28:59 Stream9 실제 조회 기록 | 변경·재해석·새 Runtime PASS로 재사용하지 않음 |
@@ -41,4 +41,4 @@ PR7은 merge 전 후보다. 리뷰로 HEAD가 바뀌면 AMI/bootstrap/변수/man
 
 ## 이번 갱신의 검증
 
-수집기 오프라인 MOCK11건을 새 후보 SHA로 실행했다. 새 원본은 `validation/preflight-rpm-binding-20261008/`에 보존한다. 이전 `37f5c8c`에 대한 독립 승인은 과거 HEAD의 기록이며 이번 변경은 최신 HEAD 재리뷰 대상이다. 후보 manifest16파일 hash와 변경 전후 바이트를 대조하고 실행 승인 null을 유지한다. PR7 설치 경로 재검토는 [후속 기록](https://github.com/321Team/infra-terraform/blob/28ddb32d1dfcde5d2415070dbbc8b2656e8f5bcb/docs/relay-agent-rpm-review-20261008.md)을 따른다.
+수집기 오프라인 MOCK11건을 새 후보 SHA로 실행했다. 새 원본은 `validation/preflight-rpm-binding-final-20261008/`에 보존한다. 이전 `37f5c8c`에 대한 독립 승인은 과거 HEAD의 기록이며 이번 변경은 최신 HEAD 재리뷰 대상이다. 후보 manifest16파일 hash와 변경 전후 바이트를 대조하고 실행 승인 null을 유지한다. PR7 설치 경로 재검토는 [후속 기록](https://github.com/321Team/infra-terraform/blob/127921559e41f9667ccaf855bf6a3d3c2876fd5d/docs/relay-agent-rpm-review-20261008.md)을 따른다.

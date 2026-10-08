@@ -16,7 +16,7 @@ REGION = "ap-northeast-2"
 AMI = "ami-08d855918a18d0cf9"
 OWNER = "125523088429"
 # Candidate binding is provenance, never a merge, permission or execution grant.
-TERRAFORM_CANDIDATE = "28ddb32d1dfcde5d2415070dbbc8b2656e8f5bcb"
+TERRAFORM_CANDIDATE = "127921559e41f9667ccaf855bf6a3d3c2876fd5d"
 READS = {
     ("sts", "get-caller-identity"), ("ec2", "describe-images"),
     ("iam", "get-role"), ("iam", "list-attached-role-policies"),
