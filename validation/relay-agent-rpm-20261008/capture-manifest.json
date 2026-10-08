@@ -33,5 +33,5 @@
   "tests/relay-agent-stream9.sh": "5848a2a731f44da732897399dc57da41862e73e1db148569de2023e95e6867db",
   ".github/workflows/relay-agent-stream9.yml": "e1d20a0fbe41b77b1cdf74418355a65d6f8f44c9f893e9fa7ddc8e5300f8583e",
   "docs/relay-stream9-20261008.md": "4eca79494e1a41bd6af0cedfe4df8fdfbb4e1792857d35077aeb06c4e30b7ef6",
-  "docs/relay-agent-rpm-review-20261008.md": "e76aad224a38d8e19786cebc4e42545d9fea53c0a894cb0a27318163938ca13e"
+  "docs/relay-agent-rpm-review-20261008.md": "93159719cf47124a9ca44791f2344d45c31ba52721b9ad88675dd8bb6aeff960"
 }

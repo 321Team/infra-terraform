@@ -44,4 +44,4 @@ docker run --rm --security-opt no-new-privileges \
 
 새 workflow는 읽기 전용 token, SHA 고정 actions, 12분 제한, 7일 artifact 보존을 사용한다. 조직 관리자가 허용하기 전 실행되지 않는다. 승인된 검증 호스트의 위 명령으로도 같은 스크립트를 실행할 수 있다.
 
-PR6의 후보 SHA/manifest/hash는 이 수정이 반영된 PR7 HEAD로 함께 갱신한다. 실행 승인 SHA·manifest는 계속 null, `execution_enabled=false`이다. 독립 재리뷰·Lead 병합·기존 Freeze/실행 Gate가 별도로 남는다.
+PR6의 후보 SHA/manifest/hash는 이 수정이 반영된 PR7 HEAD로 함께 갱신한다. `accepted_execution_sha`, `accepted_execution_manifest_sha256`, `execution_approval_reference`는 계속 null이다. 독립 재리뷰·Lead 병합·기존 Freeze/실행 Gate가 별도로 남는다.
