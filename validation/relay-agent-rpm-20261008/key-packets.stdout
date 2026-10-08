@@ -1,0 +1,29 @@
+# off=0 ctb=99 tag=6 hlen=3 plen=525
+:public key packet:
+	version 4, algo 1, created 1780581487, expires 0
+	pkey[0]: [4096 bits]
+	pkey[1]: [17 bits]
+	keyid: 2784DBF388D19D46
+# off=528 ctb=b4 tag=13 hlen=2 plen=39
+:user ID packet: "SSM Agent <ssm-agent-signer@amazon.com>"
+# off=569 ctb=89 tag=2 hlen=3 plen=575
+:signature packet: algo 1, keyid 2784DBF388D19D46
+	version 4, created 1780581487, md5len 0, sigclass 0x13
+	digest algo 2, begin of digest 75 d5
+	hashed subpkt 2 len 4 (sig created 2026-06-04)
+	hashed subpkt 27 len 1 (key flags: 2F)
+	hashed subpkt 9 len 4 (key expires after 1y174d0h0m)
+	hashed subpkt 11 len 6 (pref-sym-algos: 9 8 7 3 2 1)
+	hashed subpkt 21 len 5 (pref-hash-algos: 8 2 9 10 11)
+	hashed subpkt 22 len 3 (pref-zip-algos: 2 3 1)
+	hashed subpkt 30 len 1 (features: 01)
+	hashed subpkt 23 len 1 (keyserver preferences: 80)
+	subpkt 16 len 8 (issuer key ID 2784DBF388D19D46)
+	data: [4095 bits]
+# off=1147 ctb=89 tag=2 hlen=3 plen=540
+:signature packet: algo 1, keyid 7DD097A3DAD7F5FC
+	version 4, created 1780581489, md5len 0, sigclass 0x10
+	digest algo 2, begin of digest f5 2f
+	hashed subpkt 2 len 4 (sig created 2026-06-04)
+	subpkt 16 len 8 (issuer key ID 7DD097A3DAD7F5FC)
+	data: [4094 bits]

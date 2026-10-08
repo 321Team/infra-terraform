@@ -28,6 +28,7 @@ sleep() { :; }
 dnf() {
   echo "dnf $*" >> "$EVENTS"
   if [ "$CASE" = repo_fail ]; then return 1; fi
+  if [ "$CASE" = local_install_fail ] && [[ "$*" == *localpkg_gpgcheck* ]]; then return 1; fi
 }
 systemctl() {
   echo "systemctl $*" >> "$EVENTS"
@@ -38,6 +39,9 @@ systemctl() {
 ipsec() { :; }
 rpm() {
   echo "rpm $*" >> "$EVENTS"
+  # Stream9 may reject this AWS key's SHA1 UID self-signature. No successful
+  # bootstrap test may depend on importing it into the system RPM database.
+  if [ "$1" = --import ]; then return 1; fi
   if [ "$1" = -qp ]; then
     if [ "$CASE" = wrong_package ]; then echo 'other 3.3.5390.0 x86_64'; else echo 'amazon-ssm-agent 3.3.5390.0 x86_64'; fi
   elif [[ "$*" == *queryformat* ]] && [[ "$*" == *libreswan* ]]; then
@@ -61,6 +65,7 @@ sha256sum() {
 }
 gpg() {
   echo "gpg $*" >> "$EVENTS"
+  if [ "$CASE" = key_import_fail ] && [[ "$*" == *--import* ]]; then return 1; fi
   if [[ "$*" == *--show-keys* ]]; then
     if [ "$CASE" = wrong_key ]; then echo 'fpr:::::::::BAD:'; else echo 'fpr:::::::::1C5B395CBE5E74E2F1CA21592784DBF388D19D46:'; fi
   elif [[ "$*" == *--verify* ]]; then
@@ -101,26 +106,32 @@ class BootstrapTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr.decode())
         self.assertIn(b"AGENT_ONLINE=NOT_VERIFIED", result.stdout)
         self.assertLess(events.index("hash-check"), events.index("--verify"))
-        self.assertLess(events.index("--verify"), events.index("localpkg_gpgcheck=1"))
-        self.assertLess(events.index("localpkg_gpgcheck=1"), events.index("enable --now amazon-ssm-agent"))
+        self.assertLess(events.index("--verify"), events.index("localpkg_gpgcheck=0"))
+        self.assertLess(events.index("localpkg_gpgcheck=0"), events.index("enable --now amazon-ssm-agent"))
+        self.assertNotIn("rpm --import", events)
+        for command in events.splitlines():
+            if command.startswith("dnf "):
+                self.assertIn("--setopt=*.gpgcheck=1", command)
+                self.assertIn("--setopt=*.sslverify=1", command)
         self.assertNotIn("ip_forward=1", events)
 
     def test_failures_stop_before_unverified_agent_install(self):
-        for case in ["permissive", "repo_fail", "firewall_fail", "wrong_libreswan", "wrong_key", "download_fail", "hash_fail", "signature_fail", "wrong_signer", "wrong_package"]:
+        for case in ["permissive", "repo_fail", "firewall_fail", "wrong_libreswan", "wrong_key", "key_import_fail", "download_fail", "hash_fail", "signature_fail", "wrong_signer", "wrong_package"]:
             with self.subTest(case=case):
                 result, events = self.execute(case)
                 self.assertNotEqual(result.returncode, 0)
-                self.assertNotIn("localpkg_gpgcheck=1", events)
+                self.assertNotIn("localpkg_gpgcheck=0", events)
                 self.assertNotIn("enable --now amazon-ssm-agent", events)
                 self.assertNotIn(b"LOCAL_SERVICE_CHECKS_COMPLETE", result.stdout)
+                self.assertIn(b"FDS_BOOTSTRAP_STOP", result.stderr)
 
     def test_post_install_failures_never_claim_success(self):
-        for case in ["installed_version", "agent_fail"]:
+        for case in ["local_install_fail", "installed_version", "agent_fail"]:
             with self.subTest(case=case):
                 result, events = self.execute(case)
                 self.assertNotEqual(result.returncode, 0)
                 self.assertNotIn(b"LOCAL_SERVICE_CHECKS_COMPLETE", result.stdout)
-                self.assertIn("localpkg_gpgcheck=1", events)
+                self.assertIn("localpkg_gpgcheck=0", events)
 
 
 if __name__ == "__main__":

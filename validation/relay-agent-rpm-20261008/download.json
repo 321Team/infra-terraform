@@ -1,0 +1,23 @@
+{
+  "amazon-ssm-agent.rpm": {
+    "sha256": "85369679511b67f8f01824043ae17a679b6f21edd78229ccd1d5acd6c347f82f",
+    "bytes": 27573537,
+    "url": "https://s3.ap-northeast-2.amazonaws.com/amazon-ssm-ap-northeast-2/3.3.5390.0/linux_amd64/amazon-ssm-agent.rpm"
+  },
+  "amazon-ssm-agent.rpm.sig": {
+    "sha256": "15454839825bccd1ed3346e2467712b07de4abed0dc289b635c7f16a9aede7dd",
+    "bytes": 595,
+    "url": "https://s3.ap-northeast-2.amazonaws.com/amazon-ssm-ap-northeast-2/3.3.5390.0/linux_amd64/amazon-ssm-agent.rpm.sig"
+  },
+  "rpm_signature_header_tags": [
+    62,
+    268,
+    269,
+    273,
+    1000,
+    1004,
+    1007,
+    1008
+  ],
+  "checked_utc": "2026-10-08T00:55:43.926804+00:00"
+}

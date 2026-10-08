@@ -19,17 +19,16 @@ source = Path('/source/terraform/vpn/bootstrap.sh.tftpl').read_text()
 start = source.index('agent_version=')
 end = source.index('systemctl enable --now amazon-ssm-agent.service')
 block = source[start:end].replace('${agent_signing_key}', Path('/source/terraform/vpn/amazon-ssm-agent.gpg').read_text()).replace('%%{', '%{')
-Path('/evidence/exact-package-block.sh').write_text('set -euo pipefail\numask 077\nexport LC_ALL=C\nretry() { "$@"; }\n' + block)
+prefix = 'set -euo pipefail\numask 077\nexport LC_ALL=C\nretry() { "$@"; }\n'
+Path('/evidence/exact-package-block.sh').write_text(prefix + block)
+lines = block.splitlines(keepends=True)
+boundary = next(i for i, line in enumerate(lines) if line.startswith('rpm --import ') or (line.startswith('retry dnf ') and 'localpkg_gpgcheck=' in line))
+Path('/evidence/exact-verification-block.sh').write_text(prefix + ''.join(lines[:boundary]))
 PY
 bash -n /evidence/exact-package-block.sh
-# Run the actual version/hash/key/verify/install block, not an independently rewritten installer.
-set +e
-bash -x /evidence/exact-package-block.sh > /evidence/package-block.log 2>&1
-rc=$?
-set -e
-cat /evidence/package-block.log
-printf '%s\n' "$rc" > /evidence/package-block.exit-code.txt
-# Always capture the reviewer's original commands; their failures are diagnostic data.
+# Verify first, then capture the reviewer's original commands before installation.
+bash -x /evidence/exact-verification-block.sh > /evidence/verification-block.log 2>&1
+cat /evidence/verification-block.log
 work=$(find /var/tmp -maxdepth 1 -type d -name 'fds-agent-*' | head -1)
 if test -n "$work" && test -f "$work/agent.rpm"; then
   set +e
@@ -44,6 +43,13 @@ if test -n "$work" && test -f "$work/agent.rpm"; then
   sha256sum "$work/agent.rpm" "$work/agent.rpm.sig" > /evidence/download-sha256.txt
   cp "$work/signature.status" /evidence/signature.status
 fi
+# Run the actual version/hash/key/verify/install block, not an independently rewritten installer.
+set +e
+bash -x /evidence/exact-package-block.sh > /evidence/package-block.log 2>&1
+rc=$?
+set -e
+cat /evidence/package-block.log
+printf '%s\n' "$rc" > /evidence/package-block.exit-code.txt
 test "$rc" -eq 0
 test "$(rpm -q --queryformat '%{VERSION}' amazon-ssm-agent)" = 3.3.5390.0
 test "$(update-crypto-policies --show)" = DEFAULT

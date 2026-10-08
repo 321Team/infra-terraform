@@ -1,5 +1,7 @@
 # Relay Stream9·SG 변경 검토 및 구현 후보
 
+현재 Agent 설치 경로의 후속 수정·검증 범위·남은 Stream9 userland 확인은 [RPM 리뷰 후속](relay-agent-rpm-review-20261008.md)을 따른다. 현재 source manifest는 `validation/relay-agent-rpm-20261008/source.json`이며 아래 기존 검증 기록은 변경 전 소스에 대한 이력이다.
+
 CODEX_ASSISTED. 2026-10-08. 기반 main `0eabe8daa75a6b9bf960fe1ea5eeaf6a8818f216`. #35 Lead 이하영 / #37 Lead 이재환 / PMO·QA 검토 이권욱. 이 변경은 **실행 코드 혼합 PR**으로 작성자 자체 점검과 독립 리뷰를 구분한다. 생성·부여·Apply·운영 승인은 아니다.
 
 ## 입력과 기술 판단

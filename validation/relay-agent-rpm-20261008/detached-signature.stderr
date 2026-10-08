@@ -1,0 +1,7 @@
+gpg: Signature made Wed Sep 16 18:17:36 2026    
+gpg:                using RSA key 1C5B395CBE5E74E2F1CA21592784DBF388D19D46
+gpg:                issuer "ssm-agent-signer@amazon.com"
+gpg: Good signature from "SSM Agent <ssm-agent-signer@amazon.com>" [unknown]
+gpg: WARNING: The key's User ID is not certified with a trusted signature!
+gpg:          There is no indication that the signature belongs to the owner.
+Primary key fingerprint: 1C5B 395C BE5E 74E2 F1CA  2159 2784 DBF3 88D1 9D46

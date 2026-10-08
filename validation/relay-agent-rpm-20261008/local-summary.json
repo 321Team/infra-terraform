@@ -1,0 +1,107 @@
+{
+  "host": "server01",
+  "scope": "STATIC_AND_COMMAND_DOUBLE_MOCK_PLUS_OFFICIAL_DETACHED_SIGNATURE",
+  "bootstrap_scenarios": 15,
+  "bootstrap_tests": 3,
+  "records": [
+    {
+      "name": "bootstrap-mock",
+      "argv": [
+        "C:\\Users\\soldesk\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_relay_bootstrap.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "started_utc": "2026-10-08T01:03:34.621678+00:00",
+      "finished_utc": "2026-10-08T01:03:40.129501+00:00"
+    },
+    {
+      "name": "key-packets",
+      "argv": [
+        "C:\\Program Files\\Git\\usr\\bin\\gpg.exe",
+        "--homedir",
+        "/c/Users/soldesk/.codex/.chatgpt-projects/g-p-6a85069945708191b56059da202e4461/.codex-review/r12/gpg-home",
+        "--batch",
+        "--no-autostart",
+        "--list-packets",
+        "terraform/vpn/amazon-ssm-agent.gpg"
+      ],
+      "exit_code": 0,
+      "started_utc": "2026-10-08T01:03:40.181807+00:00",
+      "finished_utc": "2026-10-08T01:03:40.216878+00:00"
+    },
+    {
+      "name": "key-import",
+      "argv": [
+        "C:\\Program Files\\Git\\usr\\bin\\gpg.exe",
+        "--homedir",
+        "/c/Users/soldesk/.codex/.chatgpt-projects/g-p-6a85069945708191b56059da202e4461/.codex-review/r12/gpg-home",
+        "--batch",
+        "--no-autostart",
+        "--import",
+        "terraform/vpn/amazon-ssm-agent.gpg"
+      ],
+      "exit_code": 0,
+      "started_utc": "2026-10-08T01:03:40.216878+00:00",
+      "finished_utc": "2026-10-08T01:03:40.254877+00:00"
+    },
+    {
+      "name": "detached-signature",
+      "argv": [
+        "C:\\Program Files\\Git\\usr\\bin\\gpg.exe",
+        "--homedir",
+        "/c/Users/soldesk/.codex/.chatgpt-projects/g-p-6a85069945708191b56059da202e4461/.codex-review/r12/gpg-home",
+        "--batch",
+        "--no-autostart",
+        "--status-fd",
+        "1",
+        "--verify",
+        "/c/Users/soldesk/.codex/.chatgpt-projects/g-p-6a85069945708191b56059da202e4461/.codex-review/r12/download/amazon-ssm-agent.rpm.sig",
+        "/c/Users/soldesk/.codex/.chatgpt-projects/g-p-6a85069945708191b56059da202e4461/.codex-review/r12/download/amazon-ssm-agent.rpm"
+      ],
+      "exit_code": 0,
+      "started_utc": "2026-10-08T01:03:40.255378+00:00",
+      "finished_utc": "2026-10-08T01:03:40.367807+00:00"
+    },
+    {
+      "name": "userland-test-syntax",
+      "argv": [
+        "C:\\Program Files\\Git\\bin\\bash.exe",
+        "-n",
+        "tests/relay-agent-stream9.sh"
+      ],
+      "exit_code": 0,
+      "started_utc": "2026-10-08T01:05:56.365510+00:00",
+      "finished_utc": "2026-10-08T01:05:56.394821+00:00"
+    }
+  ],
+  "source_manifest_sha256": "6fe1d41a623316df7613b53fbd7e0a0e1fbacd19c1ac4ea122159fc549175e87",
+  "CI": "NOT_RUN_ORGANIZATION_DISABLED_ACTIONS",
+  "stream9_userland": "NOT_RUN",
+  "AWS": "NOT_RUN",
+  "AMI_RUNTIME": "NOT_RUN",
+  "independent_review": "PENDING",
+  "terraform": {
+    "pass": true,
+    "provider_mock_tests": 22,
+    "summary": "terraform/summary.json"
+  },
+  "failed_local_capture_attempts": [
+    {
+      "file": "key-packets-windows-path-attempt1.stderr",
+      "exit_code": 2,
+      "cause": "MSYS path syntax; fixed for local capture only"
+    },
+    {
+      "file": "key-import-windows-agent-attempt1.stderr",
+      "exit_code": 2,
+      "cause": "Windows gpg-agent startup; public-key-only no-autostart capture subsequently passed"
+    }
+  ]
+}

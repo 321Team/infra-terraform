@@ -3,6 +3,8 @@
 set -euo pipefail
 umask 077
 export LC_ALL=C
+work=NOT_CREATED
+trap 'printf "FDS_BOOTSTRAP_STOP line=%s evidence=%s\n" "$LINENO" "$work" >&2' ERR
 test "$(id -u)" = 0
 . /etc/os-release
 test "$ID" = centos
@@ -42,7 +44,6 @@ agent_sha=85369679511b67f8f01824043ae17a679b6f21edd78229ccd1d5acd6c347f82f
 agent_signer=1C5B395CBE5E74E2F1CA21592784DBF388D19D46
 agent_base="https://s3.ap-northeast-2.amazonaws.com/amazon-ssm-ap-northeast-2/$agent_version/linux_amd64"
 work=$(mktemp -d /var/tmp/fds-agent-XXXXXX)
-trap 'printf "FDS_BOOTSTRAP_STOP line=%s evidence=%s\n" "$LINENO" "$work" >&2' ERR
 export GNUPGHOME="$work/keyring"
 mkdir -m 700 "$GNUPGHOME"
 cat > "$work/signer.asc" <<'FDS_AGENT_SIGNING_KEY'
@@ -58,8 +59,12 @@ gpg --batch --status-fd 1 --verify "$work/agent.rpm.sig" "$work/agent.rpm" > "$w
 # The isolated keyring contains only the pinned key; still require the exact signer.
 awk -v signer="$agent_signer" '$1 == "[GNUPG:]" && $2 == "VALIDSIG" && $3 == signer { found=1 } END { exit !found }' "$work/signature.status"
 test "$(rpm -qp --queryformat '%%{NAME} %%{VERSION} %%{ARCH}' "$work/agent.rpm")" = "amazon-ssm-agent $agent_version x86_64"
-rpm --import "$work/signer.asc"
-retry dnf -y --setopt=timeout=15 --setopt=retries=1 --setopt=localpkg_gpgcheck=1 --setopt=*.gpgcheck=1 --setopt=*.sslverify=1 install "$work/agent.rpm"
+# Trust this exact local payload only after SHA256 + detached GPG/VALIDSIG above.
+# The AWS key's SHA1 UID self-signature may be rejected by Stream9 RPM import.
+# Do not change crypto-policy or import that key into the system RPM database.
+# This one command disables only redundant local-RPM checking; repository package
+# signatures and TLS verification remain mandatory (including dependencies).
+retry dnf -y --setopt=timeout=15 --setopt=retries=1 --setopt=localpkg_gpgcheck=0 --setopt=*.gpgcheck=1 --setopt=*.sslverify=1 install "$work/agent.rpm"
 test "$(rpm -q --queryformat '%%{VERSION}' amazon-ssm-agent)" = "$agent_version"
 systemctl enable --now amazon-ssm-agent.service
 systemctl is-active --quiet amazon-ssm-agent.service

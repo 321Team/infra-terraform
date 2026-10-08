@@ -44,4 +44,4 @@ jobs:
           name: relay-agent-stream9-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/relay-agent-stream9
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 7
