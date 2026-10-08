@@ -1,0 +1,16 @@
+test_access_denied_is_not_absence (test_phase2_preflight.CollectorTests.test_access_denied_is_not_absence) ... ok
+test_changed_document_stops_capture (test_phase2_preflight.CollectorTests.test_changed_document_stops_capture) ... ok
+test_error_from_other_operation_not_treated_as_absence (test_phase2_preflight.CollectorTests.test_error_from_other_operation_not_treated_as_absence) ... ok
+test_existing_document_is_read_at_pinned_default_version (test_phase2_preflight.CollectorTests.test_existing_document_is_read_at_pinned_default_version) ... ok
+test_image_mismatch_stops_before_role_reads (test_phase2_preflight.CollectorTests.test_image_mismatch_stops_before_role_reads) ... ok
+test_missing_role_is_recorded_without_granting_readiness (test_phase2_preflight.CollectorTests.test_missing_role_is_recorded_without_granting_readiness) ... ok
+test_old_stream10_response_stops_before_role_reads (test_phase2_preflight.CollectorTests.test_old_stream10_response_stops_before_role_reads) ... ok
+test_receipt_binds_candidate_without_claiming_approval (test_phase2_preflight.CollectorTests.test_receipt_binds_candidate_without_claiming_approval) ... ok
+test_timeout_preserves_stop_and_no_followup (test_phase2_preflight.CollectorTests.test_timeout_preserves_stop_and_no_followup) ... ok
+test_write_operation_rejected_before_runner (test_phase2_preflight.CollectorTests.test_write_operation_rejected_before_runner) ... ok
+test_wrong_account_stops_before_inventory (test_phase2_preflight.CollectorTests.test_wrong_account_stops_before_inventory) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.230s
+
+OK

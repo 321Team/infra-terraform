@@ -1,0 +1,47 @@
+{
+  "status": "REPORT_BASED_TRACKING_CONFIRMED",
+  "currency": "USD",
+  "user_confirmed": {
+    "cap": 500,
+    "self_pay_cap": 0,
+    "worker_count": 3,
+    "worker_type": "m5.xlarge",
+    "az_count": 1
+  },
+  "existing_controls": {
+    "target": 400,
+    "hard_stop": 450,
+    "protected_reserve": 50
+  },
+  "support": {
+    "status": "USER_CONFIRMED_ALREADY_PROVIDED",
+    "source": "2026-10-08 user clarification in this thread",
+    "further_support_confirmation_required": false
+  },
+  "independent_prework": "CONTINUE_WITHIN_EXISTING_AUTHORIZATION",
+  "tracking": {
+    "source": "EDUCATION_PROVIDER_REPORT",
+    "source_confirmed_by": "2026-10-08 user instruction in this thread",
+    "independent_billing_query_required": false,
+    "independent_estimate_required": false,
+    "cadence": "EXISTING_PROVIDER_REPORT_FLOW",
+    "automation_created": false
+  },
+  "latest_report": {
+    "status": "NOT_RECEIVED_IN_THIS_TASK",
+    "reference": null,
+    "issued_at": null,
+    "received_kst": null,
+    "period": null,
+    "currency": null,
+    "reported_usage": null,
+    "reported_expected_total": null,
+    "basis_as_reported": null
+  },
+  "assessment": {
+    "status": "NOT_ASSESSED_NO_REPORT_RECEIVED",
+    "usage_vs_thresholds": null,
+    "expected_total_vs_thresholds": null,
+    "followup": null
+  }
+}

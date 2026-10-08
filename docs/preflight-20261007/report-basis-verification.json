@@ -1,0 +1,24 @@
+{
+  "kind": "STATIC_REPORT_BASIS_RECEIPT_NOT_RUNTIME",
+  "checked_kst": "2026-10-08T00:59:33.386062+09:00",
+  "base": "a124b8f1a864988cec240c33f6d17dd44c18696c",
+  "tracking_source": "EDUCATION_PROVIDER_REPORT",
+  "thresholds_unchanged": true,
+  "no_fabricated_amounts": true,
+  "source_scripts_tests_unchanged": true,
+  "relative_links_checked": 30,
+  "aws_execution": "NONE",
+  "automation_created": false,
+  "previous_receipts": "historical at recorded revision",
+  "sha256": {
+    "docs/preflight-20261007/README.md": "a0197684136738f5b56f478f0022b4d3d6b94ce40b6cb383ec405a0203dee9ad",
+    "docs/preflight-20261007/central-validation-handoff.md": "a469f96ed3678e56568a66e93012a233292407c3f38695c63eb088a3ce4b08a4",
+    "docs/preflight-20261007/cost-inputs.json": "9ff28b345ec48b36033946cf40218e82dc0d4ed8387265363ba0622295ad2d6c",
+    "docs/preflight-20261007/cost-support-request.md": "11c6991c06f120837ca3a0cc4810d25d2ad14ec269a3995ade1f9f29a02e0753",
+    "docs/preflight-20261007/decision-inputs.md": "6b15b419723a12210d43a1e12b9bcedb2d53fb2931bc5e81b42c76acba82b479",
+    "docs/preflight-20261007/gwonuk-next-actions.md": "6c2ce06c5f1a827f89f915447d8b97e2b05f9446c6c6ab34328f26af4375d043",
+    "docs/preflight-20261007/iam-stage-a.md": "30939fd46ffc1aa702ffa62b29ea1a882aeb3cbab68fb676928733498052dd7c",
+    "docs/preflight-20261007/operating-teardown-plan.md": "42ff3a0a1cb129706392b3c5a354511f64243ac10b17e51c96b404440a55dbb6",
+    "docs/preflight-20261007/plan-runbook.md": "a736bcceab68caaf32d01f1a1825de278ccda0b2c4c450c8d93b865b3fb0def8"
+  }
+}

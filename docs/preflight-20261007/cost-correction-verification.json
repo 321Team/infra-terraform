@@ -1,0 +1,23 @@
+{
+  "kind": "STATIC_CORRECTION_RECEIPT_NOT_RUNTIME",
+  "checked_kst": "2026-10-08T00:55:36.813744+09:00",
+  "supersedes_cost_interpretation_at": "73ed0e1c0aa808c9db8f9435d14de43c0ffa3777",
+  "support": "USER_CONFIRMED_ALREADY_PROVIDED",
+  "usage_and_forecast": "PENDING_NOT_ZERO",
+  "existing_thresholds_unchanged": true,
+  "source_scripts_tests_unchanged": true,
+  "relative_links_checked": 30,
+  "old_receipts": "historical at their recorded revisions; new hashes below",
+  "aws_execution": "NONE_THIS_CORRECTION",
+  "sha256": {
+    "docs/preflight-20261007/README.md": "e27eeb9fb67a7b6f4d58ca76a3656f9008c867b50cd4c5a5c012bd0b26037168",
+    "docs/preflight-20261007/central-validation-handoff.md": "95268800ca82edbcbad94b9a110ceddacbbd897ecc941c0642038536ff63f18b",
+    "docs/preflight-20261007/cost-inputs.json": "e7b35429a77822b5b4d6046fb6f4f06ceba3067f5d89bbbcad2f67a47e9df031",
+    "docs/preflight-20261007/cost-support-request.md": "16f99798c8bd78320017c66d8606e7a26c7891ce70de9920379e7a8603bc56f7",
+    "docs/preflight-20261007/decision-inputs.md": "d655cfff8df0a77007bfcbfd3da86c0845f447532d64b4a589fa07f61f5db035",
+    "docs/preflight-20261007/gwonuk-next-actions.md": "814e766217b1aed483bcb900c4b3c1a484bb9b83fd15034f431f021d3af2052f",
+    "docs/preflight-20261007/iam-stage-a.md": "e2151b738043fc347df982e4cf75a265f27369d81f0fbaddb3a9043cd8dde3c7",
+    "docs/preflight-20261007/operating-teardown-plan.md": "5769677185b7d79e62634e40268ee72d8be09f3f41952ac8a9308958d11379e2",
+    "docs/preflight-20261007/plan-runbook.md": "ead0dea9f2a74ae850b6536ec8216f53f49bb656c14d1ef43d071d47355d70bb"
+  }
+}

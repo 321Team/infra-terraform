@@ -1,0 +1,27 @@
+{
+  "kind": "FOLLOWUP_STATIC_AND_ACTUAL_READONLY_RECEIPT",
+  "as_of_kst": "2026-10-08T00:02:09.268042+09:00",
+  "prior_verification": "verification.json is historical 2026-10-07 23:40 KST receipt; its document hashes and AWS NOT_RUN apply to that revision only",
+  "terraform_unchanged": 15,
+  "collector_and_tests_unchanged": true,
+  "relative_links_valid": 15,
+  "document_hashes": {
+    "docs/preflight-20261007/central-readonly-receipt.md": "f2794fbb5f3e427d15bdfc921ad9b08a45fe88be8ef7fbdebd0f73bc35c342b6",
+    "docs/preflight-20261007/decision-inputs.md": "f67c9ca174f7306acb527de05befe865e3f59d71d08a189fc05c481989a0e88c",
+    "docs/preflight-20261007/gwonuk-next-actions.md": "bcdd90b389e7c6c17aed3dbb6dbb1da9232685bc77e07377328f9004ed3fb256",
+    "docs/preflight-20261007/iam-stage-a.md": "6062d86a3a043687b3171fd654d49863a03efc52c328fb7468c1ab2ea38d5d9e",
+    "docs/preflight-20261007/plan-runbook.md": "0b652727a95d5df6efd678e64b775841ecb8d0f4480299263fe4d5a7549a9460",
+    "docs/preflight-20261007/README.md": "de1bf71db54e1376c9f8a485768f5601b5bd9bf030e7e8fe7bd6c62ffdc096be",
+    "docs/preflight-20261007/sg-ami.md": "fe491c31fd3617490f10777b888369515967c56e0a9389ef75fd30e7e4b17908"
+  },
+  "aws_readonly": "COMPLETE_2026-10-07T23:56:33+09:00",
+  "archive_sha256": "8bdac7bbe9596691544e6759f81efc2dadde98b20afe10dc9aae7359518d4e46",
+  "downloaded_raw_manifest_rehash": "11/11_MATCH",
+  "runtime": "AMI_OS_AGENT_VPN_NOT_TESTED",
+  "grant": "NOT_RUN",
+  "plan": "NOT_RUN",
+  "apply": "NOT_RUN",
+  "ci": "NOT_RUN",
+  "independent_review": "NOT_PERFORMED",
+  "publication": "NOT_RUN"
+}

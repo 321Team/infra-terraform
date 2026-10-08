@@ -1,0 +1,7 @@
+{
+  "collector-tests.stderr": "50f78fd2da43edff175a01aa033b7c58bc30e6f030741a3495d78cb9d74beb75",
+  "collector-tests.stdout": "4f1a024f1835c87c13c41cc9ff2f19fd53b5704e271bd59652ba6e89f9862446",
+  "plan-syntax.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "plan-syntax.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "summary.json": "446fdeb018a8899054b808ab3e7bfaa3c5d4de42ab6dd02198c19d363d8f5c25"
+}

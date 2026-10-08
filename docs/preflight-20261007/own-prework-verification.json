@@ -1,0 +1,39 @@
+{
+  "assistance": "CODEX_ASSISTED",
+  "checked_kst": "2026-10-08T00:38:14.475889+09:00",
+  "base_preparation_head": "11f39df74c49d1ce72e1fc857d8f1d4fa1c49325",
+  "terraform_source_unchanged_from_main": "0eabe8daa75a6b9bf960fe1ea5eeaf6a8818f216",
+  "terraform_files": 13,
+  "scripts_tests_unchanged": true,
+  "local_links_checked": 36,
+  "scenario_hours": {
+    "relay": 273,
+    "cluster": 201,
+    "worker": 603
+  },
+  "json_parse": "PASS",
+  "unknown_costs_preserved": true,
+  "ami_alternative_readonly": {
+    "rc": 0,
+    "archive_sha256": "29c4420486d1d0410715dec84f394a6da386316d800cc27d04ac85b5e73cee7f",
+    "local_archive_and_2_stream_hashes": "MATCH",
+    "os_runtime": "NOT_RUN"
+  },
+  "validation_level": "STATIC_AND_AWS_READ_ONLY_NOT_RUNTIME",
+  "grant_plan_apply_u1": "NOT_RUN",
+  "changed_document_sha256": {
+    "cost-support-request.md": "c819201bf33d48bcb7ba1c69628f0e6fd895cb13096567cc2c9d1bced3c7b82b",
+    "cost-inputs.json": "33b284258c5373568d6fd89541e24f6c8873c0962024e0ab248f700662169127",
+    "operating-teardown-plan.md": "2e28f45ad6f272d2cf653a574aad057901969666684cfe0d682b29298487337b",
+    "ami-alternative-review.md": "972f66ddd5123f53e9c8a0f30edbfd63dc8756c21b5076ea932e35b669f26a10",
+    "gwonuk-u1-plan.md": "e0a5deb19bf7451005f5ac47540157d9ef75362faad32029b3fa519adc6a01f4",
+    "README.md": "ac2d1f3e37c3377520c2725d415cf05dd16678a7d313fa92e5bee9921480372d",
+    "gwonuk-next-actions.md": "9a375d6967f121222582e1601d37006ee9ae78826e4d69ac7a28b34b733a45ab",
+    "sg-ami.md": "64738320b57f575584c24992086b9c4111ef2c7d6595bbddf90db251b73aac62",
+    "iam-stage-a.md": "344f2e2733cadbfa23d212f21f39413cf8468755a686a0161951f520698e99f4",
+    "central-validation-handoff.md": "ba28f7912dd4755a049102ac4d9918640505e7ff3c6a1200ee6b160ebd89fa2d",
+    "plan-runbook.md": "5c5fd43f09e56c010bd459242e3f7a0e660fab9ee09fecfc88b7527193bc39a0"
+  },
+  "document_hash_encoding": "UTF-8 LF",
+  "existing_terraform_manifest_files_verified": 15
+}

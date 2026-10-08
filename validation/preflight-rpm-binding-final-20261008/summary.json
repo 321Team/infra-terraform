@@ -1,0 +1,30 @@
+{
+  "host": "server01",
+  "started_utc": "2026-10-08T01:10:36.675668+00:00",
+  "finished_utc": "2026-10-08T01:10:37.011907+00:00",
+  "argv": [
+    "C:\\Users\\soldesk\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tests",
+    "-p",
+    "test_phase2_preflight.py",
+    "-v"
+  ],
+  "exit_code": 0,
+  "MOCK_tests": 11,
+  "candidate_sha": "127921559e41f9667ccaf855bf6a3d3c2876fd5d",
+  "candidate_manifest_sha256": "6fe1d41a623316df7613b53fbd7e0a0e1fbacd19c1ac4ea122159fc549175e87",
+  "AWS": "NOT_RUN",
+  "CI": "NOT_RUN_ORGANIZATION_DISABLED_ACTIONS",
+  "accepted_execution_sha": null,
+  "accepted_execution_manifest_sha256": null,
+  "source_sha256": {
+    "scripts/collect-phase2-preflight.py": "0858c69d50b6a8c60d7134cfd3c8318b91e82c29928c0101f421d020b215f84e",
+    "tests/test_phase2_preflight.py": "93752c7570ec1cb63920d98b1dffd7a449b0b65ea5814790f11369551ce9188d",
+    "docs/preflight-20261007/source-binding-20261008.json": "f17c2c52cb93d7f3ce2df420ff549c094cbf4a53a58d101b45247bece98d0356",
+    "docs/preflight-20261007/source-alignment-20261008.md": "e10225aea299b0448e0206dd848836e66b366746a563c05e8f11467218bae24f"
+  }
+}
