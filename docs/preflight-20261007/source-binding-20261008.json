@@ -1,9 +1,9 @@
 {
   "status": "PREPARATION_ONLY_NOT_EXECUTION_APPROVAL",
   "candidate_pr": "https://github.com/321Team/infra-terraform/pull/7",
-  "candidate_sha": "e4ee0bff2d6aba92a0b147b86e1f4759f315eded",
-  "candidate_manifest_path": "validation/relay-stream9-20261008/source.json",
-  "candidate_manifest_sha256": "fdd37c85a9f8bfae4cb3907550bb14f0bd3cdbf362200f0fed4a3df63c7a1d76",
+  "candidate_sha": "28ddb32d1dfcde5d2415070dbbc8b2656e8f5bcb",
+  "candidate_manifest_path": "validation/relay-agent-rpm-20261008/source.json",
+  "candidate_manifest_sha256": "6fe1d41a623316df7613b53fbd7e0a0e1fbacd19c1ac4ea122159fc549175e87",
   "candidate_component_file_counts": {
     "network": 6,
     "vpn": 10

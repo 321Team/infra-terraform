@@ -1,0 +1,9 @@
+{
+  "validation/preflight-rpm-binding-20261008/collector-tests.stderr": "d8db8c5b5827d598302ad670268a24f2e695fc88877bec426aa7f62a37be8188",
+  "validation/preflight-rpm-binding-20261008/collector-tests.stdout": "bbe6372f877e95e9d9b7844f8cd5d0f1967fcd5e9b9a35cb111b9be066345747",
+  "validation/preflight-rpm-binding-20261008/summary.json": "1a239ca792e3e9814537e044fe66a5e6abc9cd1fe9b04f646efb3168d01c46a8",
+  "scripts/collect-phase2-preflight.py": "3115848501aa819a726fdaa2b2482310726e810879cf1575af1dd44d083adc60",
+  "tests/test_phase2_preflight.py": "b718a40db8447c013e6e664e6b74427173c26f2a076db04e7ba503d66ab1f60c",
+  "docs/preflight-20261007/source-binding-20261008.json": "097f6b0af51316a9b97e209899c2ca2ce8200256c1ffc71abda7a43585433e6e",
+  "docs/preflight-20261007/source-alignment-20261008.md": "f51f1121572c67e484ec31588c2098778841c69ab88d71ce58441c597add2838"
+}
