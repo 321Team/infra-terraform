@@ -56,6 +56,10 @@ def main():
     needed.update(sup["shared_tag_lifecycle"]["actions"])
     for c in sup["conditional_paths_not_default_grants"]:
         needed.update(c["actions"])
+    nat = load(HERE / "nat-permission-supplement.json")
+    for r in nat["rows"]:
+        for k in ("create", "read", "update", "delete"):
+            needed.update(r.get(k, []))
 
     iac_files = ["FDS-IaC-State-PassRole", "FDS-IaC-Network", "FDS-IaC-Vpn", "FDS-IaC-Guardrails"]
     iac = {n: load(HERE / "policies" / f"{n}.json") for n in iac_files}

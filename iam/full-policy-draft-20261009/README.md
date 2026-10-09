@@ -9,6 +9,14 @@
 - 14행 inventory `validation/components-20261007/resource-api-inventory.json`
 - network 보완표 `docs/preflight-20261007/network-permission-supplement.json`
 - 기존 후보: [fds-project-baseline `c02831d7` `phase2/permissions/20261006-*`](https://github.com/321Team/fds-project-baseline/tree/c02831d7e4060813bd36637f180ba40e11f55f8f/phase2/permissions) — State-PassRole·Relay template·trust는 원문 복사
+- NAT: [PR #14](https://github.com/321Team/infra-terraform/pull/14) head `2a85d49a24a4a48555181d8fd2cf6a693015010b` (**미병합**) — [nat-permission-supplement.json](nat-permission-supplement.json)
+
+## 리뷰 반영 이력
+
+| 일자 | 리뷰 | 반영 |
+|---|---|---|
+| 2026-10-09 | PR #15 이권욱 REQUEST_CHANGES 4건 | ① `DenyImdsV1Downgrade` 추가(생성 후 IMDSv1 전환 거부) ② SG rule 태그 쓰기를 소유 태그 조건 statement `TagOwnedSecurityGroupRules`로 분리 ③ `ec2:DescribeAddressesAttribute` 추가 + inventory 보완(nat-permission-supplement 마지막 행) ④ 실제 state 삭제 시험 문구 삭제 → simulation·정책 readback으로 확인 |
+| 2026-10-09 | 같은 리뷰 비차단 권고 (NAT) | PR #14 NAT 자원 3종(EIP·NAT GW·private 기본경로 3개)을 별도 보완표와 `FDS-IaC-Network`에 연결. **#14 병합 전까지 NAT 부분은 미확정 소스 기준** |
 
 ## 한눈에 보기
 
@@ -59,11 +67,12 @@ state는 Terraform이 "무엇을 만들었는지" 적어 두는 장부다(S3 `fd
 ### FDS-IaC-Network.json (신규)
 | Sid | 하는 일 | 범위 |
 |---|---|---|
-| ReadSeoulNetworkMetadata | VPC/subnet/IGW/RT/NACL/SG/ENI/AZ/Tag 조회 | `*` + 서울 (Describe는 자원 단위 제한 미지원) |
-| CreateTaggedVpcIgwRouteTableSubnet | VPC·IGW·RT·Subnet 생성 | 새 자원에 소유 태그 필수 |
+| ReadSeoulNetworkMetadata | VPC/subnet/IGW/RT/NACL/SG/ENI/AZ/Tag/NAT/EIP 조회 | `*` + 서울 (Describe는 자원 단위 제한 미지원) |
+| CreateTaggedNetworkResources | VPC·IGW·RT·Subnet·NAT GW·NAT EIP 생성 | 새 자원에 소유 태그 필수 |
 | UseOwnedVpcAsParent | Subnet·RT를 만들 부모 VPC | 소유 태그 VPC만 |
-| TagOnlyAtCreate | 생성 순간 태그 달기 | `ec2:CreateAction` 4종만 |
-| MutateOwnedNetworkResources | 속성 변경·IGW attach/detach·RT 연결·route·삭제·태그 | 소유 태그 자원만 |
+| UseOwnedSubnetEipForNat | NAT GW를 놓을 subnet과 붙일 EIP | 소유 태그 subnet·EIP만 |
+| TagOnlyAtCreate | 생성 순간 태그 달기 | `ec2:CreateAction` 6종만 |
+| MutateOwnedNetworkResources | 속성 변경·IGW attach/detach·RT 연결·route·삭제(NAT GW·EIP 포함)·태그 | 소유 태그 자원만 |
 
 ### FDS-IaC-Vpn.json (신규)
 | Sid | 하는 일 | 범위 |
@@ -71,13 +80,15 @@ state는 Terraform이 "무엇을 만들었는지" 적어 두는 장부다(S3 `fd
 | ReadSeoulRelayMetadata | AMI/인스턴스/볼륨/EIP/SG rule 조회 | `*` + 서울 |
 | CreateTaggedSgInstanceEip | SG·인스턴스·EIP 생성 | 소유 태그 필수 |
 | DenyRunOtherThanT3Medium / DenyRunWithoutImdsv2 | 다른 타입·IMDSv1 거부 | 명시 Deny 2개(조건 AND 함정 피하려고 분리) |
+| DenyImdsV1Downgrade | 생성 후 `HttpTokens=optional` 변경 거부 | 명시 Deny. required 변경은 허용 |
 | RunWithEncryptedGp3UpTo40GiB | 루트 볼륨 | 암호화·gp3·≤40 |
 | RunWithExactAdoptedAmi | AMI | 정확히 1개 |
 | RunCreatesPrimaryEni | 기본 ENI 생성·EIP 연결 | 서울 (아래 한계 1) |
 | UseOwnedVpcSubnetSgAsParent | 부모 VPC/subnet/SG | 소유 태그만 |
 | TagOnlyAtCreate | 생성 순간 태그 | `CreateAction` 5종 |
 | MutateOwnedRelayResources | SG rule·인스턴스 수정/시작/중지/종료·EIP·On-Prem route·태그 | 소유 태그만 |
-| SgRulesUnderOwnedSg | SG rule 자원 자체 | 서울 (부모 SG가 소유 태그여야 함) |
+| SgRulesUnderOwnedSg | SG rule 추가·삭제·수정 | 서울 (같은 호출에서 부모 SG 소유 태그 검사가 함께 걸림) |
+| TagOwnedSecurityGroupRules | SG rule 태그 쓰기 | 소유 태그 rule만 (독립 CreateTags에는 부모 SG 검사가 없어서 분리) |
 | ResolveAwsManagedEbsKey | `alias/aws/ebs` 조회 | `kms:RequestAlias` 고정. 암호화 사용은 AWS 관리형 키 정책(EC2 경유)이 허용 |
 | SessionDocumentCreateAndReadOnly | `SSM-SessionManagerRunShell` 생성·조회 | 문서 1개. `create_session_document=false` 기본값 유지 |
 
@@ -101,11 +112,15 @@ inventory 밖에 추가한 것: `ec2:DescribeInstanceCreditSpecifications` (t3 `
 ## 아직 남은 한계 (리뷰어가 꼭 볼 것)
 
 1. **ENI는 태그로 못 묶음.** 생성 시점 ENI에 태그가 없어 `RunCreatesPrimaryEni`가 서울 전체 ENI 대상. 인스턴스·subnet·SG·EIP가 소유 태그로 묶여 있어 실제 영향은 "우리 EIP를 다른 ENI에 연결" 정도. 음성시험 N7로 확인.
-2. **route 목적지 CIDR·target은 IAM으로 제한 불가.** `0.0.0.0/0`, `10.1.93.0/24`는 소스·plan 리뷰로 통제.
+2. **route 목적지 CIDR·target은 IAM으로 제한 불가.** `0.0.0.0/0`(transport→IGW, private→NAT), `10.1.93.0/24`는 소스·plan 리뷰로 통제.
 3. **소유 태그 VPC를 하나 더 만드는 것은 막지 못함.** 비용·plan 리뷰로 통제.
 4. `ec2:MetadataHttpTokens`, `ec2:VolumeSize/VolumeType` 조건키가 RunInstances 해당 자원에서 평가되는지 **simulation으로 확인 필요**.
 5. `FDS-ReadOnly-Audit`은 기존 #35 결정에 "최소 후보 역할"로만 있었고 trust 후보가 없었음 → **Lead 확인 후** 채택.
 6. Network-Operator template의 `__RELAY_INSTANCE_ID__`는 Relay 생성 후 채움(기존 결정 유지). 그 전에는 부여 안 함.
+7. **로컬 검사의 "누락 0"은 Action 이름 집합 비교일 뿐 IAM 의미 검증이 아니다.** 여러 자원이 함께 평가되는 CreateSubnet·CreateRouteTable·CreateNatGateway·RunInstances는 외부 부모 자원 음성시험(N20~N23)으로 확인한다.
+8. **NAT는 PR #14 미병합 소스 기준.** #14 내용이 바뀌면 nat-permission-supplement와 이 정책을 다시 맞춘다. 기존 NAT 자원이 생긴 뒤에는 Plan refresh에도 NAT·EIP 조회 권한이 필요하다(포함됨).
+9. **IMDS 계정 기본값 차단은 이 초안 범위 밖.** `DenyImdsV1Downgrade`는 이 역할의 변경만 막는다. 계정 수준 IMDS 기본값·다른 주체의 변경은 증명하지 않는다.
+10. ReadOnly-Audit의 `ViewOnlyAccess`는 실제 적용할 managed policy 버전·JSON을 확인한 뒤 채택한다. 재환 IaC 추가 선택안은 리뷰에서 승인되지 않았다(Lead 결정 대기).
 
 ## 시뮬레이션 기대표 (권욱 중앙 검증용)
 
@@ -141,12 +156,27 @@ inventory 밖에 추가한 것: `ec2:DescribeInstanceCreditSpecifications` (t3 `
 | N17 | ec2:DeleteNetworkInterface | 임의 ENI | implicitDeny |
 | N18 | (Network 정책) s3:GetObject | state 버킷 | explicitDeny |
 | N19 | (Audit 정책) s3:GetObject | state 버킷 | explicitDeny |
+| P10 | ec2:ModifyInstanceMetadataOptions | 소유 instance, MetadataHttpTokens=required | allowed |
+| N24 | ec2:ModifyInstanceMetadataOptions | 소유 instance, MetadataHttpTokens=optional | explicitDeny |
+| P11 | ec2:CreateTags | 소유 security-group-rule, ResourceTag 소유 | allowed |
+| N25 | ec2:CreateTags | 외부 security-group-rule(ResourceTag 없음), CreateAction 없음 | implicitDeny |
+| P12 | ec2:DescribeAddressesAttribute | `*`, 서울 | allowed |
+| P13 | ec2:CreateNatGateway | natgateway/* RequestTag 소유 + subnet·elastic-ip ResourceTag 소유 | 자원별 모두 allowed |
+| P14 | ec2:AllocateAddress | elastic-ip/* RequestTag 소유 | allowed |
+| P15 | ec2:DeleteNatGateway / ec2:ReleaseAddress | 소유 natgateway / 소유 elastic-ip | allowed |
+| N20 | ec2:CreateSubnet | subnet RequestTag 소유 + **외부 VPC**(ResourceTag 없음) | vpc 자원 implicitDeny |
+| N21 | ec2:CreateRouteTable | route-table RequestTag 소유 + **외부 VPC** | vpc 자원 implicitDeny |
+| N22 | ec2:CreateNatGateway | natgateway RequestTag 소유 + **외부 subnet 또는 외부 EIP** | 해당 자원 implicitDeny |
+| N23 | ec2:RunInstances | 소유 instance·volume·image + **외부 subnet 또는 외부 SG** | 해당 자원 implicitDeny |
+| N26 | ec2:DeleteNatGateway / ec2:ReleaseAddress | 외부 natgateway / 외부 elastic-ip | implicitDeny |
 
 ## 실제 본인 시험 (#9 완료 조건, 부여 후)
 
 각자 본인 MFA로 `aws sts assume-role --role-session-name 321team-<본인>` →
 - 성공: `sts get-caller-identity`가 `assumed-role/FDS-IaC-Operator/321team-<본인>`, `ec2 describe-vpcs`(서울) RC0, state 정상 init/lock
-- 거부: 다른 RoleSessionName으로 assume → AccessDenied, MFA 없이 assume → AccessDenied, `ec2 describe-vpcs --region us-east-1` → AccessDenied, state 삭제 → AccessDenied
+- 거부: 다른 RoleSessionName으로 assume → AccessDenied, MFA 없이 assume → AccessDenied, `ec2 describe-vpcs --region us-east-1` → AccessDenied
+- **실제 state 삭제 API는 호출하지 않는다.** 해당 state ARN의 DeleteObject/DeleteObjectVersion 거부는 IAM simulation(N13)과 정책 readback으로 확인하며 실제 삭제 시험으로 표시하지 않는다. 권한이 잘못 부여된 상태라면 시험 자체가 장부를 지우기 때문이다.
+- lock 시험은 실제 state가 아니라 별도 승인된 격리 fixture 절차([gwonuk-u1-plan](../../docs/preflight-20261007/gwonuk-u1-plan.md))를 따른다.
 - 다른 사람 결과로 본인 시험을 대신하지 않음
 
 ## 로컬 검사
@@ -154,7 +184,7 @@ inventory 밖에 추가한 것: `ec2:DescribeInstanceCreditSpecifications` (t3 `
 ```bash
 py -3 -I iam/full-policy-draft-20261009/check_draft.py   # 저장소 루트에서 실행
 ```
-JSON 유효성, 정책 크기(6,144자 이하), Sid 중복, inventory 대비 누락/제외/추가, 와일드카드 Action 여부를 확인한다. 2026-10-09 결과: **PASS** (누락 0, 제외 6, 추가 7).
+JSON 유효성, 정책 크기(6,144자 이하), Sid 중복, inventory(14행 + network 보완표 + NAT 보완표) 대비 누락/제외/추가, 와일드카드 Action 여부를 확인한다. IAM simulator가 아니다.
 
 ## 다음 순서
 

@@ -14,7 +14,10 @@
         "ec2:DescribeNetworkAcls",
         "ec2:DescribeSecurityGroups",
         "ec2:DescribeNetworkInterfaces",
-        "ec2:DescribeTags"
+        "ec2:DescribeTags",
+        "ec2:DescribeNatGateways",
+        "ec2:DescribeAddresses",
+        "ec2:DescribeAddressesAttribute"
       ],
       "Resource": "*",
       "Condition": {
@@ -24,19 +27,23 @@
       }
     },
     {
-      "Sid": "CreateTaggedVpcIgwRouteTableSubnet",
+      "Sid": "CreateTaggedNetworkResources",
       "Effect": "Allow",
       "Action": [
         "ec2:CreateVpc",
         "ec2:CreateInternetGateway",
         "ec2:CreateRouteTable",
-        "ec2:CreateSubnet"
+        "ec2:CreateSubnet",
+        "ec2:CreateNatGateway",
+        "ec2:AllocateAddress"
       ],
       "Resource": [
         "arn:aws:ec2:ap-northeast-2:774055931866:vpc/*",
         "arn:aws:ec2:ap-northeast-2:774055931866:internet-gateway/*",
         "arn:aws:ec2:ap-northeast-2:774055931866:route-table/*",
-        "arn:aws:ec2:ap-northeast-2:774055931866:subnet/*"
+        "arn:aws:ec2:ap-northeast-2:774055931866:subnet/*",
+        "arn:aws:ec2:ap-northeast-2:774055931866:natgateway/*",
+        "arn:aws:ec2:ap-northeast-2:774055931866:elastic-ip/*"
       ],
       "Condition": {
         "StringEquals": {
@@ -63,6 +70,22 @@
       }
     },
     {
+      "Sid": "UseOwnedSubnetEipForNat",
+      "Effect": "Allow",
+      "Action": "ec2:CreateNatGateway",
+      "Resource": [
+        "arn:aws:ec2:ap-northeast-2:774055931866:subnet/*",
+        "arn:aws:ec2:ap-northeast-2:774055931866:elastic-ip/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-northeast-2",
+          "aws:ResourceTag/Project": "fds-hybrid",
+          "aws:ResourceTag/ManagedBy": "terraform"
+        }
+      }
+    },
+    {
       "Sid": "TagOnlyAtCreate",
       "Effect": "Allow",
       "Action": "ec2:CreateTags",
@@ -74,7 +97,9 @@
             "CreateVpc",
             "CreateInternetGateway",
             "CreateRouteTable",
-            "CreateSubnet"
+            "CreateSubnet",
+            "CreateNatGateway",
+            "AllocateAddress"
           ]
         }
       }
@@ -97,6 +122,8 @@
         "ec2:DeleteSubnet",
         "ec2:DeleteInternetGateway",
         "ec2:DeleteRouteTable",
+        "ec2:DeleteNatGateway",
+        "ec2:ReleaseAddress",
         "ec2:CreateTags",
         "ec2:DeleteTags"
       ],
@@ -104,7 +131,9 @@
         "arn:aws:ec2:ap-northeast-2:774055931866:vpc/*",
         "arn:aws:ec2:ap-northeast-2:774055931866:subnet/*",
         "arn:aws:ec2:ap-northeast-2:774055931866:internet-gateway/*",
-        "arn:aws:ec2:ap-northeast-2:774055931866:route-table/*"
+        "arn:aws:ec2:ap-northeast-2:774055931866:route-table/*",
+        "arn:aws:ec2:ap-northeast-2:774055931866:natgateway/*",
+        "arn:aws:ec2:ap-northeast-2:774055931866:elastic-ip/*"
       ],
       "Condition": {
         "StringEquals": {

@@ -12,6 +12,7 @@
         "ec2:DescribeInstanceCreditSpecifications",
         "ec2:DescribeVolumes",
         "ec2:DescribeAddresses",
+        "ec2:DescribeAddressesAttribute",
         "ec2:DescribeSecurityGroupRules"
       ],
       "Resource": "*",
@@ -61,6 +62,17 @@
       "Condition": {
         "StringNotEquals": {
           "ec2:MetadataHttpTokens": "required"
+        }
+      }
+    },
+    {
+      "Sid": "DenyImdsV1Downgrade",
+      "Effect": "Deny",
+      "Action": "ec2:ModifyInstanceMetadataOptions",
+      "Resource": "arn:aws:ec2:ap-northeast-2:774055931866:instance/*",
+      "Condition": {
+        "StringEquals": {
+          "ec2:MetadataHttpTokens": "optional"
         }
       }
     },
@@ -188,14 +200,28 @@
         "ec2:AuthorizeSecurityGroupEgress",
         "ec2:RevokeSecurityGroupIngress",
         "ec2:RevokeSecurityGroupEgress",
-        "ec2:ModifySecurityGroupRules",
+        "ec2:ModifySecurityGroupRules"
+      ],
+      "Resource": "arn:aws:ec2:ap-northeast-2:774055931866:security-group-rule/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-northeast-2"
+        }
+      }
+    },
+    {
+      "Sid": "TagOwnedSecurityGroupRules",
+      "Effect": "Allow",
+      "Action": [
         "ec2:CreateTags",
         "ec2:DeleteTags"
       ],
       "Resource": "arn:aws:ec2:ap-northeast-2:774055931866:security-group-rule/*",
       "Condition": {
         "StringEquals": {
-          "aws:RequestedRegion": "ap-northeast-2"
+          "aws:RequestedRegion": "ap-northeast-2",
+          "aws:ResourceTag/Project": "fds-hybrid",
+          "aws:ResourceTag/ManagedBy": "terraform"
         }
       }
     },
