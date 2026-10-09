@@ -15,7 +15,7 @@ import subprocess
 import sys
 import tempfile
 
-SOURCE = '5b8204fad2f726b396457f0776cd85b154706aa2'
+SOURCE = 'd857c63c6e5b3800b746511ffa8b913e350d27ce'
 ACCOUNT = '774055931866'
 REGION = 'ap-northeast-2'
 ROOT = Path(__file__).resolve().parents[1]
@@ -123,6 +123,7 @@ def cases():
     for cid, action, key in [('N20','ec2:CreateSubnet','vpc'),('N21','ec2:CreateRouteTable','vpc'),
                              ('N22-subnet','ec2:CreateNatGateway','subnet'),('N22-eip','ec2:CreateNatGateway','elastic-ip'),
                              ('N23-subnet','ec2:RunInstances','subnet'),('N23-sg','ec2:RunInstances','security-group')]:
+        add('P-split-'+cid,action,arn[key],{**own,**run},'allowed',diagnostic=True)
         add(cid+'-parent-scope',action,arn[key],foreign,'implicitDeny',diagnostic=True)
         add(cid+'-request-context',action,arn[key],{**foreign,**run},'implicitDeny',diagnostic=True)
     return result
