@@ -1,0 +1,71 @@
+{
+  "kind": "NAT_AND_EIP_READ_SUPPLEMENT_NOT_DEPLOYABLE_POLICY",
+  "created_at_kst": "2026-10-09",
+  "scope": "Supplement to validation/components-20261007/resource-api-inventory.json and docs/preflight-20261007/network-permission-supplement.json; does not replace either",
+  "terraform_source": {
+    "pr": "https://github.com/321Team/infra-terraform/pull/14",
+    "head": "2a85d49a24a4a48555181d8fd2cf6a693015010b",
+    "merged": false,
+    "file": "terraform/network/main.tf"
+  },
+  "provider_version": "6.66.0",
+  "aws_api_executed": false,
+  "rows": [
+    {
+      "source_address": "aws_eip.nat",
+      "instances": 1,
+      "create": ["ec2:AllocateAddress"],
+      "read": ["ec2:DescribeAddresses", "ec2:DescribeAddressesAttribute"],
+      "delete": ["ec2:ReleaseAddress"],
+      "policy_file": "FDS-IaC-Network.json",
+      "scope_review": "New elastic-ip request tags; release only owned-tag EIP. Read always calls DescribeAddressesAttribute (domain-name attribute) even when ptr_record is unset.",
+      "source": [
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/ec2_eip.go#L181",
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/ec2_eip.go#L242",
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/find.go#L6038",
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/ec2_eip.go#L310"
+      ]
+    },
+    {
+      "source_address": "aws_nat_gateway.platform",
+      "instances": 1,
+      "create": ["ec2:CreateNatGateway"],
+      "read": ["ec2:DescribeNatGateways"],
+      "delete": ["ec2:DeleteNatGateway"],
+      "policy_file": "FDS-IaC-Network.json",
+      "scope_review": "CreateNatGateway authorizes natgateway (request tags), subnet and elastic-ip (owned resource tags) separately. Public zonal NAT only; secondary/regional address APIs are not reached by current source.",
+      "source": [
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_nat_gateway.go#L329",
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_nat_gateway.go#L348",
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_nat_gateway.go#L680"
+      ]
+    },
+    {
+      "source_address": "aws_route.private_egress",
+      "instances": 3,
+      "create": ["ec2:CreateRoute"],
+      "read": ["ec2:DescribeRouteTables"],
+      "update": ["ec2:ReplaceRoute"],
+      "delete": ["ec2:DeleteRoute"],
+      "policy_file": "FDS-IaC-Network.json",
+      "scope_review": "Already covered by owned route-table scope. 0.0.0.0/0 -> NAT target is enforced by source/plan review, not IAM.",
+      "source": [
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/vpc_route.go#L203"
+      ]
+    },
+    {
+      "source_address": "aws_eip.relay (inventory correction)",
+      "instances": 1,
+      "read": ["ec2:DescribeAddressesAttribute"],
+      "policy_file": "FDS-IaC-Vpn.json",
+      "scope_review": "Missing from the 14-row inventory aws_eip.relay row; same provider read path as aws_eip.nat. Reported in PR #15 review.",
+      "source": [
+        "https://github.com/hashicorp/terraform-provider-aws/blob/v6.66.0/internal/service/ec2/ec2_eip.go#L242"
+      ]
+    }
+  ],
+  "not_granted_current_source_paths": [
+    "ec2:AssignPrivateNatGatewayAddress / UnassignPrivateNatGatewayAddress (secondary private IPs)",
+    "ec2:AssociateNatGatewayAddress / DisassociateNatGatewayAddress (secondary EIPs, regional mode)"
+  ]
+}

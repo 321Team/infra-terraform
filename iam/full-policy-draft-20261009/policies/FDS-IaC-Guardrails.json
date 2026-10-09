@@ -1,0 +1,85 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyOutsideSeoul",
+      "Effect": "Deny",
+      "NotAction": [
+        "iam:GetRole",
+        "iam:GetInstanceProfile",
+        "iam:PassRole",
+        "sts:GetCallerIdentity"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:RequestedRegion": "ap-northeast-2"
+        }
+      }
+    },
+    {
+      "Sid": "DenyRemovingOwnershipTags",
+      "Effect": "Deny",
+      "Action": "ec2:DeleteTags",
+      "Resource": "*",
+      "Condition": {
+        "ForAnyValue:StringEquals": {
+          "aws:TagKeys": [
+            "Project",
+            "ManagedBy"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "DenyRetagProjectToOtherValue",
+      "Effect": "Deny",
+      "Action": "ec2:CreateTags",
+      "Resource": "*",
+      "Condition": {
+        "Null": {
+          "aws:RequestTag/Project": "false"
+        },
+        "StringNotEquals": {
+          "aws:RequestTag/Project": "fds-hybrid"
+        }
+      }
+    },
+    {
+      "Sid": "DenyRetagManagedByToOtherValue",
+      "Effect": "Deny",
+      "Action": "ec2:CreateTags",
+      "Resource": "*",
+      "Condition": {
+        "Null": {
+          "aws:RequestTag/ManagedBy": "false"
+        },
+        "StringNotEquals": {
+          "aws:RequestTag/ManagedBy": "terraform"
+        }
+      }
+    },
+    {
+      "Sid": "DenySessionDocumentChangeOrDelete",
+      "Effect": "Deny",
+      "Action": [
+        "ssm:UpdateDocument",
+        "ssm:UpdateDocumentDefaultVersion",
+        "ssm:DeleteDocument",
+        "ssm:ModifyDocumentPermission",
+        "ssm:SendCommand"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "DenyCentralBootstrapStackChange",
+      "Effect": "Deny",
+      "NotAction": [
+        "cloudformation:Describe*",
+        "cloudformation:Get*",
+        "cloudformation:List*"
+      ],
+      "Resource": "arn:aws:cloudformation:*:774055931866:stack/*"
+    }
+  ]
+}

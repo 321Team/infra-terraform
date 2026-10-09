@@ -1,0 +1,37 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowGwonuk",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::774055931866:user/321team-gwonuk"
+      },
+      "Action": "sts:AssumeRole",
+      "Condition": {
+        "Bool": {
+          "aws:MultiFactorAuthPresent": "true"
+        },
+        "StringEquals": {
+          "sts:RoleSessionName": "321team-gwonuk"
+        }
+      }
+    },
+    {
+      "Sid": "AllowHayeoung",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::774055931866:user/321team-hayeoung"
+      },
+      "Action": "sts:AssumeRole",
+      "Condition": {
+        "Bool": {
+          "aws:MultiFactorAuthPresent": "true"
+        },
+        "StringEquals": {
+          "sts:RoleSessionName": "321team-hayeoung"
+        }
+      }
+    }
+  ]
+}
