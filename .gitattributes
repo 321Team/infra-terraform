@@ -25,3 +25,7 @@ validation/stage-a-20261007/ARCHIVE_SHA256SUMS text eol=lf
 validation/preflight-alignment-20261008/** -text whitespace=cr-at-eol,-blank-at-eol
 # Preserve NAT candidate manifest and captured helper output bytes.
 validation/network-nat-20261009/** -text whitespace=cr-at-eol,-blank-at-eol
+# Preserve these original CRLF capture bytes; do not renormalize evidence.
+validation/relay-agent-rpm-20261008/download.json -text whitespace=cr-at-eol,-blank-at-eol
+validation/relay-agent-rpm-20261008/terraform/capture-manifest.json -text whitespace=cr-at-eol,-blank-at-eol
+validation/relay-agent-rpm-20261008/terraform/summary.json -text whitespace=cr-at-eol,-blank-at-eol
