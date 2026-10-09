@@ -1,0 +1,804 @@
+{
+  "source": {
+    "source_sha": "d857c63c6e5b3800b746511ffa8b913e350d27ce",
+    "policy_hashes": {
+      "policies/FDS-IaC-Guardrails.json": "58c5774c6f9b6f63892e17f09b108f30e3a3e771420fb15704cf1632768092fd",
+      "policies/FDS-IaC-Network.json": "a154e8ce484cb46c630a95cf9eb96bd37c02a541269de6b535e0b55b5515edef",
+      "policies/FDS-IaC-State-PassRole.json": "53eb7e501658c54d7e63802899731fccf49cc0d7de4ae18d87c996c7a9561562",
+      "policies/FDS-IaC-Vpn.json": "edd26c42cccd3c533c08442bc252dc8df26bee1431d6fa1608ccc1801c277ded",
+      "policies/FDS-Network-Operator-Relay.template.json": "d4c94fc90e3a7ffd46964883f69743befdd0241d2a58068d62ba45bd6ebba2f6",
+      "policies/FDS-Network-Operator-StateDeny.json": "e222cddb82a388be6f7c565f3e670ee761575a3cbd994cdbf56a6a29fb4a6e77",
+      "policies/FDS-ReadOnly-Audit-StateDeny.json": "1a13b07a4b9baef06996c27535bdb9cc35ed8c6bd1ccd2ae2791004e91325116",
+      "trust/assume-321team-gwonuk.json": "19dc85ebaea2300904efd2572bbead17c19951eb73555199d95c45efe2f76172",
+      "trust/assume-321team-hayeoung.json": "7c51ac40b956c7c7ef0cec8d1a2b9d1e67fcdfd44a647d633af795cca50a3b75",
+      "trust/assume-321team-jaehwan.json": "0e08043c33adceae3dc5181950d3c91506839ff92f0cc58e7f912bcbbe58eaf6",
+      "trust/trust-FDS-IaC-Operator.json": "1d728d4304241b77623efd918759bd1712457857084bc0d7257d6f3e63992641",
+      "trust/trust-FDS-Network-Operator.json": "13e134a09d309e58ad6e6c7d04a5ca14605b629caf5d7feff8eb2305e2c11e10",
+      "trust/trust-FDS-ReadOnly-Audit.json": "45ea8f467d958bb5360e73e87cca6f81a20724c7764e2e1531b0bc6a944ae9c7",
+      "nat-permission-supplement.json": "ad45f03b3e8c52c2dac7bd0da3fc8a12924d15ec5b27f9228eeef407e8bcd48e",
+      "check_draft.py": "497eb84ca01c49573a73daf79e9fb39c1180320c49e1f8bef28506344e357131",
+      "README.md": "bfd2eb74e12958d3eac7770e20a4bb668ba1849f223e7b76161019deee8e64d6"
+    },
+    "collector_sha256": "ec7275fd219e88c8b083a0bc9988a01dc882c9b34ef1c5950a2bd2cba29fb4c6",
+    "scope": "SYNTHETIC_POLICY_SIMULATION_NOT_LIVE_RESOURCES",
+    "multiresource": "REQUIRES_SERVICE_SEMANTICS_REVIEW; paired probes are diagnostics only"
+  },
+  "started_utc": "2026-10-09T05:54:07.783603+00:00",
+  "finished_utc": "2026-10-09T05:56:26.434811+00:00",
+  "archive_sha256": "d3d9305d657c2332148c8565a1676e3a096376f5af934bb2d1f913e1e4f17fc3",
+  "files_verified": 187,
+  "api_records": 92,
+  "findings": [],
+  "counts": {
+    "SIMULATION_MATCH": 27,
+    "DIAGNOSTIC_EXPECTED": 16,
+    "MISSING_CONTEXT_REVIEW": 27
+  },
+  "api_exit_codes": {
+    "0": 90,
+    "254": 2
+  },
+  "context_analysis": [
+    {
+      "id": "N26-natgateway",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "applicable_missing_keys": [],
+      "irrelevant_missing_keys": [
+        "aws:RequestTag/ManagedBy",
+        "aws:RequestTag/Project",
+        "aws:TagKeys",
+        "ec2:CreateAction",
+        "ec2:Encrypted",
+        "ec2:InstanceType",
+        "ec2:MetadataHttpTokens",
+        "ec2:VolumeSize",
+        "ec2:VolumeType",
+        "iam:PassedToService",
+        "kms:RequestAlias",
+        "s3:prefix"
+      ],
+      "matching_statements": [
+        "MutateOwnedNetworkResources",
+        "DenyOutsideSeoul"
+      ],
+      "method": "Action/Resource lexical applicability only; no Condition evaluation; not an IAM simulator"
+    },
+    {
+      "id": "N26-elastic-ip",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "applicable_missing_keys": [],
+      "irrelevant_missing_keys": [
+        "aws:RequestTag/ManagedBy",
+        "aws:RequestTag/Project",
+        "aws:TagKeys",
+        "ec2:CreateAction",
+        "ec2:Encrypted",
+        "ec2:InstanceType",
+        "ec2:MetadataHttpTokens",
+        "ec2:VolumeSize",
+        "ec2:VolumeType",
+        "iam:PassedToService",
+        "kms:RequestAlias",
+        "s3:prefix"
+      ],
+      "matching_statements": [
+        "MutateOwnedNetworkResources",
+        "MutateOwnedRelayResources",
+        "DenyOutsideSeoul"
+      ],
+      "method": "Action/Resource lexical applicability only; no Condition evaluation; not an IAM simulator"
+    },
+    {
+      "id": "N1-wrong-project",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "applicable_missing_keys": [],
+      "irrelevant_missing_keys": [
+        "aws:ResourceTag/ManagedBy",
+        "aws:ResourceTag/Project",
+        "aws:TagKeys",
+        "ec2:CreateAction",
+        "ec2:Encrypted",
+        "ec2:InstanceType",
+        "ec2:MetadataHttpTokens",
+        "ec2:VolumeSize",
+        "ec2:VolumeType",
+        "iam:PassedToService",
+        "kms:RequestAlias",
+        "s3:prefix"
+      ],
+      "matching_statements": [
+        "CreateTaggedCreateVpc",
+        "DenyOutsideSeoul"
+      ],
+      "method": "Action/Resource lexical applicability only; no Condition evaluation; not an IAM simulator"
+    },
+    {
+      "id": "N1-omitted-project",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "applicable_missing_keys": [
+        "aws:RequestTag/Project"
+      ],
+      "irrelevant_missing_keys": [
+        "aws:ResourceTag/ManagedBy",
+        "aws:ResourceTag/Project",
+        "aws:TagKeys",
+        "ec2:CreateAction",
+        "ec2:Encrypted",
+        "ec2:InstanceType",
+        "ec2:MetadataHttpTokens",
+        "ec2:VolumeSize",
+        "ec2:VolumeType",
+        "iam:PassedToService",
+        "kms:RequestAlias",
+        "s3:prefix"
+      ],
+      "matching_statements": [
+        "CreateTaggedCreateVpc",
+        "DenyOutsideSeoul"
+      ],
+      "method": "Action/Resource lexical applicability only; no Condition evaluation; not an IAM simulator"
+    },
+    {
+      "id": "N3",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "applicable_missing_keys": [],
+      "irrelevant_missing_keys": [
+        "aws:RequestTag/ManagedBy",
+        "aws:RequestTag/Project",
+        "aws:TagKeys",
+        "ec2:CreateAction",
+        "ec2:Encrypted",
+        "ec2:InstanceType",
+        "ec2:MetadataHttpTokens",
+        "ec2:VolumeSize",
+        "ec2:VolumeType",
+        "iam:PassedToService",
+        "kms:RequestAlias",
+        "s3:prefix"
+      ],
+      "matching_statements": [
+        "MutateOwnedNetworkResources",
+        "DenyOutsideSeoul"
+      ],
+      "method": "Action/Resource lexical applicability only; no Condition evaluation; not an IAM simulator"
+    },
+    {
+      "id": "N5",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "applicable_missing_keys": [],
+      "irrelevant_missing_keys": [
+        "aws:TagKeys",
+        "ec2:Encrypted",
+        "ec2:InstanceType",
+        "ec2:MetadataHttpTokens",
+        "ec2:VolumeSize",
+        "ec2:VolumeType",
+        "iam:PassedToService",
+        "kms:RequestAlias",
+        "s3:prefix"
+      ],
+      "matching_statements": [
+        "TagOnlyAtCreate",
+        "MutateOwnedNetworkResources",
+        "TagOnlyAtCreate",
+        "DenyOutsideSeoul",
+        "DenyRetagProjectToOtherValue",
+        "DenyRetagManagedByToOtherValue"
+      ],
+      "method": "Action/Resource lexical applicability only; no Condition evaluation; not an IAM simulator"
+    },
+    {
+      "id": "N7",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "applicable_missing_keys": [],
+      "irrelevant_missing_keys": [
+        "aws:RequestTag/ManagedBy",
+        "aws:RequestTag/Project",
+        "aws:TagKeys",
+        "ec2:CreateAction",
+        "ec2:Encrypted",
+        "ec2:InstanceType",
+        "ec2:MetadataHttpTokens",
+        "ec2:VolumeSize",
+        "ec2:VolumeType",
+        "iam:PassedToService",
+        "kms:RequestAlias",
+        "s3:prefix"
+      ],
+      "matching_statements": [
+        "MutateOwnedRelayResources",
+        "DenyOutsideSeoul"
+      ],
+      "method": "Action/Resource lexical applicability only; no Condition evaluation; not an IAM simulator"
+    },
+    {
+      "id": "N10",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "applicable_missing_keys": [],
+      "irrelevant_missing_keys": [
+        "aws:RequestTag/ManagedBy",
+        "aws:RequestTag/Project",
+        "aws:ResourceTag/ManagedBy",
+        "aws:ResourceTag/Project",
+        "aws:TagKeys",
+        "ec2:CreateAction",
+        "ec2:Encrypted",
+        "ec2:InstanceType",
+        "ec2:MetadataHttpTokens",
+        "ec2:VolumeSize",
+        "ec2:VolumeType",
+        "iam:PassedToService",
+        "kms:RequestAlias",
+        "s3:prefix"
+      ],
+      "matching_statements": [
+        "DenyOutsideSeoul"
+      ],
+      "method": "Action/Resource lexical applicability only; no Condition evaluation; not an IAM simulator"
+    },
+    {
+      "id": "N11-unencrypted",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "applicable_missing_keys": [],
+      "irrelevant_missing_keys": [
+        "aws:RequestTag/ManagedBy",
+        "aws:RequestTag/Project",
+        "aws:ResourceTag/ManagedBy",
+        "aws:ResourceTag/Project",
+        "aws:TagKeys",
+        "ec2:CreateAction",
+        "ec2:InstanceType",
+        "ec2:MetadataHttpTokens",
+        "iam:PassedToService",
+        "kms:RequestAlias",
+        "s3:prefix"
+      ],
+      "matching_statements": [
+        "RunWithEncryptedGp3UpTo40GiB",
+        "DenyOutsideSeoul"
+      ],
+      "method": "Action/Resource lexical applicability only; no Condition evaluation; not an IAM simulator"
+    },
+    {
+      "id": "N11-oversized",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "applicable_missing_keys": [],
+      "irrelevant_missing_keys": [
+        "aws:RequestTag/ManagedBy",
+        "aws:RequestTag/Project",
+        "aws:ResourceTag/ManagedBy",
+        "aws:ResourceTag/Project",
+        "aws:TagKeys",
+        "ec2:CreateAction",
+        "ec2:InstanceType",
+        "ec2:MetadataHttpTokens",
+        "iam:PassedToService",
+        "kms:RequestAlias",
+        "s3:prefix"
+      ],
+      "matching_statements": [
+        "RunWithEncryptedGp3UpTo40GiB",
+        "DenyOutsideSeoul"
+      ],
+      "method": "Action/Resource lexical applicability only; no Condition evaluation; not an IAM simulator"
+    },
+    {
+      "id": "N12-role",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "applicable_missing_keys": [],
+      "irrelevant_missing_keys": [
+        "aws:RequestTag/ManagedBy",
+        "aws:RequestTag/Project",
+        "aws:ResourceTag/ManagedBy",
+        "aws:ResourceTag/Project",
+        "aws:TagKeys",
+        "ec2:CreateAction",
+        "ec2:Encrypted",
+        "ec2:InstanceType",
+        "ec2:MetadataHttpTokens",
+        "ec2:VolumeSize",
+        "ec2:VolumeType",
+        "kms:RequestAlias",
+        "s3:prefix"
+      ],
+      "matching_statements": [],
+      "method": "Action/Resource lexical applicability only; no Condition evaluation; not an IAM simulator"
+    },
+    {
+      "id": "N12-service",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "applicable_missing_keys": [],
+      "irrelevant_missing_keys": [
+        "aws:RequestTag/ManagedBy",
+        "aws:RequestTag/Project",
+        "aws:ResourceTag/ManagedBy",
+        "aws:ResourceTag/Project",
+        "aws:TagKeys",
+        "ec2:CreateAction",
+        "ec2:Encrypted",
+        "ec2:InstanceType",
+        "ec2:MetadataHttpTokens",
+        "ec2:VolumeSize",
+        "ec2:VolumeType",
+        "kms:RequestAlias",
+        "s3:prefix"
+      ],
+      "matching_statements": [
+        "PassApprovedRelayToEC2"
+      ],
+      "method": "Action/Resource lexical applicability only; no Condition evaluation; not an IAM simulator"
+    },
+    {
+      "id": "N14",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "applicable_missing_keys": [],
+      "irrelevant_missing_keys": [
+        "aws:RequestTag/ManagedBy",
+        "aws:RequestTag/Project",
+        "aws:ResourceTag/ManagedBy",
+        "aws:ResourceTag/Project",
+        "aws:TagKeys",
+        "ec2:CreateAction",
+        "ec2:Encrypted",
+        "ec2:InstanceType",
+        "ec2:MetadataHttpTokens",
+        "ec2:VolumeSize",
+        "ec2:VolumeType",
+        "iam:PassedToService",
+        "kms:RequestAlias",
+        "s3:prefix"
+      ],
+      "matching_statements": [
+        "DenyOutsideSeoul"
+      ],
+      "method": "Action/Resource lexical applicability only; no Condition evaluation; not an IAM simulator"
+    },
+    {
+      "id": "N17",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "applicable_missing_keys": [],
+      "irrelevant_missing_keys": [
+        "aws:RequestTag/ManagedBy",
+        "aws:RequestTag/Project",
+        "aws:TagKeys",
+        "ec2:CreateAction",
+        "ec2:Encrypted",
+        "ec2:InstanceType",
+        "ec2:MetadataHttpTokens",
+        "ec2:VolumeSize",
+        "ec2:VolumeType",
+        "iam:PassedToService",
+        "kms:RequestAlias",
+        "s3:prefix"
+      ],
+      "matching_statements": [
+        "DenyOutsideSeoul"
+      ],
+      "method": "Action/Resource lexical applicability only; no Condition evaluation; not an IAM simulator"
+    },
+    {
+      "id": "N25",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "applicable_missing_keys": [],
+      "irrelevant_missing_keys": [
+        "aws:TagKeys",
+        "ec2:Encrypted",
+        "ec2:InstanceType",
+        "ec2:MetadataHttpTokens",
+        "ec2:VolumeSize",
+        "ec2:VolumeType",
+        "iam:PassedToService",
+        "kms:RequestAlias",
+        "s3:prefix"
+      ],
+      "matching_statements": [
+        "TagOnlyAtCreate",
+        "TagOnlyAtCreate",
+        "TagOwnedSecurityGroupRules",
+        "DenyOutsideSeoul",
+        "DenyRetagProjectToOtherValue",
+        "DenyRetagManagedByToOtherValue"
+      ],
+      "method": "Action/Resource lexical applicability only; no Condition evaluation; not an IAM simulator"
+    },
+    {
+      "id": "N20-parent-scope",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "applicable_missing_keys": [],
+      "irrelevant_missing_keys": [
+        "aws:RequestTag/ManagedBy",
+        "aws:RequestTag/Project",
+        "aws:TagKeys",
+        "ec2:CreateAction",
+        "ec2:Encrypted",
+        "ec2:InstanceType",
+        "ec2:MetadataHttpTokens",
+        "ec2:VolumeSize",
+        "ec2:VolumeType",
+        "iam:PassedToService",
+        "kms:RequestAlias",
+        "s3:prefix"
+      ],
+      "matching_statements": [
+        "UseOwnedVpcAsParent",
+        "DenyOutsideSeoul"
+      ],
+      "method": "Action/Resource lexical applicability only; no Condition evaluation; not an IAM simulator"
+    },
+    {
+      "id": "N20-request-context",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "applicable_missing_keys": [],
+      "irrelevant_missing_keys": [
+        "aws:TagKeys",
+        "ec2:CreateAction",
+        "ec2:Encrypted",
+        "ec2:VolumeSize",
+        "ec2:VolumeType",
+        "iam:PassedToService",
+        "kms:RequestAlias",
+        "s3:prefix"
+      ],
+      "matching_statements": [
+        "UseOwnedVpcAsParent",
+        "DenyOutsideSeoul"
+      ],
+      "method": "Action/Resource lexical applicability only; no Condition evaluation; not an IAM simulator"
+    },
+    {
+      "id": "N21-parent-scope",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "applicable_missing_keys": [],
+      "irrelevant_missing_keys": [
+        "aws:RequestTag/ManagedBy",
+        "aws:RequestTag/Project",
+        "aws:TagKeys",
+        "ec2:CreateAction",
+        "ec2:Encrypted",
+        "ec2:InstanceType",
+        "ec2:MetadataHttpTokens",
+        "ec2:VolumeSize",
+        "ec2:VolumeType",
+        "iam:PassedToService",
+        "kms:RequestAlias",
+        "s3:prefix"
+      ],
+      "matching_statements": [
+        "UseOwnedVpcAsParent",
+        "DenyOutsideSeoul"
+      ],
+      "method": "Action/Resource lexical applicability only; no Condition evaluation; not an IAM simulator"
+    },
+    {
+      "id": "N21-request-context",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "applicable_missing_keys": [],
+      "irrelevant_missing_keys": [
+        "aws:TagKeys",
+        "ec2:CreateAction",
+        "ec2:Encrypted",
+        "ec2:VolumeSize",
+        "ec2:VolumeType",
+        "iam:PassedToService",
+        "kms:RequestAlias",
+        "s3:prefix"
+      ],
+      "matching_statements": [
+        "UseOwnedVpcAsParent",
+        "DenyOutsideSeoul"
+      ],
+      "method": "Action/Resource lexical applicability only; no Condition evaluation; not an IAM simulator"
+    },
+    {
+      "id": "N22-subnet-parent-scope",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "applicable_missing_keys": [],
+      "irrelevant_missing_keys": [
+        "aws:RequestTag/ManagedBy",
+        "aws:RequestTag/Project",
+        "aws:TagKeys",
+        "ec2:CreateAction",
+        "ec2:Encrypted",
+        "ec2:InstanceType",
+        "ec2:MetadataHttpTokens",
+        "ec2:VolumeSize",
+        "ec2:VolumeType",
+        "iam:PassedToService",
+        "kms:RequestAlias",
+        "s3:prefix"
+      ],
+      "matching_statements": [
+        "UseOwnedSubnetEipForNat",
+        "DenyOutsideSeoul"
+      ],
+      "method": "Action/Resource lexical applicability only; no Condition evaluation; not an IAM simulator"
+    },
+    {
+      "id": "N22-subnet-request-context",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "applicable_missing_keys": [],
+      "irrelevant_missing_keys": [
+        "aws:TagKeys",
+        "ec2:CreateAction",
+        "ec2:Encrypted",
+        "ec2:VolumeSize",
+        "ec2:VolumeType",
+        "iam:PassedToService",
+        "kms:RequestAlias",
+        "s3:prefix"
+      ],
+      "matching_statements": [
+        "UseOwnedSubnetEipForNat",
+        "DenyOutsideSeoul"
+      ],
+      "method": "Action/Resource lexical applicability only; no Condition evaluation; not an IAM simulator"
+    },
+    {
+      "id": "N22-eip-parent-scope",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "applicable_missing_keys": [],
+      "irrelevant_missing_keys": [
+        "aws:RequestTag/ManagedBy",
+        "aws:RequestTag/Project",
+        "aws:TagKeys",
+        "ec2:CreateAction",
+        "ec2:Encrypted",
+        "ec2:InstanceType",
+        "ec2:MetadataHttpTokens",
+        "ec2:VolumeSize",
+        "ec2:VolumeType",
+        "iam:PassedToService",
+        "kms:RequestAlias",
+        "s3:prefix"
+      ],
+      "matching_statements": [
+        "UseOwnedSubnetEipForNat",
+        "DenyOutsideSeoul"
+      ],
+      "method": "Action/Resource lexical applicability only; no Condition evaluation; not an IAM simulator"
+    },
+    {
+      "id": "N22-eip-request-context",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "applicable_missing_keys": [],
+      "irrelevant_missing_keys": [
+        "aws:TagKeys",
+        "ec2:CreateAction",
+        "ec2:Encrypted",
+        "ec2:VolumeSize",
+        "ec2:VolumeType",
+        "iam:PassedToService",
+        "kms:RequestAlias",
+        "s3:prefix"
+      ],
+      "matching_statements": [
+        "UseOwnedSubnetEipForNat",
+        "DenyOutsideSeoul"
+      ],
+      "method": "Action/Resource lexical applicability only; no Condition evaluation; not an IAM simulator"
+    },
+    {
+      "id": "N23-subnet-parent-scope",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "applicable_missing_keys": [],
+      "irrelevant_missing_keys": [
+        "aws:RequestTag/ManagedBy",
+        "aws:RequestTag/Project",
+        "aws:TagKeys",
+        "ec2:CreateAction",
+        "ec2:Encrypted",
+        "ec2:InstanceType",
+        "ec2:MetadataHttpTokens",
+        "ec2:VolumeSize",
+        "ec2:VolumeType",
+        "iam:PassedToService",
+        "kms:RequestAlias",
+        "s3:prefix"
+      ],
+      "matching_statements": [
+        "UseOwnedVpcSubnetSgAsParent",
+        "DenyOutsideSeoul"
+      ],
+      "method": "Action/Resource lexical applicability only; no Condition evaluation; not an IAM simulator"
+    },
+    {
+      "id": "N23-subnet-request-context",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "applicable_missing_keys": [],
+      "irrelevant_missing_keys": [
+        "aws:TagKeys",
+        "ec2:CreateAction",
+        "ec2:Encrypted",
+        "ec2:VolumeSize",
+        "ec2:VolumeType",
+        "iam:PassedToService",
+        "kms:RequestAlias",
+        "s3:prefix"
+      ],
+      "matching_statements": [
+        "UseOwnedVpcSubnetSgAsParent",
+        "DenyOutsideSeoul"
+      ],
+      "method": "Action/Resource lexical applicability only; no Condition evaluation; not an IAM simulator"
+    },
+    {
+      "id": "N23-sg-parent-scope",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "applicable_missing_keys": [],
+      "irrelevant_missing_keys": [
+        "aws:RequestTag/ManagedBy",
+        "aws:RequestTag/Project",
+        "aws:TagKeys",
+        "ec2:CreateAction",
+        "ec2:Encrypted",
+        "ec2:InstanceType",
+        "ec2:MetadataHttpTokens",
+        "ec2:VolumeSize",
+        "ec2:VolumeType",
+        "iam:PassedToService",
+        "kms:RequestAlias",
+        "s3:prefix"
+      ],
+      "matching_statements": [
+        "UseOwnedVpcSubnetSgAsParent",
+        "DenyOutsideSeoul"
+      ],
+      "method": "Action/Resource lexical applicability only; no Condition evaluation; not an IAM simulator"
+    },
+    {
+      "id": "N23-sg-request-context",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "applicable_missing_keys": [],
+      "irrelevant_missing_keys": [
+        "aws:TagKeys",
+        "ec2:CreateAction",
+        "ec2:Encrypted",
+        "ec2:VolumeSize",
+        "ec2:VolumeType",
+        "iam:PassedToService",
+        "kms:RequestAlias",
+        "s3:prefix"
+      ],
+      "matching_statements": [
+        "UseOwnedVpcSubnetSgAsParent",
+        "DenyOutsideSeoul"
+      ],
+      "method": "Action/Resource lexical applicability only; no Condition evaluation; not an IAM simulator"
+    }
+  ],
+  "affected_comparison": [
+    {
+      "id": "P-split-N20",
+      "expected": "allowed",
+      "decision": "allowed",
+      "verdict": "DIAGNOSTIC_EXPECTED"
+    },
+    {
+      "id": "N20-request-context",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "verdict": "MISSING_CONTEXT_REVIEW"
+    },
+    {
+      "id": "P-split-N21",
+      "expected": "allowed",
+      "decision": "allowed",
+      "verdict": "DIAGNOSTIC_EXPECTED"
+    },
+    {
+      "id": "N21-request-context",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "verdict": "MISSING_CONTEXT_REVIEW"
+    },
+    {
+      "id": "P-split-N22-subnet",
+      "expected": "allowed",
+      "decision": "allowed",
+      "verdict": "DIAGNOSTIC_EXPECTED"
+    },
+    {
+      "id": "N22-subnet-request-context",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "verdict": "MISSING_CONTEXT_REVIEW"
+    },
+    {
+      "id": "P-split-N22-eip",
+      "expected": "allowed",
+      "decision": "allowed",
+      "verdict": "DIAGNOSTIC_EXPECTED"
+    },
+    {
+      "id": "N22-eip-request-context",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "verdict": "MISSING_CONTEXT_REVIEW"
+    },
+    {
+      "id": "P-split-N23-subnet",
+      "expected": "allowed",
+      "decision": "allowed",
+      "verdict": "DIAGNOSTIC_EXPECTED"
+    },
+    {
+      "id": "N23-subnet-request-context",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "verdict": "MISSING_CONTEXT_REVIEW"
+    },
+    {
+      "id": "P-split-N23-sg",
+      "expected": "allowed",
+      "decision": "allowed",
+      "verdict": "DIAGNOSTIC_EXPECTED"
+    },
+    {
+      "id": "N23-sg-request-context",
+      "expected": "implicitDeny",
+      "decision": "implicitDeny",
+      "verdict": "MISSING_CONTEXT_REVIEW"
+    }
+  ],
+  "aws_mutation": "NOT_RUN",
+  "grant": "NOT_RUN",
+  "cloud_plan": "NOT_RUN",
+  "original_64_decision_changes": [
+    {
+      "id": "N20-request-context",
+      "before": "allowed",
+      "after": "implicitDeny"
+    },
+    {
+      "id": "N21-request-context",
+      "before": "allowed",
+      "after": "implicitDeny"
+    },
+    {
+      "id": "N22-subnet-request-context",
+      "before": "allowed",
+      "after": "implicitDeny"
+    },
+    {
+      "id": "N22-eip-request-context",
+      "before": "allowed",
+      "after": "implicitDeny"
+    },
+    {
+      "id": "N23-sg-request-context",
+      "before": "allowed",
+      "after": "implicitDeny"
+    }
+  ],
+  "input_archive_sha256": "5ec6d1af7b4d4255d3eb6e66f4b78b320cbaf6c759d26666b7088eb8d18aa0f0",
+  "input_manifest_sha256": "9631dce69fddc6492f8ca7bc08fa1688e728f68be98941476aefd47b42e0d70b",
+  "capture_manifest_sha256": "8126e93756c040a0cb6523b64c51605cf7e0e8a695f810a2b0f46a3de254a262",
+  "collector_commit": "3695b10f8ba758aefc09b46d5612e9dee3b26491"
+}

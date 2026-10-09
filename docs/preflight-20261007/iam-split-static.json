@@ -1,0 +1,21 @@
+{
+  "baseline": "2f127c0adc70e8149a4492704b0683e25070e86f",
+  "policies": {
+    "FDS-IaC-Network": {
+      "added_pairs": 0,
+      "removed_pairs": 30,
+      "unchanged_statements": 5,
+      "conditions_preserved": true
+    },
+    "FDS-IaC-Vpn": {
+      "added_pairs": 0,
+      "removed_pairs": 6,
+      "unchanged_statements": 14,
+      "conditions_preserved": true
+    }
+  },
+  "original_64_requests_unchanged_except_policy": true,
+  "source_git_blob_hashes_verified": 16,
+  "new_owned_parent_cases": 6,
+  "bundle_files_verified": 85
+}

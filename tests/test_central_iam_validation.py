@@ -44,10 +44,18 @@ class SafetyTests(unittest.TestCase):
             bundle=Path(tmp)/'bundle'; bundle.mkdir()
             (bundle/'request.json').write_text('{}')
             central.write(bundle/'manifest.json',{'request.json':'0'*64})
-            with patch.object(central.subprocess,'run') as proc:
+            with patch.dict(central.os.environ, {}, clear=True), patch.object(central.subprocess,'run') as proc:
                 with self.assertRaisesRegex(RuntimeError,'hash mismatch'):
                     central.run(bundle,Path(tmp),f'arn:aws:iam::{central.ACCOUNT}:root')
                 proc.assert_not_called()
+
+    def test_endpoint_and_ca_overrides_stop_before_aws(self):
+        for key in ['AWS_CA_BUNDLE','AWS_DATA_PATH','AWS_ENDPOINT_URL','AWS_ENDPOINT_URL_IAM']:
+            with self.subTest(key=key), tempfile.TemporaryDirectory() as tmp:
+                with patch.dict(central.os.environ, {key:'review-required'}, clear=True), patch.object(central.subprocess,'run') as proc:
+                    with self.assertRaisesRegex(RuntimeError,'Review environment overrides'):
+                        central.run(Path(tmp)/'absent-bundle',Path(tmp),f'arn:aws:iam::{central.ACCOUNT}:root')
+                    proc.assert_not_called()
 
     def test_timeout_preserves_failure_and_stops(self):
         with tempfile.TemporaryDirectory() as tmp:

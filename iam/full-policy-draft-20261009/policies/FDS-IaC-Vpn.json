@@ -23,18 +23,36 @@
       }
     },
     {
-      "Sid": "CreateTaggedSgInstanceEip",
+      "Sid": "CreateTaggedCreateSecurityGroup",
       "Effect": "Allow",
-      "Action": [
-        "ec2:CreateSecurityGroup",
-        "ec2:RunInstances",
-        "ec2:AllocateAddress"
-      ],
-      "Resource": [
-        "arn:aws:ec2:ap-northeast-2:774055931866:security-group/*",
-        "arn:aws:ec2:ap-northeast-2:774055931866:instance/*",
-        "arn:aws:ec2:ap-northeast-2:774055931866:elastic-ip/*"
-      ],
+      "Action": "ec2:CreateSecurityGroup",
+      "Resource": "arn:aws:ec2:ap-northeast-2:774055931866:security-group/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-northeast-2",
+          "aws:RequestTag/Project": "fds-hybrid",
+          "aws:RequestTag/ManagedBy": "terraform"
+        }
+      }
+    },
+    {
+      "Sid": "CreateTaggedRunInstances",
+      "Effect": "Allow",
+      "Action": "ec2:RunInstances",
+      "Resource": "arn:aws:ec2:ap-northeast-2:774055931866:instance/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-northeast-2",
+          "aws:RequestTag/Project": "fds-hybrid",
+          "aws:RequestTag/ManagedBy": "terraform"
+        }
+      }
+    },
+    {
+      "Sid": "CreateTaggedAllocateAddress",
+      "Effect": "Allow",
+      "Action": "ec2:AllocateAddress",
+      "Resource": "arn:aws:ec2:ap-northeast-2:774055931866:elastic-ip/*",
       "Condition": {
         "StringEquals": {
           "aws:RequestedRegion": "ap-northeast-2",

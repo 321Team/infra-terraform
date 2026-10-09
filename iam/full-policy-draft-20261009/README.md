@@ -1,6 +1,8 @@
 # #9 전체 IAM 정책 초안 (Hard Gate 2) — 2026-10-09
 
-상태: **DRAFT / 로컬 정적검사 PASS / AWS 미실행 / 부여 아님**
+상태: **DRAFT / Action·Resource 분리 후보 / 부여 아님**
+
+기존 중앙 검증은 PR #16 receipt를 참조. 이번 분리안의 검증·판정은 `docs/preflight-20261007/iam-split-receipt-20261009.md`에서 별도로 추적한다.
 대상 이슈: [infra-terraform#9](https://github.com/321Team/infra-terraform/issues/9) · 원티켓 [#35](https://github.com/321Team/fds-project-baseline/issues/35)
 비용: 파일 작성·로컬 검사만 — **비용 없음**
 
@@ -9,14 +11,14 @@
 - 14행 inventory `validation/components-20261007/resource-api-inventory.json`
 - network 보완표 `docs/preflight-20261007/network-permission-supplement.json`
 - 기존 후보: [fds-project-baseline `c02831d7` `phase2/permissions/20261006-*`](https://github.com/321Team/fds-project-baseline/tree/c02831d7e4060813bd36637f180ba40e11f55f8f/phase2/permissions) — State-PassRole·Relay template·trust는 원문 복사
-- NAT: [PR #14](https://github.com/321Team/infra-terraform/pull/14) head `2a85d49a24a4a48555181d8fd2cf6a693015010b` (**미병합**) — [nat-permission-supplement.json](nat-permission-supplement.json)
+- NAT: [PR #14](https://github.com/321Team/infra-terraform/pull/14) 최종 head `76089b610ed7f709956ebef6ae173bea356034eb` (**병합 완료**, merge `abdbcd937babdb361667ae450407a8dc8f0dc6a4`; 현재 검토 기준 main `2f127c0adc70e8149a4492704b0683e25070e86f`) — [nat-permission-supplement.json](nat-permission-supplement.json)
 
 ## 리뷰 반영 이력
 
 | 일자 | 리뷰 | 반영 |
 |---|---|---|
 | 2026-10-09 | PR #15 이권욱 REQUEST_CHANGES 4건 | ① `DenyImdsV1Downgrade` 추가(생성 후 IMDSv1 전환 거부) ② SG rule 태그 쓰기를 소유 태그 조건 statement `TagOwnedSecurityGroupRules`로 분리 ③ `ec2:DescribeAddressesAttribute` 추가 + inventory 보완(nat-permission-supplement 마지막 행) ④ 실제 state 삭제 시험 문구 삭제 → simulation·정책 readback으로 확인 |
-| 2026-10-09 | 같은 리뷰 비차단 권고 (NAT) | PR #14 NAT 자원 3종(EIP·NAT GW·private 기본경로 3개)을 별도 보완표와 `FDS-IaC-Network`에 연결. **#14 병합 전까지 NAT 부분은 미확정 소스 기준** |
+| 2026-10-09 | 같은 리뷰 비차단 권고 (NAT) | PR #14 NAT 자원 3종(EIP·NAT GW·private 기본경로 3개)을 별도 보완표와 `FDS-IaC-Network`에 연결. **이후 #14 병합 완료. 당시 리뷰 이력은 유지하며 현재 코드는 main `2f127c0` 기준** |
 
 ## 한눈에 보기
 
@@ -24,7 +26,9 @@
 |---|---|---|---|
 | `FDS-IaC-Operator` | 권욱·하영 | `FDS-IaC-State-PassRole` + `FDS-IaC-Network` + `FDS-IaC-Vpn` + `FDS-IaC-Guardrails` | State-PassRole은 **기존 후보 그대로**(46+9건 시험분), 나머지 3개 **신규** |
 | `FDS-Network-Operator` | 권욱·재환 | `FDS-Network-Operator-Relay.template` + `FDS-Network-Operator-StateDeny` | template은 **기존 그대로**(Relay 생성 후 instance ID 채움), StateDeny **신규** |
-| `FDS-ReadOnly-Audit` | 3명 | AWS 관리형 `job-function/ViewOnlyAccess` + `FDS-ReadOnly-Audit-StateDeny` | **신규 제안 — Lead 확인 필요** |
+| `FDS-ReadOnly-Audit` | 3명 | AWS 관리형 `job-function/ViewOnlyAccess` + `FDS-ReadOnly-Audit-StateDeny` | **기존 역할 존재. ViewOnlyAccess 부착은 미채택 제안** |
+
+중앙 2026-10-09 readback: IaC·Network 역할은 부재, Audit은 기존 inline 2개로 존재한다. 신규 Audit trust/assume/ViewOnlyAccess 제안을 기존 역할에 자동 덮어쓰지 않는다.
 
 trust: IaC·Network는 기존 후보 그대로(MFA=true, 본인 RoleSessionName), ReadOnly-Audit 신규. 사용자별 assume 정책은 ReadOnly-Audit을 추가한 버전(`trust/assume-*.json`).
 
@@ -68,7 +72,7 @@ state는 Terraform이 "무엇을 만들었는지" 적어 두는 장부다(S3 `fd
 | Sid | 하는 일 | 범위 |
 |---|---|---|
 | ReadSeoulNetworkMetadata | VPC/subnet/IGW/RT/NACL/SG/ENI/AZ/Tag/NAT/EIP 조회 | `*` + 서울 (Describe는 자원 단위 제한 미지원) |
-| CreateTaggedNetworkResources | VPC·IGW·RT·Subnet·NAT GW·NAT EIP 생성 | 새 자원에 소유 태그 필수 |
+| CreateTaggedCreateVpc / CreateInternetGateway / CreateRouteTable / CreateSubnet / CreateNatGateway / AllocateAddress (각 Sid는 CreateTagged 접두어) | VPC·IGW·RT·Subnet·NAT GW·NAT EIP 생성 | 새 자원에 소유 태그 필수 |
 | UseOwnedVpcAsParent | Subnet·RT를 만들 부모 VPC | 소유 태그 VPC만 |
 | UseOwnedSubnetEipForNat | NAT GW를 놓을 subnet과 붙일 EIP | 소유 태그 subnet·EIP만 |
 | TagOnlyAtCreate | 생성 순간 태그 달기 | `ec2:CreateAction` 6종만 |
@@ -78,7 +82,7 @@ state는 Terraform이 "무엇을 만들었는지" 적어 두는 장부다(S3 `fd
 | Sid | 하는 일 | 범위 |
 |---|---|---|
 | ReadSeoulRelayMetadata | AMI/인스턴스/볼륨/EIP/SG rule 조회 | `*` + 서울 |
-| CreateTaggedSgInstanceEip | SG·인스턴스·EIP 생성 | 소유 태그 필수 |
+| CreateTaggedCreateSecurityGroup / CreateTaggedRunInstances / CreateTaggedAllocateAddress | SG·인스턴스·EIP 생성 | 소유 태그 필수 |
 | DenyRunOtherThanT3Medium / DenyRunWithoutImdsv2 | 다른 타입·IMDSv1 거부 | 명시 Deny 2개(조건 AND 함정 피하려고 분리) |
 | DenyImdsV1Downgrade | 생성 후 `HttpTokens=optional` 변경 거부 | 명시 Deny. required 변경은 허용 |
 | RunWithEncryptedGp3UpTo40GiB | 루트 볼륨 | 암호화·gp3·≤40 |
