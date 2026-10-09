@@ -61,6 +61,38 @@ run "single_nat_private_egress" {
   }
 }
 
+# Mock apply only: fixes NAT/route targets to the exact generated IDs.
+run "nat_targets_are_wired" {
+  command = apply
+  variables {
+    execution_enabled = true
+  }
+  override_resource {
+    target = aws_subnet.project["private_a"]
+    values = { id = "subnet-private-a", availability_zone = "ap-northeast-2a" }
+  }
+  override_resource {
+    target = aws_subnet.project["private_b"]
+    values = { id = "subnet-private-b", availability_zone = "ap-northeast-2b" }
+  }
+  override_resource {
+    target = aws_subnet.project["private_c"]
+    values = { id = "subnet-private-c", availability_zone = "ap-northeast-2c" }
+  }
+  override_resource {
+    target = aws_subnet.project["public_transport_a"]
+    values = { id = "subnet-transport-a", availability_zone = "ap-northeast-2a" }
+  }
+  assert {
+    condition     = aws_nat_gateway.platform.subnet_id == aws_subnet.project["public_transport_a"].id && aws_nat_gateway.platform.allocation_id == aws_eip.nat.id
+    error_message = "NAT must sit in public_transport_a with the dedicated NAT EIP."
+  }
+  assert {
+    condition     = alltrue([for k, r in aws_route.private_egress : r.nat_gateway_id == aws_nat_gateway.platform.id && r.route_table_id == aws_route_table.subnet[k].id])
+    error_message = "Each private default route must target the NAT from its own route table."
+  }
+}
+
 run "wrong_account_az_mapping_is_rejected" {
   command = plan
   variables {

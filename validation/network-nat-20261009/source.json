@@ -1,0 +1,34 @@
+{
+  "status": "CANDIDATE_STATIC_MOCK_NOT_EXECUTION_APPROVAL",
+  "base": "93d71500e3e881c55f1814cd144ca41f43e77f3d",
+  "created_utc": "2026-10-09T03:59:26.763346+00:00",
+  "components": {
+    "network": {
+      "mock_tests": 5,
+      "files": {
+        ".terraform.lock.hcl": "19d9d35be5e84e592d2714ebf7ecd11a75610fd3addc2c22a8d1f9445a6ca38f",
+        "backend.hcl.example": "e6c4ddf2036b3d46cb7243cc3b0a2b57976d6f6f660795cd4d549417fda920ff",
+        "main.tf": "ae904de11034f1f847757c3bf1e2131cc8d4d1666a5676f5b2fdac89c6b987f0",
+        "outputs.tf": "0fe4a006ac434c12856dc8c086f17bb7daf1748b8b82af3a9946ba4146fff2b7",
+        "tests/network.tftest.hcl": "490d2e5a9f03db2f712a94c2f46618c318b8b83071dfc80fa2df3a56ef3b8735",
+        "versions.tf": "e653faf7197736809b47bb46b8830a3f5efbe6ddb137f36ac04f436fa0ff3bca"
+      }
+    },
+    "vpn": {
+      "mock_tests": 22,
+      "files": {
+        ".terraform.lock.hcl": "19d9d35be5e84e592d2714ebf7ecd11a75610fd3addc2c22a8d1f9445a6ca38f",
+        "amazon-ssm-agent.gpg": "aaa3f054d9c0fb037e3e110e213cf721392429baa4a65c9e5e8b558b64c80fba",
+        "backend.hcl.example": "abdda61dea092f7c3ce467e3db2faf9393d7a0b3634f4353c0fe93bf4e8cfc46",
+        "bootstrap.sh.tftpl": "0acde3c1787b5c3a52b8f4f5329d2bf71c97f3c5c6bd596e93d5a324a7698e93",
+        "main.tf": "29054493be43ce63720ffa5592e10bba728e39c053dd99267c301c168867f2b3",
+        "outputs.tf": "ea9f3d9a5e2be0a339f515ef11cac05efc4ae593f3968cdf7e3cab1aa24e8367",
+        "session-document.tf": "60adebd8f88a4326096cc383594e17053402105f206765fa5556b831bf83b96c",
+        "tests/vpn.tftest.hcl": "8d9ea6dd3ab7d3e500c481efc19823b85e8ef037abed3b78e763f150f8b858d6",
+        "variables.tf": "620f24ff58a4aa4c347b2b82fb9c92ce86450ef51555f1b9c28b66dce755be4e",
+        "versions.tf": "10834006cf0aeca35c112e635b752fecf154da3a0c5ea87c40cb54504870fcca"
+      }
+    }
+  },
+  "supersedes_for_current_source": "validation/relay-agent-rpm-20261008/source.json"
+}

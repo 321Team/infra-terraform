@@ -2,17 +2,20 @@
 
 CODEX_ASSISTED. 준비 기준은 [PR7](https://github.com/321Team/infra-terraform/pull/7) 후보 `e4ee0bff2d6aba92a0b147b86e1f4759f315eded`로 갱신했다. 현재 PR6 checkout의 Terraform은 기존 main0eabe8da이며 새 Relay 구현을 포함하지 않는다. **PR6 checkout을 이 절차의 실행 소스로 사용하지 않는다.** PR7의 독립 리뷰·병합과 단계별 수용 후 실제 사용할 SHA를 고정한다. [소스 연결표](source-alignment-20261008.md)를 따른다. 아래는 #35 Lead가 조건 충족 후 사용할 절차다. **현재 IAM/실행 입력 Gate가 미충족이므로 명령을 실행하지 않았다.** 이 문서의 승인이 Apply GO를 대신하지 않는다.
 
+> **2026-10-09 NAT 후보 갱신 ([PR14](https://github.com/321Team/infra-terraform/pull/14)).** network root에 단일 NAT(EIP1·NAT1·private default route3)가 추가됐다. 현재 후보 source manifest는 [`validation/network-nat-20261009/source.json`](../../validation/network-nat-20261009/README.md)(network6/vpn10파일, MOCK 5/22)이다. 아래 PR7 기준 서술과 과거 manifest·증적은 이력으로 보존한다. 실제 실행 SHA는 PR14 병합·수용 후 고정한다.
+
 ## 대상·권한·선행조건
 
 - 대상: AWS 채택 계정 끝1866 / `ap-northeast-2`, CloudShell 개인 작업 경로의 깨끗한 고정 checkout. 기존 중앙 CFn bootstrap은 소유권 유지.
 - 실행자: 이하영 또는 이권욱 **각 본인 MFA FDS-IaC-Operator 세션**. root·일반 IAM 사용자·다른 역할로 업무 Plan/Apply 우회 금지. STS ARN의 role/session name을 기존 배정과 대조하되 ARN만으로 MFA를 입증했다고 표시하지 않는다.
 - toolchain: Terraform1.16.4 / AWS provider6.66.0, reviewed lock. 최종 수용 source manifest와 파일 집합·SHA256 동일성 확인. PR7 후보 manifest는 network6+vpn10파일이며 기존 PR5의15파일 manifest로 새 VPN 코드를 검증하지 않는다. provider 바이너리 공간은 CloudShell `/tmp`의 별도 TF_DATA_DIR 사용, 소스·로그·plan은 HOME 개인0700 경로에 보존. version/registry/lock을 임의 변경하지 않는다.
+- 권한(NAT): 현재 IAM inventory(#15 포함)에 NAT/EIP 권한이 없다. EIP `AllocateAddress`/`ReleaseAddress`/`DescribeAddresses`/`DescribeAddressesAttribute`, NAT `CreateNatGateway`/`DeleteNatGateway`/`DescribeNatGateways`, tag·parent(subnet/EIP) scope를 새 inventory에 연결하고 중앙 검증한 뒤 network plan을 실행한다. 권한 없이 plan이 진행되는 경우는 빈 state의 일부 상황에 한정되며, 기존 EIP/NAT가 있는 refresh plan은 read 권한 부재로 실패한다.
 - 권한: full policy source 검토·중앙 grant/readback 및 본인 state/lock·거부·복구 시험. credential은 환경의 기존 역할 세션으로만 사용하며 파일·backend-config·plan 변수에 저장하지 않는다.
 - Plan 전에 정확한 SHA·backend key·default workspace·명시 입력·source/정책 수용 근거를 기록. 기존 Freeze/비용 조건의 적용 범위를 #35/#34에서 판단하며 미충족한 상태를 Apply 허용으로 확장하지 않는다.
 
 ## 1. network Plan
 
-`terraform/stage-a` scaffold에서 remote plan을 하지 않는다. 실제 root는 `terraform/network`이며 backend는 `phase2/network/terraform.tfstate`. network에는 EIP/EC2/NAT/ROSA가 없다. `execution_enabled=false` 기본값은 실제 plan도 차단하므로, 아래 `true`는 **조건을 충족한 plan 회차만의 명시 입력**이다. 승인 증거가 아니다.
+`terraform/stage-a` scaffold에서 remote plan을 하지 않는다. 실제 root는 `terraform/network`이며 backend는 `phase2/network/terraform.tfstate`. network에는 NAT 후보 기준 NAT 전용 EIP1·NAT1이 있고 EC2/ROSA·Relay EIP는 없다. `execution_enabled=false` 기본값은 실제 plan도 차단하므로, 아래 `true`는 **조건을 충족한 plan 회차만의 명시 입력**이다. 승인 증거가 아니다.
 
 CloudShell에서 고정 checkout 절대경로를 `FDS_REPO`, 위 버전의 실제 terraform 절대경로를 `FDS_TF`, 새 HOME 개인 증거 디렉터리를 `FDS_CAPTURE`로 설정한다. 아래 명령은 각 stdout/stderr/RC를 별도 파일로 보존하고 오류 시 다음 명령을 실행하지 않는다. `set -x`를 쓰지 않는다.
 
@@ -37,7 +40,7 @@ export TF_DATA_DIR="$(mktemp -d /tmp/fds-network-plan-data-XXXXXX)"
 
 실행 전에 상속된 `TF_CLI_ARGS*`/`TF_VAR_*`, `.auto.tfvars`/`terraform.tfvars`, terraformrc/plugin override 등에 미검토 값이 없는지 확인한다. 값은 로그에 덤프하지 않고 키/파일 존재와 승인 여부를 확인한다. untracked 예상 밖 파일이면 STOP. 기존 backend 재구성/이전 요청이 나오면 STOP하고 `-migrate-state`, `-force-copy`, `-lock=false`로 우회하지 않는다.
 
-Plan RC0=변경 없음 / RC2=차이 있음(검토 대상) / RC1=실패. 새 빈 state의 최초 network plan 기대값은 **15 create / 0 update / 0 delete**, data read 제외. 기존 state/자원이 있으면 15를 강제로 맞추지 않고 소유·drift부터 검토한다. 삭제/교체·중앙 bucket/role/profile·default VPC 변경·예상 밖 태그/route이면 STOP. `terraform show -no-color`와 필요시 `show -json`은 개인 경로로만 보존하고 state/plan 전체를 GitHub에 게시하지 않는다.
+Plan RC0=변경 없음 / RC2=차이 있음(검토 대상) / RC1=실패. NAT 후보의 새 빈 state 최초 network plan 기대값은 **20 create / 0 update / 0 delete**(기존15 + EIP1 + NAT1 + private route3), data read 제외. 기존 state/자원이 있으면 20을 강제로 맞추지 않고 소유·drift부터 검토한다. 삭제/교체·중앙 bucket/role/profile·default VPC 변경·예상 밖 태그/route이면 STOP. `terraform show -no-color`와 필요시 `show -json`은 개인 경로로만 보존하고 state/plan 전체를 GitHub에 게시하지 않는다.
 
 ## 2. network Apply와 실제 handoff 사이의 경계
 

@@ -22,3 +22,5 @@ validation/stage-a-20261007/PACKAGE_SHA256SUMS text eol=lf
 validation/stage-a-20261007/ARCHIVE_SHA256SUMS text eol=lf
 # Preserve original local preflight test output bytes across checkouts.
 validation/preflight-alignment-20261008/** -text whitespace=cr-at-eol,-blank-at-eol
+# Preserve NAT candidate manifest and captured helper output bytes.
+validation/network-nat-20261009/** -text whitespace=cr-at-eol,-blank-at-eol
