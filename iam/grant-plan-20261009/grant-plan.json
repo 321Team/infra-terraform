@@ -1,0 +1,110 @@
+{
+  "status": "PROPOSED_NOT_EXECUTED",
+  "account": "774055931866",
+  "region": "ap-northeast-2",
+  "source_commit": "c699d667f8af3f983f54fd54629401562789bdd4",
+  "new_resources": {
+    "roles": 1,
+    "managed_policies": 4
+  },
+  "user_policy_mutations": 0,
+  "group_policy_mutations": 0,
+  "network_role_mutations": 0,
+  "audit_role_mutations": 0,
+  "human_principals": [
+    "321team-gwonuk",
+    "321team-hayeoung"
+  ],
+  "tags": {
+    "Project": "fds-hybrid",
+    "ManagedBy": "project-bootstrap",
+    "Purpose": "phase2-iac-work-role"
+  },
+  "source_sha256": {
+    "iam/full-policy-draft-20261009/policies/FDS-IaC-Guardrails.json": "58c5774c6f9b6f63892e17f09b108f30e3a3e771420fb15704cf1632768092fd",
+    "iam/full-policy-draft-20261009/policies/FDS-IaC-State-PassRole.json": "53eb7e501658c54d7e63802899731fccf49cc0d7de4ae18d87c996c7a9561562",
+    "iam/full-policy-draft-20261009/policies/FDS-IaC-Network.json": "a154e8ce484cb46c630a95cf9eb96bd37c02a541269de6b535e0b55b5515edef",
+    "iam/full-policy-draft-20261009/policies/FDS-IaC-Vpn.json": "edd26c42cccd3c533c08442bc252dc8df26bee1431d6fa1608ccc1801c277ded",
+    "iam/full-policy-draft-20261009/trust/trust-FDS-IaC-Operator.json": "1d728d4304241b77623efd918759bd1712457857084bc0d7257d6f3e63992641",
+    "iam/grant-plan-20261009/trust-closed.json": "c57b7b6fdf621f566a70f81fba7a4278c88862b9594a3724b87bb1328bc314d8",
+    "iam/grant-plan-20261009/deny-role-sessions.json": "eceef8f3671326f270389feda43803856df52bb5f8927aa86bf5b41cd42bff76"
+  },
+  "ordered_operations": [
+    {
+      "phase": "LOCKED_PREPARATION",
+      "operation": "CreatePolicy",
+      "policy_name": "FDS-IaC-Guardrails",
+      "path": "/",
+      "policy_file": "iam/full-policy-draft-20261009/policies/FDS-IaC-Guardrails.json",
+      "if_exists": "STOP_NO_ADOPT_NO_UPDATE"
+    },
+    {
+      "phase": "LOCKED_PREPARATION",
+      "operation": "CreatePolicy",
+      "policy_name": "FDS-IaC-State-PassRole",
+      "path": "/",
+      "policy_file": "iam/full-policy-draft-20261009/policies/FDS-IaC-State-PassRole.json",
+      "if_exists": "STOP_NO_ADOPT_NO_UPDATE"
+    },
+    {
+      "phase": "LOCKED_PREPARATION",
+      "operation": "CreatePolicy",
+      "policy_name": "FDS-IaC-Network",
+      "path": "/",
+      "policy_file": "iam/full-policy-draft-20261009/policies/FDS-IaC-Network.json",
+      "if_exists": "STOP_NO_ADOPT_NO_UPDATE"
+    },
+    {
+      "phase": "LOCKED_PREPARATION",
+      "operation": "CreatePolicy",
+      "policy_name": "FDS-IaC-Vpn",
+      "path": "/",
+      "policy_file": "iam/full-policy-draft-20261009/policies/FDS-IaC-Vpn.json",
+      "if_exists": "STOP_NO_ADOPT_NO_UPDATE"
+    },
+    {
+      "phase": "LOCKED_PREPARATION",
+      "operation": "CreateRole",
+      "role_name": "FDS-IaC-Operator",
+      "path": "/",
+      "trust_file": "iam/grant-plan-20261009/trust-closed.json",
+      "max_session_duration": 3600,
+      "permissions_boundary": null,
+      "if_exists": "STOP_NO_ADOPT_NO_UPDATE"
+    },
+    {
+      "phase": "LOCKED_PREPARATION",
+      "operation": "AttachRolePolicy",
+      "role_name": "FDS-IaC-Operator",
+      "policy_arn": "arn:aws:iam::774055931866:policy/FDS-IaC-Guardrails"
+    },
+    {
+      "phase": "LOCKED_PREPARATION",
+      "operation": "AttachRolePolicy",
+      "role_name": "FDS-IaC-Operator",
+      "policy_arn": "arn:aws:iam::774055931866:policy/FDS-IaC-State-PassRole"
+    },
+    {
+      "phase": "LOCKED_PREPARATION",
+      "operation": "AttachRolePolicy",
+      "role_name": "FDS-IaC-Operator",
+      "policy_arn": "arn:aws:iam::774055931866:policy/FDS-IaC-Network"
+    },
+    {
+      "phase": "LOCKED_PREPARATION",
+      "operation": "AttachRolePolicy",
+      "role_name": "FDS-IaC-Operator",
+      "policy_arn": "arn:aws:iam::774055931866:policy/FDS-IaC-Vpn"
+    },
+    {
+      "phase": "ACTIVATION_AFTER_READBACK",
+      "operation": "UpdateAssumeRolePolicy",
+      "role_name": "FDS-IaC-Operator",
+      "trust_file": "iam/full-policy-draft-20261009/trust/trust-FDS-IaC-Operator.json",
+      "lead_grant_approval": "REQUIRED_AT_EXECUTION"
+    }
+  ],
+  "gate": "Independent source review + lead scope approval + just-in-time before inventory + readback before activation",
+  "rollback": "README.md#\ubcf5\uad6c\uc548",
+  "not_an_executor": true
+}

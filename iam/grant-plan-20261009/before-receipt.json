@@ -1,0 +1,51 @@
+{
+  "source_base": "c699d667f8af3f983f54fd54629401562789bdd4",
+  "collector_commit": "49bf0d4d3f847545c69166ac6bff6af64a0b5274",
+  "started_utc": "2026-10-09T07:03:12.436607+00:00",
+  "finished_utc": "2026-10-09T07:03:43.405793+00:00",
+  "collector_sha256": "063897760c53451b08d5cbcf91393cd54ef767ca72d660afc20dc79a31ecf19d",
+  "helper_sha256": "ec7275fd219e88c8b083a0bc9988a01dc882c9b34ef1c5950a2bd2cba29fb4c6",
+  "archive_sha256": "794978147d5d33c266c5f4144103ba08c223a79ce3c630aa6154742c57f922dc",
+  "capture_manifest_sha256": "9d4cf231e1d420ed1d8062a7af4aadf7980dfd2b3f9cea25b14f66e293545eb1",
+  "verified_files": 53,
+  "api_calls": 25,
+  "exit_codes": {
+    "0": 19,
+    "254": 6
+  },
+  "roles": {
+    "FDS-IaC-Operator": "ABSENT",
+    "FDS-Network-Operator": "ABSENT",
+    "FDS-ReadOnly-Audit": "PRESENT_NOT_MODIFIED"
+  },
+  "candidate_managed_policies": "4_ABSENT",
+  "users": {
+    "321team-gwonuk": {
+      "direct_inline": 0,
+      "direct_managed": 0,
+      "boundary": false,
+      "groups": [
+        "FDS-Human-Bootstrap"
+      ]
+    },
+    "321team-hayeoung": {
+      "direct_inline": 0,
+      "direct_managed": 0,
+      "boundary": false,
+      "groups": [
+        "FDS-Human-Bootstrap"
+      ]
+    }
+  },
+  "group_managed": [
+    "FDS-Human-ReadOnly-Guard-v1 (v1)",
+    "ReadOnlyAccess (v190)"
+  ],
+  "group_inline": [
+    "FDS-Assume-ReadOnly-Audit-v1",
+    "FDS-Human-Direct-ReadOnly-v1",
+    "FDS-SelfService-Password-MFA"
+  ],
+  "aws_mutation": "NOT_RUN",
+  "scope_limit": "No SCP/resource-policy effective authorization proof; not a just-in-time grant before snapshot"
+}
