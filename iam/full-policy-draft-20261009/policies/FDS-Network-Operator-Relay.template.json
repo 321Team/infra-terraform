@@ -1,0 +1,115 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "StartSessionOnExactRelayWithDocumentCheck",
+      "Effect": "Allow",
+      "Action": "ssm:StartSession",
+      "Resource": "arn:aws:ec2:ap-northeast-2:774055931866:instance/__RELAY_INSTANCE_ID__",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-northeast-2"
+        },
+        "Bool": {
+          "ssm:SessionDocumentAccessCheck": "true"
+        }
+      }
+    },
+    {
+      "Sid": "StartOnlyApprovedDefaultShellDocument",
+      "Effect": "Allow",
+      "Action": "ssm:StartSession",
+      "Resource": "arn:aws:ssm:ap-northeast-2:774055931866:document/SSM-SessionManagerRunShell",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-northeast-2"
+        }
+      }
+    },
+    {
+      "Sid": "ManageOnlyOwnSessionsOnExactRelay",
+      "Effect": "Allow",
+      "Action": [
+        "ssm:ResumeSession",
+        "ssm:TerminateSession"
+      ],
+      "Resource": "arn:aws:ssm:ap-northeast-2:774055931866:session/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-northeast-2",
+          "ssm:resourceTag/aws:ssmmessages:session-id": "${aws:userid}",
+          "ssm:resourceTag/aws:ssmmessages:target-id": "__RELAY_INSTANCE_ID__"
+        }
+      }
+    },
+    {
+      "Sid": "RecoverOnlyExactRelay",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:RebootInstances",
+        "ec2:StopInstances",
+        "ec2:StartInstances"
+      ],
+      "Resource": "arn:aws:ec2:ap-northeast-2:774055931866:instance/__RELAY_INSTANCE_ID__",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-northeast-2"
+        }
+      }
+    },
+    {
+      "Sid": "ReadOnlyExactRelayBootOutput",
+      "Effect": "Allow",
+      "Action": "ec2:GetConsoleOutput",
+      "Resource": "arn:aws:ec2:ap-northeast-2:774055931866:instance/__RELAY_INSTANCE_ID__",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-northeast-2"
+        }
+      }
+    },
+    {
+      "Sid": "ReadOnlyExactRelaySsmConnection",
+      "Effect": "Allow",
+      "Action": "ssm:GetConnectionStatus",
+      "Resource": "arn:aws:ec2:ap-northeast-2:774055931866:instance/__RELAY_INSTANCE_ID__",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-northeast-2"
+        }
+      }
+    },
+    {
+      "Sid": "RegionalAccountMetadataDiagnostics",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:DescribeInstances",
+        "ec2:DescribeInstanceStatus",
+        "ec2:DescribeAddresses",
+        "ec2:DescribeNetworkInterfaces",
+        "ec2:DescribeRouteTables",
+        "ec2:DescribeSecurityGroups",
+        "ssm:DescribeInstanceInformation",
+        "ssm:DescribeSessions",
+        "cloudwatch:GetMetricData"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-northeast-2"
+        }
+      }
+    },
+    {
+      "Effect": "Allow",
+      "Action": "ssmmessages:OpenDataChannel",
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-northeast-2"
+        }
+      },
+      "Sid": "CompareHumanOpenDataChannelOnly"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyAnyStateBucketAccess",
+      "Effect": "Deny",
+      "Action": "s3:*",
+      "Resource": [
+        "arn:aws:s3:::fds-tfstate-774055931866-ap-northeast-2",
+        "arn:aws:s3:::fds-tfstate-774055931866-ap-northeast-2/*"
+      ]
+    },
+    {
+      "Sid": "DenyOutsideSeoul",
+      "Effect": "Deny",
+      "NotAction": "sts:GetCallerIdentity",
+      "Resource": "*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:RequestedRegion": "ap-northeast-2"
+        }
+      }
+    }
+  ]
+}

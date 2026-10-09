@@ -1,0 +1,27 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyStatePayloadRead",
+      "Effect": "Deny",
+      "Action": [
+        "s3:GetObject",
+        "s3:GetObjectVersion"
+      ],
+      "Resource": "arn:aws:s3:::fds-tfstate-774055931866-ap-northeast-2/*"
+    },
+    {
+      "Sid": "DenySecretValueRead",
+      "Effect": "Deny",
+      "Action": [
+        "secretsmanager:GetSecretValue",
+        "ssm:GetParameter",
+        "ssm:GetParameters",
+        "ssm:GetParametersByPath",
+        "ec2:GetConsoleOutput",
+        "ec2:DescribeInstanceAttribute"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

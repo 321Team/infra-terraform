@@ -1,0 +1,118 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadSeoulNetworkMetadata",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:DescribeAvailabilityZones",
+        "ec2:DescribeVpcs",
+        "ec2:DescribeVpcAttribute",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeInternetGateways",
+        "ec2:DescribeRouteTables",
+        "ec2:DescribeNetworkAcls",
+        "ec2:DescribeSecurityGroups",
+        "ec2:DescribeNetworkInterfaces",
+        "ec2:DescribeTags"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-northeast-2"
+        }
+      }
+    },
+    {
+      "Sid": "CreateTaggedVpcIgwRouteTableSubnet",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateVpc",
+        "ec2:CreateInternetGateway",
+        "ec2:CreateRouteTable",
+        "ec2:CreateSubnet"
+      ],
+      "Resource": [
+        "arn:aws:ec2:ap-northeast-2:774055931866:vpc/*",
+        "arn:aws:ec2:ap-northeast-2:774055931866:internet-gateway/*",
+        "arn:aws:ec2:ap-northeast-2:774055931866:route-table/*",
+        "arn:aws:ec2:ap-northeast-2:774055931866:subnet/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-northeast-2",
+          "aws:RequestTag/Project": "fds-hybrid",
+          "aws:RequestTag/ManagedBy": "terraform"
+        }
+      }
+    },
+    {
+      "Sid": "UseOwnedVpcAsParent",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateRouteTable",
+        "ec2:CreateSubnet"
+      ],
+      "Resource": "arn:aws:ec2:ap-northeast-2:774055931866:vpc/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-northeast-2",
+          "aws:ResourceTag/Project": "fds-hybrid",
+          "aws:ResourceTag/ManagedBy": "terraform"
+        }
+      }
+    },
+    {
+      "Sid": "TagOnlyAtCreate",
+      "Effect": "Allow",
+      "Action": "ec2:CreateTags",
+      "Resource": "arn:aws:ec2:ap-northeast-2:774055931866:*/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-northeast-2",
+          "ec2:CreateAction": [
+            "CreateVpc",
+            "CreateInternetGateway",
+            "CreateRouteTable",
+            "CreateSubnet"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "MutateOwnedNetworkResources",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:ModifyVpcAttribute",
+        "ec2:ModifySubnetAttribute",
+        "ec2:AttachInternetGateway",
+        "ec2:DetachInternetGateway",
+        "ec2:AssociateRouteTable",
+        "ec2:ReplaceRouteTableAssociation",
+        "ec2:DisassociateRouteTable",
+        "ec2:CreateRoute",
+        "ec2:ReplaceRoute",
+        "ec2:DeleteRoute",
+        "ec2:DeleteVpc",
+        "ec2:DeleteSubnet",
+        "ec2:DeleteInternetGateway",
+        "ec2:DeleteRouteTable",
+        "ec2:CreateTags",
+        "ec2:DeleteTags"
+      ],
+      "Resource": [
+        "arn:aws:ec2:ap-northeast-2:774055931866:vpc/*",
+        "arn:aws:ec2:ap-northeast-2:774055931866:subnet/*",
+        "arn:aws:ec2:ap-northeast-2:774055931866:internet-gateway/*",
+        "arn:aws:ec2:ap-northeast-2:774055931866:route-table/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-northeast-2",
+          "aws:ResourceTag/Project": "fds-hybrid",
+          "aws:ResourceTag/ManagedBy": "terraform"
+        }
+      }
+    }
+  ]
+}

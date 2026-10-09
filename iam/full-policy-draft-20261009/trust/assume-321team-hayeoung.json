@@ -1,0 +1,22 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AssumeAssignedWorkRoles",
+      "Effect": "Allow",
+      "Action": "sts:AssumeRole",
+      "Resource": [
+        "arn:aws:iam::774055931866:role/FDS-IaC-Operator",
+        "arn:aws:iam::774055931866:role/FDS-ReadOnly-Audit"
+      ],
+      "Condition": {
+        "Bool": {
+          "aws:MultiFactorAuthPresent": "true"
+        },
+        "StringEquals": {
+          "sts:RoleSessionName": "321team-hayeoung"
+        }
+      }
+    }
+  ]
+}
