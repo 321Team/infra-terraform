@@ -1,5 +1,7 @@
 # 중앙 IAM 검증 착수 자료 — 2026-10-08
 
+> **2026-10-09 후속:** 이 문서의 정책 미제출·NAT 권한 미포함 상태는 당시 이력이다. PR14/15 병합 정책과 현재 중앙 검증 요청은 [central-validation-20261009.md](central-validation-20261009.md)를 따른다. 소스 제출과 실제 부여/본인 시험/Plan을 구분한다.
+
 CODEX_ASSISTED. 사용자 “후속 절차 착수”에 따라 중앙 검증 직전의 입력을 구체화했다. **PREPARATION=UPDATED / POLICY_INPUT=PENDING / CENTRAL_VALIDATE=NOT_RUN / GRANT=NOT_RUN**. 역할을 먼저 만들거나 부분 정책을 부착하는 절차가 아니다.
 
 ## 최신 원본과 실제 진전
