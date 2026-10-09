@@ -27,24 +27,75 @@
       }
     },
     {
-      "Sid": "CreateTaggedNetworkResources",
+      "Sid": "CreateTaggedCreateVpc",
       "Effect": "Allow",
-      "Action": [
-        "ec2:CreateVpc",
-        "ec2:CreateInternetGateway",
-        "ec2:CreateRouteTable",
-        "ec2:CreateSubnet",
-        "ec2:CreateNatGateway",
-        "ec2:AllocateAddress"
-      ],
-      "Resource": [
-        "arn:aws:ec2:ap-northeast-2:774055931866:vpc/*",
-        "arn:aws:ec2:ap-northeast-2:774055931866:internet-gateway/*",
-        "arn:aws:ec2:ap-northeast-2:774055931866:route-table/*",
-        "arn:aws:ec2:ap-northeast-2:774055931866:subnet/*",
-        "arn:aws:ec2:ap-northeast-2:774055931866:natgateway/*",
-        "arn:aws:ec2:ap-northeast-2:774055931866:elastic-ip/*"
-      ],
+      "Action": "ec2:CreateVpc",
+      "Resource": "arn:aws:ec2:ap-northeast-2:774055931866:vpc/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-northeast-2",
+          "aws:RequestTag/Project": "fds-hybrid",
+          "aws:RequestTag/ManagedBy": "terraform"
+        }
+      }
+    },
+    {
+      "Sid": "CreateTaggedCreateInternetGateway",
+      "Effect": "Allow",
+      "Action": "ec2:CreateInternetGateway",
+      "Resource": "arn:aws:ec2:ap-northeast-2:774055931866:internet-gateway/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-northeast-2",
+          "aws:RequestTag/Project": "fds-hybrid",
+          "aws:RequestTag/ManagedBy": "terraform"
+        }
+      }
+    },
+    {
+      "Sid": "CreateTaggedCreateRouteTable",
+      "Effect": "Allow",
+      "Action": "ec2:CreateRouteTable",
+      "Resource": "arn:aws:ec2:ap-northeast-2:774055931866:route-table/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-northeast-2",
+          "aws:RequestTag/Project": "fds-hybrid",
+          "aws:RequestTag/ManagedBy": "terraform"
+        }
+      }
+    },
+    {
+      "Sid": "CreateTaggedCreateSubnet",
+      "Effect": "Allow",
+      "Action": "ec2:CreateSubnet",
+      "Resource": "arn:aws:ec2:ap-northeast-2:774055931866:subnet/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-northeast-2",
+          "aws:RequestTag/Project": "fds-hybrid",
+          "aws:RequestTag/ManagedBy": "terraform"
+        }
+      }
+    },
+    {
+      "Sid": "CreateTaggedCreateNatGateway",
+      "Effect": "Allow",
+      "Action": "ec2:CreateNatGateway",
+      "Resource": "arn:aws:ec2:ap-northeast-2:774055931866:natgateway/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "ap-northeast-2",
+          "aws:RequestTag/Project": "fds-hybrid",
+          "aws:RequestTag/ManagedBy": "terraform"
+        }
+      }
+    },
+    {
+      "Sid": "CreateTaggedAllocateAddress",
+      "Effect": "Allow",
+      "Action": "ec2:AllocateAddress",
+      "Resource": "arn:aws:ec2:ap-northeast-2:774055931866:elastic-ip/*",
       "Condition": {
         "StringEquals": {
           "aws:RequestedRegion": "ap-northeast-2",
