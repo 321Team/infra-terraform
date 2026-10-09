@@ -1,0 +1,35 @@
+{
+  "checked_kst": "2026-10-09T20:38:49.450665+09:00",
+  "platform": "Windows local Git checkout; not a Linux host runtime test",
+  "candidate_with_attribute_fix": "03df20816964d6e7bafc0e04c0e00e394dd33b34",
+  "original_source": "81162467bb2f99a099cb7067fbc3f63e1c0dbed8",
+  "cases": [
+    {
+      "core.autocrlf": "true",
+      "clean_checkout": true,
+      "original_sha256": {
+        "validation/relay-agent-rpm-20261008/download.json": "2020334ccc241ac223763fede0d4349f0eea758fce47b33e1b25732b13d788f7",
+        "validation/relay-agent-rpm-20261008/terraform/capture-manifest.json": "0f3ad7d8368e61e948044298617f9d761846656a4b0d959d1ad242f053f9df90",
+        "validation/relay-agent-rpm-20261008/terraform/summary.json": "d377ef0af4989a0bee0a294a2d36ffa70820e51b23a536625433b7f0057b9aba"
+      },
+      "text_unset_count": 3
+    },
+    {
+      "core.autocrlf": "false",
+      "clean_checkout": true,
+      "original_sha256": {
+        "validation/relay-agent-rpm-20261008/download.json": "2020334ccc241ac223763fede0d4349f0eea758fce47b33e1b25732b13d788f7",
+        "validation/relay-agent-rpm-20261008/terraform/capture-manifest.json": "0f3ad7d8368e61e948044298617f9d761846656a4b0d959d1ad242f053f9df90",
+        "validation/relay-agent-rpm-20261008/terraform/summary.json": "d377ef0af4989a0bee0a294a2d36ffa70820e51b23a536625433b7f0057b9aba"
+      },
+      "text_unset_count": 3
+    }
+  ],
+  "runner_bundle": {
+    "head": "1a60fb08f39a551c6b672ba41a120d7629852656",
+    "sha256": "bc1d1d28a088b918497c3660a7b7282d89a3c96c2f4785a2c6c28fb2f1853be1",
+    "restored_sparse_checkout_clean": true,
+    "approved": "PENDING PR19 independent review"
+  },
+  "aws_calls": 0
+}

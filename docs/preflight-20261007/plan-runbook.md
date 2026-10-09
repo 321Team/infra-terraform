@@ -1,5 +1,7 @@
 # Terraform Plan 준비 / 아직 실행하지 않음
 
+> **현재 상태 안내 (2026-10-09):** 아래 작성 당시 NOT_RUN/역할 부재 서술은 과거 준비 이력이다. 실제 IaC 부여·권욱 본인 역할 시험·network Plan과 증적 PR193/194/196 편입까지 진행됐다. 최신 단계·미완료 항목은 [대기 중 선행작업 현황](prework-status-20261009.md), full Plan 검토 입력은 [독립 검토 인계](network-plan-review-handoff-20261009.md)를 따른다. 이 갱신은 Apply/잠금 시험/전체 U1 완료 승인이 아니다.
+
 > **2026-10-09 병합 후 준비 기준:** PR14/15가 병합된 main `5b8204fad2f726b396457f0776cd85b154706aa2`의 network/vpn 및 IAM 후보를 연결한다. NAT/EIP 권한은 정책에 포함됐으며 중앙 검증·부여/readback·본인 시험은 별도다. 아래 과거 PR6/7 checkout 설명은 이력이다. 실제 실행 SHA 수용과 Plan Gate는 [중앙 검증 후속](central-validation-20261009.md)에서 구분한다.
 
 CODEX_ASSISTED. 준비 기준은 [PR7](https://github.com/321Team/infra-terraform/pull/7) 후보 `e4ee0bff2d6aba92a0b147b86e1f4759f315eded`로 갱신했다. 현재 PR6 checkout의 Terraform은 기존 main0eabe8da이며 새 Relay 구현을 포함하지 않는다. **PR6 checkout을 이 절차의 실행 소스로 사용하지 않는다.** PR7의 독립 리뷰·병합과 단계별 수용 후 실제 사용할 SHA를 고정한다. [소스 연결표](source-alignment-20261008.md)를 따른다. 아래는 #35 Lead가 조건 충족 후 사용할 절차다. **현재 IAM/실행 입력 Gate가 미충족이므로 명령을 실행하지 않았다.** 이 문서의 승인이 Apply GO를 대신하지 않는다.

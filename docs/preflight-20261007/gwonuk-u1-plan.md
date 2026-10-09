@@ -1,5 +1,7 @@
 # 권욱 본인 역할·state/lock·세션 시험 준비
 
+> **현재 상태 안내 (2026-10-09):** 아래 작성 당시 NOT_RUN/역할 부재 서술은 과거 준비 이력이다. 실제 IaC 부여·권욱 본인 역할 시험·network Plan과 증적 PR193/194/196 편입까지 진행됐다. 최신 단계·미완료 항목은 [대기 중 선행작업 현황](prework-status-20261009.md), full Plan 검토 입력은 [독립 검토 인계](network-plan-review-handoff-20261009.md)를 따른다. 이 갱신은 Apply/잠금 시험/전체 U1 완료 승인이 아니다.
+
 CODEX_ASSISTED. 2026-10-08. **시험 설계/실행 자료 준비이며 U1 NOT_RUN.** 중앙 사전조회에서 IaC/Network 역할이 ABSENT이므로 지금 본인 전환을 반복해도 새 권한 성공을 증명할 수 없다.
 
 기준: baseline main81365568의 [팀 계약](https://github.com/321Team/fds-project-baseline/blob/81365568fd0b946ad93e4d82ae8191add5fcacd0/phase2/permissions/20261006-team-build-test/README.md), [IaC trust 후보](https://github.com/321Team/fds-project-baseline/blob/81365568fd0b946ad93e4d82ae8191add5fcacd0/phase2/permissions/20261006-work-role-precheck/candidates/trust-FDS-IaC-Operator.candidate.json), [Network 최종 후보](https://github.com/321Team/fds-project-baseline/blob/81365568fd0b946ad93e4d82ae8191add5fcacd0/phase2/permissions/20261006-network-final-candidate/README.md). actual grant/readback가 시험 입력이며 후보만으로 실행하지 않는다.
