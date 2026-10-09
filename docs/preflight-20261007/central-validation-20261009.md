@@ -2,6 +2,8 @@
 
 CODEX_ASSISTED. 사용자 2026-10-09 “착수” 범위의 정책 검증·후속 준비. 대상 소스는 `5b8204fad2f726b396457f0776cd85b154706aa2`. IAM JSON은 변경하지 않는다. AWS/Red Hat Grant·청구 연결·조직 초대·Terraform Plan/Apply·P1 변경은 이 실행기 범위 밖이다.
 
+실제 실행 결과는 [2026-10-09 중앙 검증 접수](central-validation-receipt-20261009.md)에 있다. ValidatePolicy12개 findings0, simulation64개 검토 필요. 기존 Audit 역할 존재를 확인했으며 새로 만들지 않았다.
+
 ## 실행 계약
 
 - 대상: 기존 승인 중앙 검증 세션, AWS 계정 끝1866 / 서울. `sts get-caller-identity` 결과의 exact ARN과 `--expected-caller-arn`이 일치해야 한다. 중앙 root의 정책 검증과 개인 MFA 역할로 수행할 업무 Plan/Apply를 혼동하지 않는다.
