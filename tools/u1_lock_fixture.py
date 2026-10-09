@@ -211,7 +211,13 @@ class Live:
                 require(r.stdout.strip() == b'default', 'Only default workspace supported')
             if name == 'validate':
                 require(json.loads(r.stdout)['valid'], 'Validation failed')
-        config = json.loads((self.root / '.terraform/terraform.tfstate').read_text())['backend']
+        self.verify_backend(manifest)
+        self.empty_prefix('preflight')
+        require(self.get_lock('preflight') is None, 'Existing lock')
+
+    def verify_backend(self, manifest):
+        # init writes backend metadata alongside providers in the private data directory.
+        config = json.loads((Path(self.env['TF_DATA_DIR']) / 'terraform.tfstate').read_text())['backend']
         require(config['type'] == 's3', 'Backend mismatch')
         c = config['config']
         require(c['bucket'] == BUCKET and c['key'] == STATE and c['region'] == REGION
@@ -219,8 +225,6 @@ class Live:
                 'Backend target/locking/encryption mismatch')
         require(sha((self.root / '.terraform.lock.hcl').read_bytes()) ==
                 manifest['terraform/network/.terraform.lock.hcl'], 'Provider lock changed')
-        self.empty_prefix('preflight')
-        require(self.get_lock('preflight') is None, 'Existing lock')
 
 
 def main():
@@ -242,12 +246,15 @@ def main():
             'Unreviewed Terraform/AWS configuration overrides detected')
     os.umask(0o077)
     e = Path(tempfile.mkdtemp(prefix='fds-u1-lock-', dir=Path.home()))
+    data = Path(tempfile.mkdtemp(prefix='fds-u1-data-', dir='/tmp'))
     blank = e / 'empty-config'; blank.write_text('')
     env.update(AWS_REGION=REGION, AWS_DEFAULT_REGION=REGION, AWS_MAX_ATTEMPTS='1',
                AWS_CONFIG_FILE=str(blank), AWS_SHARED_CREDENTIALS_FILE=str(blank),
-               AWS_PAGER='', TF_CLI_CONFIG_FILE=str(blank), TF_IN_AUTOMATION='1', CHECKPOINT_DISABLE='1')
+               AWS_PAGER='', TF_CLI_CONFIG_FILE=str(blank), TF_DATA_DIR=str(data),
+               TF_IN_AUTOMATION='1', CHECKPOINT_DISABLE='1')
     api = Live(e, a.terraform, env)
     summary = dict(started_utc=utc(), host=socket.gethostname(), source=SOURCE,
+                   terraform_data_dir=str(data),
                    window_confirmation=a.window_confirmation, mode='RUNTIME' if a.execute else 'PREFLIGHT',
                    apply='NOT_RUN', real_process_crash='NOT_RUN', outcome='STOP')
     shutil.copyfile(__file__, e / 'runner.py')

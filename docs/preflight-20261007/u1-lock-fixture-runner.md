@@ -1,5 +1,7 @@
 # 권욱 U1-I3 잠금 fixture 실행기
 
+> **2026-10-10 실행 환경 수정 후보:** CloudShell 홈 여유603MB에서 provider6.66.0 설치가 `no space left on device`로 STOP했다. 증적·source·saved Plan은 기존 HOME0700 경로에 보존하고, provider와 backend 로컬 metadata만 실행기가 새로 만든 `/tmp/fds-u1-data-*`0700 경로에 둔다. `TF_DATA_DIR`은 실행기가 내부 설정하며 사용자 상속 override는 계속 거부한다. backend 검증도 실제 init이 쓴 그 경로를 읽는다. 임시 경로는 summary에 기록하며 자동 삭제하지 않는다. 재접속/환경 종료로 임시 데이터가 사라지면 새 회차로 init한다. 원본 로그와 실패 회차를 보존하고, `/tmp` 전체 정리나 HOME 재지정은 하지 않는다. 수정본 STATIC/MOCK와 독립 리뷰·RUNTIME은 각각 별도 판정한다.
+
 CODEX_ASSISTED. 2026-10-09. **작성·STATIC/MOCK 준비이며 AWS RUNTIME NOT_RUN.**
 
 기존 [U1-I3 절차](gwonuk-u1-plan.md#i3-재현-절차-grant-후-검토된-시험-회차)를 한 사람이 순차 실행할 수 있도록 구현한다. 시험용 잠금이 유지되는 동안 Terraform Plan을 시도한다. 실제 Terraform 프로세스 두 개의 경쟁, 강제 종료, I5 장애 복구 전체를 검증하는 도구가 아니다. Apply 및 실제 인프라 생성은 없다.
