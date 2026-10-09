@@ -197,6 +197,37 @@ class Tests(unittest.TestCase):
                 with self.assertRaises(m.Stop): api.preflight(Path('.'))
                 call.assert_not_called()
 
+    def test_relocated_backend_is_authoritative_and_still_enforces_scope(self):
+        with tempfile.TemporaryDirectory() as td:
+            evidence = Path(td) / 'evidence'; evidence.mkdir()
+            data = Path(td) / 'data'; data.mkdir()
+            api = m.Live(evidence, '/tf', {'TF_DATA_DIR': str(data)})
+            api.root.mkdir()
+            lock = api.root / '.terraform.lock.hcl'; lock.write_bytes(b'pinned-lock')
+            manifest = {'terraform/network/.terraform.lock.hcl': m.sha(lock.read_bytes())}
+            valid = dict(type='s3', config=dict(bucket=m.BUCKET, key=m.STATE,
+                         region=m.REGION, use_lockfile=True, encrypt=True))
+            # A valid stale HOME metadata file must not hide wrong relocated metadata.
+            old = api.root / '.terraform'; old.mkdir()
+            (old / 'terraform.tfstate').write_text(json.dumps({'backend': valid}))
+            for field, value in [('bucket', 'foreign'), ('key', 'foreign'),
+                                 ('region', 'us-east-1'), ('use_lockfile', False),
+                                 ('encrypt', False)]:
+                with self.subTest(field=field):
+                    wrong = json.loads(json.dumps(valid)); wrong['config'][field] = value
+                    (data / 'terraform.tfstate').write_text(json.dumps({'backend': wrong}))
+                    with self.assertRaises(m.Stop): api.verify_backend(manifest)
+            (data / 'terraform.tfstate').write_text(json.dumps({'backend': valid}))
+            (old / 'terraform.tfstate').write_text('not valid JSON')
+            api.verify_backend(manifest)
+            lock.write_bytes(b'changed-lock')
+            with self.assertRaises(m.Stop): api.verify_backend(manifest)
+
+    def test_missing_relocated_metadata_cannot_fall_back_to_home(self):
+        with tempfile.TemporaryDirectory() as td:
+            api = m.Live(Path(td), '/tf', {'TF_DATA_DIR': str(Path(td) / 'absent')})
+            with self.assertRaises(FileNotFoundError): api.verify_backend({})
+
 
 if __name__ == '__main__':
     unittest.main()
