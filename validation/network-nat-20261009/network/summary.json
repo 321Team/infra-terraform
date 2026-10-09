@@ -1,0 +1,134 @@
+{
+  "started_at_utc": "2026-10-09T03:59:38.607160+00:00",
+  "host": "server05",
+  "source_root": "C:\\\ud558\uc774\ube0c\ub9ac\ub4dc\ud074\ub77c\uc6b0\ub4dc09\\321team-repo\\infra-terraform-nat\\terraform\\network",
+  "isolated_cwd": "C:\\Users\\soldesk\\AppData\\Local\\Temp\\fds-static-network-li4ps9om\\source",
+  "component": "network",
+  "terraform_sha256": "d1f5754b41b44c7e4ce7283780d2ccb9492f2c32c9629555686fc29fa8067349",
+  "source_manifest_sha256": "5fb39af0c0f7dbf7f402810aebf4df5cf61c20849117cad90943d211583c2be6",
+  "source_before": {
+    ".terraform.lock.hcl": "19d9d35be5e84e592d2714ebf7ecd11a75610fd3addc2c22a8d1f9445a6ca38f",
+    "backend.hcl.example": "e6c4ddf2036b3d46cb7243cc3b0a2b57976d6f6f660795cd4d549417fda920ff",
+    "main.tf": "ae904de11034f1f847757c3bf1e2131cc8d4d1666a5676f5b2fdac89c6b987f0",
+    "outputs.tf": "0fe4a006ac434c12856dc8c086f17bb7daf1748b8b82af3a9946ba4146fff2b7",
+    "tests/network.tftest.hcl": "490d2e5a9f03db2f712a94c2f46618c318b8b83071dfc80fa2df3a56ef3b8735",
+    "versions.tf": "e653faf7197736809b47bb46b8830a3f5efbe6ddb137f36ac04f436fa0ff3bca"
+  },
+  "credentials_inherited": false,
+  "backend_initialized": false,
+  "cloud_plan": "NOT_RUN",
+  "cloud_apply": "NOT_RUN",
+  "CI": "NOT_RUN",
+  "test_type": "MOCK_PROVIDER_PLAN_ONLY",
+  "records": [
+    {
+      "name": "version",
+      "argv": [
+        "C:\\tools\\terraform-1.16.4\\terraform.exe",
+        "version",
+        "-json"
+      ],
+      "exit_code": 0,
+      "started_at_utc": "2026-10-09T03:59:38.756162+00:00",
+      "finished_at_utc": "2026-10-09T03:59:38.797878+00:00",
+      "timeout": false,
+      "stdout_sha256": "e91d54b4576937de709ec12dc2f0ccb98c6a28a1d6407948219882a1c025b121",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "fmt",
+      "argv": [
+        "C:\\tools\\terraform-1.16.4\\terraform.exe",
+        "fmt",
+        "-check",
+        "-recursive",
+        "-diff"
+      ],
+      "exit_code": 0,
+      "started_at_utc": "2026-10-09T03:59:38.805828+00:00",
+      "finished_at_utc": "2026-10-09T03:59:38.850028+00:00",
+      "timeout": false,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "backend-example-fmt",
+      "argv": [
+        "C:\\tools\\terraform-1.16.4\\terraform.exe",
+        "fmt",
+        "-check",
+        "-"
+      ],
+      "exit_code": 0,
+      "started_at_utc": "2026-10-09T03:59:38.856984+00:00",
+      "finished_at_utc": "2026-10-09T03:59:38.897214+00:00",
+      "timeout": false,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "init",
+      "argv": [
+        "C:\\tools\\terraform-1.16.4\\terraform.exe",
+        "init",
+        "-backend=false",
+        "-input=false",
+        "-lockfile=readonly",
+        "-no-color"
+      ],
+      "exit_code": 0,
+      "started_at_utc": "2026-10-09T03:59:38.905157+00:00",
+      "finished_at_utc": "2026-10-09T03:59:49.029722+00:00",
+      "timeout": false,
+      "stdout_sha256": "add9ea45d8beb051771a354096746007ab407ad920e86931470d5122048a626b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "validate",
+      "argv": [
+        "C:\\tools\\terraform-1.16.4\\terraform.exe",
+        "validate",
+        "-json"
+      ],
+      "exit_code": 0,
+      "started_at_utc": "2026-10-09T03:59:49.041644+00:00",
+      "finished_at_utc": "2026-10-09T03:59:51.932217+00:00",
+      "timeout": false,
+      "stdout_sha256": "4cd9eddc4d07c5aff74dadb6b3544f98186f6705ac60e0d94d545fc42b45b9b6",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "mock-test",
+      "argv": [
+        "C:\\tools\\terraform-1.16.4\\terraform.exe",
+        "test",
+        "-no-color"
+      ],
+      "exit_code": 0,
+      "started_at_utc": "2026-10-09T03:59:51.953076+00:00",
+      "finished_at_utc": "2026-10-09T03:59:53.729640+00:00",
+      "timeout": false,
+      "stdout_sha256": "62c8644e4ca08db4b372308b596c4134b94127c4e80b49df0663bd71cacb5808",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "pass": true,
+  "finished_at_utc": "2026-10-09T03:59:53.740070+00:00",
+  "source_after": {
+    ".terraform.lock.hcl": "19d9d35be5e84e592d2714ebf7ecd11a75610fd3addc2c22a8d1f9445a6ca38f",
+    "backend.hcl.example": "e6c4ddf2036b3d46cb7243cc3b0a2b57976d6f6f660795cd4d549417fda920ff",
+    "main.tf": "ae904de11034f1f847757c3bf1e2131cc8d4d1666a5676f5b2fdac89c6b987f0",
+    "outputs.tf": "0fe4a006ac434c12856dc8c086f17bb7daf1748b8b82af3a9946ba4146fff2b7",
+    "tests/network.tftest.hcl": "490d2e5a9f03db2f712a94c2f46618c318b8b83071dfc80fa2df3a56ef3b8735",
+    "versions.tf": "e653faf7197736809b47bb46b8830a3f5efbe6ddb137f36ac04f436fa0ff3bca"
+  },
+  "copy_after": {
+    ".terraform.lock.hcl": "19d9d35be5e84e592d2714ebf7ecd11a75610fd3addc2c22a8d1f9445a6ca38f",
+    "backend.hcl.example": "e6c4ddf2036b3d46cb7243cc3b0a2b57976d6f6f660795cd4d549417fda920ff",
+    "main.tf": "ae904de11034f1f847757c3bf1e2131cc8d4d1666a5676f5b2fdac89c6b987f0",
+    "outputs.tf": "0fe4a006ac434c12856dc8c086f17bb7daf1748b8b82af3a9946ba4146fff2b7",
+    "tests/network.tftest.hcl": "490d2e5a9f03db2f712a94c2f46618c318b8b83071dfc80fa2df3a56ef3b8735",
+    "versions.tf": "e653faf7197736809b47bb46b8830a3f5efbe6ddb137f36ac04f436fa0ff3bca"
+  },
+  "source_unchanged": true
+}

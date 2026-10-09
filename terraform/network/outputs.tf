@@ -5,6 +5,7 @@ output "network_handoff" {
     vpc_id   = aws_vpc.project.id
     vpc_cidr = aws_vpc.project.cidr_block
     igw_id   = aws_internet_gateway.transport.id
+    nat_id   = aws_nat_gateway.platform.id
     subnets = {
       for name, subnet in aws_subnet.project : name => {
         id             = subnet.id

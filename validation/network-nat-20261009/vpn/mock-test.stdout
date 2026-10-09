@@ -1,0 +1,27 @@
+tests\vpn.tftest.hcl... in progress
+  run "session_document_defaults_to_unmanaged"... pass
+  run "document_without_absence_evidence_is_rejected"... pass
+  run "adopted_session_preferences_are_preserved"... pass
+  run "unpinned_package_is_rejected"... pass
+  run "all_protocol_egress_is_rejected"... pass
+  run "disabled_candidate_is_rejected"... pass
+  run "missing_egress_is_rejected"... pass
+  run "relay_controls_and_no_early_routes"... pass
+  run "wrong_profile_is_rejected"... pass
+  run "wrong_subnet_vpc_is_rejected"... pass
+  run "early_route_activation_is_rejected"... pass
+  run "reviewed_route_targets_only"... pass
+  run "wrong_route_association_is_rejected"... pass
+  run "stream9_and_no_unselected_worker"... pass
+  run "accepted_single_worker_subnet"... pass
+  run "worker_without_reference_rejected"... pass
+  run "transport_as_worker_rejected"... pass
+  run "wrong_actual_worker_rejected"... pass
+  run "http_without_repo_evidence_rejected"... pass
+  run "accepted_conditional_http"... pass
+  run "udp_egress_rejected"... pass
+  run "wrong_route_subnet_rejected"... pass
+tests\vpn.tftest.hcl... tearing down
+tests\vpn.tftest.hcl... pass
+
+Success! 22 passed, 0 failed.

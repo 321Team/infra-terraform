@@ -96,3 +96,26 @@ resource "aws_route" "transport_internet" {
   destination_cidr_block = "0.0.0.0/0"
   gateway_id             = aws_internet_gateway.transport.id
 }
+
+# Single NAT for platform egress (az_count 1). Separate from the Relay EIP; Relay is not an egress bypass.
+resource "aws_eip" "nat" {
+  domain     = "vpc"
+  tags       = { Name = "fds-nat" }
+  depends_on = [aws_internet_gateway.transport]
+}
+
+resource "aws_nat_gateway" "platform" {
+  allocation_id     = aws_eip.nat.id
+  subnet_id         = aws_subnet.project["public_transport_a"].id
+  connectivity_type = "public"
+  tags              = { Name = "fds-nat" }
+  depends_on        = [aws_route.transport_internet]
+}
+
+# Private default route only. On-Prem routes stay with vpn; private_b/c cross AZ to the az1 NAT.
+resource "aws_route" "private_egress" {
+  for_each               = toset(["private_a", "private_b", "private_c"])
+  route_table_id         = aws_route_table.subnet[each.key].id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.platform.id
+}
