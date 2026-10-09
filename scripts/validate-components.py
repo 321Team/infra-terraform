@@ -59,7 +59,7 @@ def isolated_env(home, data):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--terraform", required=True, type=Path)
-    parser.add_argument("--component", required=True, choices=["network", "vpn"])
+    parser.add_argument("--component", required=True, choices=["network", "vpn", "vpn-probe"])
     parser.add_argument("--manifest", type=Path, default=MANIFEST, help="Reviewed source/hash manifest; historical default is unchanged")
     args = parser.parse_args()
     binary = args.terraform.resolve(strict=True)

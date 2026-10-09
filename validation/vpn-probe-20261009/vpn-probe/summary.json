@@ -1,0 +1,137 @@
+{
+  "started_at_utc": "2026-10-09T12:45:33.651037+00:00",
+  "host": "server08",
+  "source_root": "C:\\Users\\soldesk\\tfprobe\\terraform\\vpn-probe",
+  "isolated_cwd": "C:\\Users\\soldesk\\AppData\\Local\\Temp\\fds-static-vpn-probe-ad0fn72t\\source",
+  "component": "vpn-probe",
+  "terraform_sha256": "d1f5754b41b44c7e4ce7283780d2ccb9492f2c32c9629555686fc29fa8067349",
+  "source_manifest_sha256": "e412e9d83eb810480ac707ae26972b640711dff681e8ca09b970669ecaf108da",
+  "source_before": {
+    ".terraform.lock.hcl": "19d9d35be5e84e592d2714ebf7ecd11a75610fd3addc2c22a8d1f9445a6ca38f",
+    "backend.hcl.example": "9ab60651da217703d490852b8aedaf76e81b414789dc5f9b37a00d615f1c0fa8",
+    "main.tf": "935962a2348279137c99ed1f917bfe0e17e4f97236a6b73c377b6123a86a56ae",
+    "outputs.tf": "a0ec554f23037da69c1427ef520e8756ce0b7940eecda26e5601351467e788ab",
+    "tests/vpn-probe.tftest.hcl": "2a162f838d173c1048ec75aeffadca5110e3df48f6b85aa15ebb3a5d2d650eb2",
+    "variables.tf": "cc5cd206c774b8e9ea2852a6355fffca04d225defd5cd2efebe037ed4282e907",
+    "versions.tf": "dc8fd451e2f7c97982dabc733d7a944d16fe09c7c41ae76e57eeb6054bc58d80"
+  },
+  "credentials_inherited": false,
+  "backend_initialized": false,
+  "cloud_plan": "NOT_RUN",
+  "cloud_apply": "NOT_RUN",
+  "CI": "NOT_RUN",
+  "test_type": "MOCK_PROVIDER_PLAN_ONLY",
+  "records": [
+    {
+      "name": "version",
+      "argv": [
+        "C:\\Users\\soldesk\\AppData\\Local\\Temp\\claude\\C-----------09------\\107b808e-9cec-4a78-bc25-61e52f7a12cc\\scratchpad\\tf1164-bin\\terraform.exe",
+        "version",
+        "-json"
+      ],
+      "exit_code": 0,
+      "started_at_utc": "2026-10-09T12:45:33.770173+00:00",
+      "finished_at_utc": "2026-10-09T12:45:34.246782+00:00",
+      "timeout": false,
+      "stdout_sha256": "e91d54b4576937de709ec12dc2f0ccb98c6a28a1d6407948219882a1c025b121",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "fmt",
+      "argv": [
+        "C:\\Users\\soldesk\\AppData\\Local\\Temp\\claude\\C-----------09------\\107b808e-9cec-4a78-bc25-61e52f7a12cc\\scratchpad\\tf1164-bin\\terraform.exe",
+        "fmt",
+        "-check",
+        "-recursive",
+        "-diff"
+      ],
+      "exit_code": 0,
+      "started_at_utc": "2026-10-09T12:45:34.254000+00:00",
+      "finished_at_utc": "2026-10-09T12:45:34.297601+00:00",
+      "timeout": false,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "backend-example-fmt",
+      "argv": [
+        "C:\\Users\\soldesk\\AppData\\Local\\Temp\\claude\\C-----------09------\\107b808e-9cec-4a78-bc25-61e52f7a12cc\\scratchpad\\tf1164-bin\\terraform.exe",
+        "fmt",
+        "-check",
+        "-"
+      ],
+      "exit_code": 0,
+      "started_at_utc": "2026-10-09T12:45:34.303736+00:00",
+      "finished_at_utc": "2026-10-09T12:45:34.340156+00:00",
+      "timeout": false,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "init",
+      "argv": [
+        "C:\\Users\\soldesk\\AppData\\Local\\Temp\\claude\\C-----------09------\\107b808e-9cec-4a78-bc25-61e52f7a12cc\\scratchpad\\tf1164-bin\\terraform.exe",
+        "init",
+        "-backend=false",
+        "-input=false",
+        "-lockfile=readonly",
+        "-no-color"
+      ],
+      "exit_code": 0,
+      "started_at_utc": "2026-10-09T12:45:34.347846+00:00",
+      "finished_at_utc": "2026-10-09T12:45:42.859995+00:00",
+      "timeout": false,
+      "stdout_sha256": "add9ea45d8beb051771a354096746007ab407ad920e86931470d5122048a626b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "validate",
+      "argv": [
+        "C:\\Users\\soldesk\\AppData\\Local\\Temp\\claude\\C-----------09------\\107b808e-9cec-4a78-bc25-61e52f7a12cc\\scratchpad\\tf1164-bin\\terraform.exe",
+        "validate",
+        "-json"
+      ],
+      "exit_code": 0,
+      "started_at_utc": "2026-10-09T12:45:42.868288+00:00",
+      "finished_at_utc": "2026-10-09T12:45:45.655882+00:00",
+      "timeout": false,
+      "stdout_sha256": "4cd9eddc4d07c5aff74dadb6b3544f98186f6705ac60e0d94d545fc42b45b9b6",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "mock-test",
+      "argv": [
+        "C:\\Users\\soldesk\\AppData\\Local\\Temp\\claude\\C-----------09------\\107b808e-9cec-4a78-bc25-61e52f7a12cc\\scratchpad\\tf1164-bin\\terraform.exe",
+        "test",
+        "-no-color"
+      ],
+      "exit_code": 0,
+      "started_at_utc": "2026-10-09T12:45:45.663640+00:00",
+      "finished_at_utc": "2026-10-09T12:45:47.182801+00:00",
+      "timeout": false,
+      "stdout_sha256": "0cdd06be56f892a6d3171bcaa1ebfb8eff73a29d220462f8cf4bf5d11fe008e7",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "pass": true,
+  "finished_at_utc": "2026-10-09T12:45:47.192870+00:00",
+  "source_after": {
+    ".terraform.lock.hcl": "19d9d35be5e84e592d2714ebf7ecd11a75610fd3addc2c22a8d1f9445a6ca38f",
+    "backend.hcl.example": "9ab60651da217703d490852b8aedaf76e81b414789dc5f9b37a00d615f1c0fa8",
+    "main.tf": "935962a2348279137c99ed1f917bfe0e17e4f97236a6b73c377b6123a86a56ae",
+    "outputs.tf": "a0ec554f23037da69c1427ef520e8756ce0b7940eecda26e5601351467e788ab",
+    "tests/vpn-probe.tftest.hcl": "2a162f838d173c1048ec75aeffadca5110e3df48f6b85aa15ebb3a5d2d650eb2",
+    "variables.tf": "cc5cd206c774b8e9ea2852a6355fffca04d225defd5cd2efebe037ed4282e907",
+    "versions.tf": "dc8fd451e2f7c97982dabc733d7a944d16fe09c7c41ae76e57eeb6054bc58d80"
+  },
+  "copy_after": {
+    ".terraform.lock.hcl": "19d9d35be5e84e592d2714ebf7ecd11a75610fd3addc2c22a8d1f9445a6ca38f",
+    "backend.hcl.example": "9ab60651da217703d490852b8aedaf76e81b414789dc5f9b37a00d615f1c0fa8",
+    "main.tf": "935962a2348279137c99ed1f917bfe0e17e4f97236a6b73c377b6123a86a56ae",
+    "outputs.tf": "a0ec554f23037da69c1427ef520e8756ce0b7940eecda26e5601351467e788ab",
+    "tests/vpn-probe.tftest.hcl": "2a162f838d173c1048ec75aeffadca5110e3df48f6b85aa15ebb3a5d2d650eb2",
+    "variables.tf": "cc5cd206c774b8e9ea2852a6355fffca04d225defd5cd2efebe037ed4282e907",
+    "versions.tf": "dc8fd451e2f7c97982dabc733d7a944d16fe09c7c41ae76e57eeb6054bc58d80"
+  },
+  "source_unchanged": true
+}
