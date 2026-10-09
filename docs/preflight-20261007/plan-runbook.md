@@ -1,5 +1,7 @@
 # Terraform Plan 준비 / 아직 실행하지 않음
 
+> **2026-10-09 병합 후 준비 기준:** PR14/15가 병합된 main `5b8204fad2f726b396457f0776cd85b154706aa2`의 network/vpn 및 IAM 후보를 연결한다. NAT/EIP 권한은 정책에 포함됐으며 중앙 검증·부여/readback·본인 시험은 별도다. 아래 과거 PR6/7 checkout 설명은 이력이다. 실제 실행 SHA 수용과 Plan Gate는 [중앙 검증 후속](central-validation-20261009.md)에서 구분한다.
+
 CODEX_ASSISTED. 준비 기준은 [PR7](https://github.com/321Team/infra-terraform/pull/7) 후보 `e4ee0bff2d6aba92a0b147b86e1f4759f315eded`로 갱신했다. 현재 PR6 checkout의 Terraform은 기존 main0eabe8da이며 새 Relay 구현을 포함하지 않는다. **PR6 checkout을 이 절차의 실행 소스로 사용하지 않는다.** PR7의 독립 리뷰·병합과 단계별 수용 후 실제 사용할 SHA를 고정한다. [소스 연결표](source-alignment-20261008.md)를 따른다. 아래는 #35 Lead가 조건 충족 후 사용할 절차다. **현재 IAM/실행 입력 Gate가 미충족이므로 명령을 실행하지 않았다.** 이 문서의 승인이 Apply GO를 대신하지 않는다.
 
 > **2026-10-09 NAT 후보 갱신 ([PR14](https://github.com/321Team/infra-terraform/pull/14)).** network root에 단일 NAT(EIP1·NAT1·private default route3)가 추가됐다. 현재 후보 source manifest는 [`validation/network-nat-20261009/source.json`](../../validation/network-nat-20261009/README.md)(network6/vpn10파일, MOCK 5/22)이다. 아래 PR7 기준 서술과 과거 manifest·증적은 이력으로 보존한다. 실제 실행 SHA는 PR14 병합·수용 후 고정한다.
@@ -9,7 +11,7 @@ CODEX_ASSISTED. 준비 기준은 [PR7](https://github.com/321Team/infra-terrafor
 - 대상: AWS 채택 계정 끝1866 / `ap-northeast-2`, CloudShell 개인 작업 경로의 깨끗한 고정 checkout. 기존 중앙 CFn bootstrap은 소유권 유지.
 - 실행자: 이하영 또는 이권욱 **각 본인 MFA FDS-IaC-Operator 세션**. root·일반 IAM 사용자·다른 역할로 업무 Plan/Apply 우회 금지. STS ARN의 role/session name을 기존 배정과 대조하되 ARN만으로 MFA를 입증했다고 표시하지 않는다.
 - toolchain: Terraform1.16.4 / AWS provider6.66.0, reviewed lock. 최종 수용 source manifest와 파일 집합·SHA256 동일성 확인. PR7 후보 manifest는 network6+vpn10파일이며 기존 PR5의15파일 manifest로 새 VPN 코드를 검증하지 않는다. provider 바이너리 공간은 CloudShell `/tmp`의 별도 TF_DATA_DIR 사용, 소스·로그·plan은 HOME 개인0700 경로에 보존. version/registry/lock을 임의 변경하지 않는다.
-- 권한(NAT): 현재 IAM inventory(#15 포함)에 NAT/EIP 권한이 없다. EIP `AllocateAddress`/`ReleaseAddress`/`DescribeAddresses`/`DescribeAddressesAttribute`, NAT `CreateNatGateway`/`DeleteNatGateway`/`DescribeNatGateways`, tag·parent(subnet/EIP) scope를 새 inventory에 연결하고 중앙 검증한 뒤 network plan을 실행한다. 권한 없이 plan이 진행되는 경우는 빈 state의 일부 상황에 한정되며, 기존 EIP/NAT가 있는 refresh plan은 read 권한 부재로 실패한다.
+- 권한(NAT): PR15 병합 정책에 EIP `AllocateAddress`/`ReleaseAddress`/`DescribeAddresses`/`DescribeAddressesAttribute`, NAT `CreateNatGateway`/`DeleteNatGateway`/`DescribeNatGateways`, tag·parent(subnet/EIP) scope가 포함됐다. 중앙 검증·부여/readback 및 본인 시험을 통과한 뒤 network plan을 실행한다. 정책 파일에 Action이 있다는 사실은 실효권한 확인을 대신하지 않는다.
 - 권한: full policy source 검토·중앙 grant/readback 및 본인 state/lock·거부·복구 시험. credential은 환경의 기존 역할 세션으로만 사용하며 파일·backend-config·plan 변수에 저장하지 않는다.
 - Plan 전에 정확한 SHA·backend key·default workspace·명시 입력·source/정책 수용 근거를 기록. 기존 Freeze/비용 조건의 적용 범위를 #35/#34에서 판단하며 미충족한 상태를 Apply 허용으로 확장하지 않는다.
 
