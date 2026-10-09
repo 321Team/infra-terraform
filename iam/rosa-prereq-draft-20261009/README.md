@@ -81,10 +81,10 @@
 | 1 | ROSA 제품 ID(A1 조건) | ✅ **확인 완료** — `arn:aws:iam::aws:policy/ROSAManageSubscription` v2(경로는 `service-role/` 아님): `34850061-abaf-402d-92df-94325c9e947f`, `bfdca560-2c78-4e64-8193-794c159e6d30`, 연산자 `ForAnyValue:StringEquals` | 없음 |
 | 2 | ROSA 관리형 정책 ARN 경로(`service-role/ROSA*`) | ✅ **확인 완료** — `service-role/ROSAInstallerPolicy`(v10) 조회 성공, CLI 출력의 `ROSASRESupportPolicy`·`ROSAWorkerInstancePolicy`도 같은 경로 | 없음 |
 | 3 | CLI가 만드는 역할·정책 이름과 실제 호출 API | ✅ **확인 완료**(아래 표) — `rosa create ocm-role`·`user-role`·`account-roles --hosted-cp`를 `--mode manual`로 실행. AWS 변경 없음 | 없음 |
-| 4 | managed OIDC issuer 호스트(`oidc.op1.openshiftapps.com`) | `rosa create oidc-config --managed --mode manual` 출력 또는 Red Hat 문서로 확인 | 없음 |
+| 4 | managed OIDC issuer 호스트(`oidc.op1.openshiftapps.com`) | `terraform/rosa-prereq`의 OIDC provider precondition이 이 호스트가 아니면 apply를 멈춘다. 단계 1 readback(`rosa list oidc-config`)으로 실제 값 확인. `rosa create oidc-config`는 managed일 때 실제 생성할 수 있어 실행하지 않음 | 없음 |
 | 5 | account/operator role trust 내용 | Terraform rhcs data source(`rhcs_hcp_policies` 등)가 주는 Red Hat principal·OIDC 조건. `terraform plan` 출력으로 확인 후 첨부 | 없음 |
 | 6 | 콘솔 A1 흐름에서 추가 Action 필요 여부 | 실행 직전 화면 확인. 거부 시 그 Action만 추가 리뷰 | 없음 |
-| 7 | 도구 pin | Terraform 1.16.4 바이너리 SHA-256, `.terraform.lock.hcl`(AWS 6.66.0·rhcs 1.7.9). **ROSA CLI 확인 완료**(아래) | 없음 |
+| 7 | 도구 pin | ✅ **확인 완료** — ROSA CLI(아래), Terraform 1.16.4(`terraform_1.16.4_windows_amd64.zip` HashiCorp SHA256SUMS 검증 OK, 로컬 검사용), provider lock `terraform/rosa-prereq/.terraform.lock.hcl`(AWS 6.66.0·rhcs 1.7.9, linux_amd64·windows_amd64 해시). CloudShell 실행 시 linux 바이너리를 같은 방식으로 SHA256SUMS 검증 | 없음 |
 
 **ROSA CLI 고정값 (2026-10-09 18:10 KST CloudShell 서울, 321team-hayeoung)**
 
