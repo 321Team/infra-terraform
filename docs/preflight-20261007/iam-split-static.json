@@ -13,5 +13,9 @@
       "unchanged_statements": 14,
       "conditions_preserved": true
     }
-  }
+  },
+  "original_64_requests_unchanged_except_policy": true,
+  "source_git_blob_hashes_verified": 16,
+  "new_owned_parent_cases": 6,
+  "bundle_files_verified": 85
 }

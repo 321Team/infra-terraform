@@ -1,5 +1,7 @@
 # PR14/15 병합 후 중앙 IAM 검증
 
+> 이 문서는 PR #16 당시 64-case 실행 계약이다. 현재 수집기의 정책 분리 후 70-case 실행·소스·증적은 [후속 receipt](iam-split-receipt-20261009.md)를 따른다. 당시 재현은 collector commit `cffc552fd9c171401c26b83092db28d07419633c`로 고정한다.
+
 CODEX_ASSISTED. 사용자 2026-10-09 “착수” 범위의 정책 검증·후속 준비. 대상 소스는 `5b8204fad2f726b396457f0776cd85b154706aa2`. IAM JSON은 변경하지 않는다. AWS/Red Hat Grant·청구 연결·조직 초대·Terraform Plan/Apply·P1 변경은 이 실행기 범위 밖이다.
 
 실제 실행 결과는 [2026-10-09 중앙 검증 접수](central-validation-receipt-20261009.md)에 있다. ValidatePolicy12개 findings0, simulation64개 검토 필요. 기존 Audit 역할 존재를 확인했으며 새로 만들지 않았다.
