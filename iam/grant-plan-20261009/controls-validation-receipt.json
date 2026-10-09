@@ -1,0 +1,205 @@
+{
+  "aws_mutation": "NOT_RUN",
+  "final_policy_findings": 0,
+  "captures": [
+    {
+      "capture": "fds-grant-controls-91afdi0g",
+      "archive_sha256": "1c85f4ec43cfd504cbd8407afd67091ea4592c67651c319a338920d75ad8317f",
+      "verified_files": 9,
+      "started_utc": "2026-10-09T07:06:40.620704+00:00",
+      "finished_utc": "2026-10-09T07:06:42.941240+00:00",
+      "api_records": [
+        {
+          "name": "identity",
+          "argv": [
+            "aws",
+            "sts",
+            "get-caller-identity",
+            "--region",
+            "ap-northeast-2",
+            "--output",
+            "json",
+            "--no-cli-pager",
+            "--cli-connect-timeout",
+            "10",
+            "--cli-read-timeout",
+            "30"
+          ],
+          "started_utc": "2026-10-09T07:06:40.620775+00:00",
+          "timeout": false,
+          "finished_utc": "2026-10-09T07:06:41.590301+00:00",
+          "exit_code": 0,
+          "stdout_sha256": "b65fbf7d50b68ac7494be8cc5881884dd1668b8fceb937f55b8afedaafaff106",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "validate-trust-closed",
+          "argv": [
+            "aws",
+            "accessanalyzer",
+            "validate-policy",
+            "--policy-document",
+            "file:///home/cloudshell-user/fds-grant-controls-91afdi0g/trust-closed.json",
+            "--policy-type",
+            "RESOURCE_POLICY",
+            "--validate-policy-resource-type",
+            "AWS::IAM::AssumeRolePolicyDocument",
+            "--region",
+            "ap-northeast-2",
+            "--output",
+            "json",
+            "--no-cli-pager",
+            "--cli-connect-timeout",
+            "10",
+            "--cli-read-timeout",
+            "30"
+          ],
+          "started_utc": "2026-10-09T07:06:41.593314+00:00",
+          "timeout": false,
+          "finished_utc": "2026-10-09T07:06:42.260516+00:00",
+          "exit_code": 0,
+          "stdout_sha256": "09ec9a7ab9c59afb43fd3b6c197d481fe27d46952ef7f408afff9f4317070fe9",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "validate-deny-role-sessions",
+          "argv": [
+            "aws",
+            "accessanalyzer",
+            "validate-policy",
+            "--policy-document",
+            "file:///home/cloudshell-user/fds-grant-controls-91afdi0g/deny-role-sessions.json",
+            "--policy-type",
+            "IDENTITY_POLICY",
+            "--region",
+            "ap-northeast-2",
+            "--output",
+            "json",
+            "--no-cli-pager",
+            "--cli-connect-timeout",
+            "10",
+            "--cli-read-timeout",
+            "30"
+          ],
+          "started_utc": "2026-10-09T07:06:42.260830+00:00",
+          "timeout": false,
+          "finished_utc": "2026-10-09T07:06:42.941153+00:00",
+          "exit_code": 0,
+          "stdout_sha256": "28d69ef1a484aa8dbf32ae993578fac866a41c5248f6451b331aa8f03285d7ec",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "validation": [
+        {
+          "name": "validate-deny-role-sessions",
+          "findings": []
+        },
+        {
+          "name": "validate-trust-closed",
+          "findings": [
+            {
+              "findingDetails": "\"Principal:\" \"*\" is not supported in the principal element of a role trust policy. Replace the wildcard with a valid principal value.",
+              "findingType": "ERROR",
+              "issueCode": "ROLE_TRUST_POLICY_UNSUPPORTED_WILDCARD_IN_PRINCIPAL",
+              "learnMoreLink": "https://docs.aws.amazon.com/IAM/latest/UserGuide/access-analyzer-reference-policy-checks.html#access-analyzer-reference-policy-checks-error-role-trust-policy-unsupported-wildcard-in-principal",
+              "locations": [
+                {
+                  "path": [
+                    {
+                      "value": "Statement"
+                    },
+                    {
+                      "index": 0
+                    },
+                    {
+                      "value": "Principal"
+                    }
+                  ],
+                  "span": {
+                    "start": {
+                      "line": 7,
+                      "column": 19,
+                      "offset": 139
+                    },
+                    "end": {
+                      "line": 7,
+                      "column": 22,
+                      "offset": 142
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "capture": "fds-grant-controls-v2-pd7deuod",
+      "archive_sha256": "efb958407b973166517d653443731911fba079a5075eda0a0639387b59d02934",
+      "verified_files": 6,
+      "started_utc": "2026-10-09T07:09:45.493912+00:00",
+      "finished_utc": "2026-10-09T07:09:46.783217+00:00",
+      "api_records": [
+        {
+          "name": "identity",
+          "argv": [
+            "aws",
+            "sts",
+            "get-caller-identity",
+            "--region",
+            "ap-northeast-2",
+            "--output",
+            "json",
+            "--no-cli-pager",
+            "--cli-connect-timeout",
+            "10",
+            "--cli-read-timeout",
+            "30"
+          ],
+          "started_utc": "2026-10-09T07:09:45.493970+00:00",
+          "timeout": false,
+          "finished_utc": "2026-10-09T07:09:46.119107+00:00",
+          "exit_code": 0,
+          "stdout_sha256": "b65fbf7d50b68ac7494be8cc5881884dd1668b8fceb937f55b8afedaafaff106",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "validate-trust-closed",
+          "argv": [
+            "aws",
+            "accessanalyzer",
+            "validate-policy",
+            "--policy-document",
+            "file:///home/cloudshell-user/fds-grant-controls-v2-pd7deuod/trust-closed.json",
+            "--policy-type",
+            "RESOURCE_POLICY",
+            "--validate-policy-resource-type",
+            "AWS::IAM::AssumeRolePolicyDocument",
+            "--region",
+            "ap-northeast-2",
+            "--output",
+            "json",
+            "--no-cli-pager",
+            "--cli-connect-timeout",
+            "10",
+            "--cli-read-timeout",
+            "30"
+          ],
+          "started_utc": "2026-10-09T07:09:46.122237+00:00",
+          "timeout": false,
+          "finished_utc": "2026-10-09T07:09:46.783126+00:00",
+          "exit_code": 0,
+          "stdout_sha256": "28d69ef1a484aa8dbf32ae993578fac866a41c5248f6451b331aa8f03285d7ec",
+          "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "validation": [
+        {
+          "name": "validate-trust-closed",
+          "findings": []
+        }
+      ]
+    }
+  ]
+}

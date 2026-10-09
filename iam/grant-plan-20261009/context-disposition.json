@@ -1,0 +1,252 @@
+{
+  "basis": "3252a1014a17cdc2bd0a2acb8afe77d7cbb68169",
+  "raw_archive_sha256": "d3d9305d657c2332148c8565a1676e3a096376f5af934bb2d1f913e1e4f17fc3",
+  "cases": [
+    {
+      "id": "N26-natgateway",
+      "observed": "implicitDeny",
+      "original_verdict": "MISSING_CONTEXT_REVIEW",
+      "relevant_missing": [],
+      "proposal": "ACCEPT_STATIC_IRRELEVANT_CONTEXT_EXPLANATION",
+      "runtime": "NOT_PROVEN",
+      "lead_acceptance": "PENDING"
+    },
+    {
+      "id": "N26-elastic-ip",
+      "observed": "implicitDeny",
+      "original_verdict": "MISSING_CONTEXT_REVIEW",
+      "relevant_missing": [],
+      "proposal": "ACCEPT_STATIC_IRRELEVANT_CONTEXT_EXPLANATION",
+      "runtime": "NOT_PROVEN",
+      "lead_acceptance": "PENDING"
+    },
+    {
+      "id": "N1-wrong-project",
+      "observed": "implicitDeny",
+      "original_verdict": "MISSING_CONTEXT_REVIEW",
+      "relevant_missing": [],
+      "proposal": "ACCEPT_STATIC_IRRELEVANT_CONTEXT_EXPLANATION",
+      "runtime": "NOT_PROVEN",
+      "lead_acceptance": "PENDING"
+    },
+    {
+      "id": "N1-omitted-project",
+      "observed": "implicitDeny",
+      "original_verdict": "MISSING_CONTEXT_REVIEW",
+      "relevant_missing": [
+        "aws:RequestTag/Project"
+      ],
+      "proposal": "ACCEPT_INTENTIONAL_MISSING_TAG_NEGATIVE",
+      "runtime": "NOT_PROVEN",
+      "lead_acceptance": "PENDING"
+    },
+    {
+      "id": "N3",
+      "observed": "implicitDeny",
+      "original_verdict": "MISSING_CONTEXT_REVIEW",
+      "relevant_missing": [],
+      "proposal": "ACCEPT_STATIC_IRRELEVANT_CONTEXT_EXPLANATION",
+      "runtime": "NOT_PROVEN",
+      "lead_acceptance": "PENDING"
+    },
+    {
+      "id": "N5",
+      "observed": "implicitDeny",
+      "original_verdict": "MISSING_CONTEXT_REVIEW",
+      "relevant_missing": [],
+      "proposal": "ACCEPT_STATIC_IRRELEVANT_CONTEXT_EXPLANATION",
+      "runtime": "NOT_PROVEN",
+      "lead_acceptance": "PENDING"
+    },
+    {
+      "id": "N7",
+      "observed": "implicitDeny",
+      "original_verdict": "MISSING_CONTEXT_REVIEW",
+      "relevant_missing": [],
+      "proposal": "ACCEPT_STATIC_IRRELEVANT_CONTEXT_EXPLANATION",
+      "runtime": "NOT_PROVEN",
+      "lead_acceptance": "PENDING"
+    },
+    {
+      "id": "N10",
+      "observed": "implicitDeny",
+      "original_verdict": "MISSING_CONTEXT_REVIEW",
+      "relevant_missing": [],
+      "proposal": "ACCEPT_STATIC_IRRELEVANT_CONTEXT_EXPLANATION",
+      "runtime": "NOT_PROVEN",
+      "lead_acceptance": "PENDING"
+    },
+    {
+      "id": "N11-unencrypted",
+      "observed": "implicitDeny",
+      "original_verdict": "MISSING_CONTEXT_REVIEW",
+      "relevant_missing": [],
+      "proposal": "ACCEPT_STATIC_IRRELEVANT_CONTEXT_EXPLANATION",
+      "runtime": "NOT_PROVEN",
+      "lead_acceptance": "PENDING"
+    },
+    {
+      "id": "N11-oversized",
+      "observed": "implicitDeny",
+      "original_verdict": "MISSING_CONTEXT_REVIEW",
+      "relevant_missing": [],
+      "proposal": "ACCEPT_STATIC_IRRELEVANT_CONTEXT_EXPLANATION",
+      "runtime": "NOT_PROVEN",
+      "lead_acceptance": "PENDING"
+    },
+    {
+      "id": "N12-role",
+      "observed": "implicitDeny",
+      "original_verdict": "MISSING_CONTEXT_REVIEW",
+      "relevant_missing": [],
+      "proposal": "ACCEPT_STATIC_IRRELEVANT_CONTEXT_EXPLANATION",
+      "runtime": "NOT_PROVEN",
+      "lead_acceptance": "PENDING"
+    },
+    {
+      "id": "N12-service",
+      "observed": "implicitDeny",
+      "original_verdict": "MISSING_CONTEXT_REVIEW",
+      "relevant_missing": [],
+      "proposal": "ACCEPT_STATIC_IRRELEVANT_CONTEXT_EXPLANATION",
+      "runtime": "NOT_PROVEN",
+      "lead_acceptance": "PENDING"
+    },
+    {
+      "id": "N14",
+      "observed": "implicitDeny",
+      "original_verdict": "MISSING_CONTEXT_REVIEW",
+      "relevant_missing": [],
+      "proposal": "ACCEPT_STATIC_IRRELEVANT_CONTEXT_EXPLANATION",
+      "runtime": "NOT_PROVEN",
+      "lead_acceptance": "PENDING"
+    },
+    {
+      "id": "N17",
+      "observed": "implicitDeny",
+      "original_verdict": "MISSING_CONTEXT_REVIEW",
+      "relevant_missing": [],
+      "proposal": "ACCEPT_STATIC_IRRELEVANT_CONTEXT_EXPLANATION",
+      "runtime": "NOT_PROVEN",
+      "lead_acceptance": "PENDING"
+    },
+    {
+      "id": "N25",
+      "observed": "implicitDeny",
+      "original_verdict": "MISSING_CONTEXT_REVIEW",
+      "relevant_missing": [],
+      "proposal": "ACCEPT_STATIC_IRRELEVANT_CONTEXT_EXPLANATION",
+      "runtime": "NOT_PROVEN",
+      "lead_acceptance": "PENDING"
+    },
+    {
+      "id": "N20-parent-scope",
+      "observed": "implicitDeny",
+      "original_verdict": "MISSING_CONTEXT_REVIEW",
+      "relevant_missing": [],
+      "proposal": "ACCEPT_STATIC_IRRELEVANT_CONTEXT_EXPLANATION",
+      "runtime": "NOT_PROVEN",
+      "lead_acceptance": "PENDING"
+    },
+    {
+      "id": "N20-request-context",
+      "observed": "implicitDeny",
+      "original_verdict": "MISSING_CONTEXT_REVIEW",
+      "relevant_missing": [],
+      "proposal": "ACCEPT_STATIC_IRRELEVANT_CONTEXT_EXPLANATION",
+      "runtime": "NOT_PROVEN",
+      "lead_acceptance": "PENDING"
+    },
+    {
+      "id": "N21-parent-scope",
+      "observed": "implicitDeny",
+      "original_verdict": "MISSING_CONTEXT_REVIEW",
+      "relevant_missing": [],
+      "proposal": "ACCEPT_STATIC_IRRELEVANT_CONTEXT_EXPLANATION",
+      "runtime": "NOT_PROVEN",
+      "lead_acceptance": "PENDING"
+    },
+    {
+      "id": "N21-request-context",
+      "observed": "implicitDeny",
+      "original_verdict": "MISSING_CONTEXT_REVIEW",
+      "relevant_missing": [],
+      "proposal": "ACCEPT_STATIC_IRRELEVANT_CONTEXT_EXPLANATION",
+      "runtime": "NOT_PROVEN",
+      "lead_acceptance": "PENDING"
+    },
+    {
+      "id": "N22-subnet-parent-scope",
+      "observed": "implicitDeny",
+      "original_verdict": "MISSING_CONTEXT_REVIEW",
+      "relevant_missing": [],
+      "proposal": "ACCEPT_STATIC_IRRELEVANT_CONTEXT_EXPLANATION",
+      "runtime": "NOT_PROVEN",
+      "lead_acceptance": "PENDING"
+    },
+    {
+      "id": "N22-subnet-request-context",
+      "observed": "implicitDeny",
+      "original_verdict": "MISSING_CONTEXT_REVIEW",
+      "relevant_missing": [],
+      "proposal": "ACCEPT_STATIC_IRRELEVANT_CONTEXT_EXPLANATION",
+      "runtime": "NOT_PROVEN",
+      "lead_acceptance": "PENDING"
+    },
+    {
+      "id": "N22-eip-parent-scope",
+      "observed": "implicitDeny",
+      "original_verdict": "MISSING_CONTEXT_REVIEW",
+      "relevant_missing": [],
+      "proposal": "ACCEPT_STATIC_IRRELEVANT_CONTEXT_EXPLANATION",
+      "runtime": "NOT_PROVEN",
+      "lead_acceptance": "PENDING"
+    },
+    {
+      "id": "N22-eip-request-context",
+      "observed": "implicitDeny",
+      "original_verdict": "MISSING_CONTEXT_REVIEW",
+      "relevant_missing": [],
+      "proposal": "ACCEPT_STATIC_IRRELEVANT_CONTEXT_EXPLANATION",
+      "runtime": "NOT_PROVEN",
+      "lead_acceptance": "PENDING"
+    },
+    {
+      "id": "N23-subnet-parent-scope",
+      "observed": "implicitDeny",
+      "original_verdict": "MISSING_CONTEXT_REVIEW",
+      "relevant_missing": [],
+      "proposal": "ACCEPT_STATIC_IRRELEVANT_CONTEXT_EXPLANATION",
+      "runtime": "NOT_PROVEN",
+      "lead_acceptance": "PENDING"
+    },
+    {
+      "id": "N23-subnet-request-context",
+      "observed": "implicitDeny",
+      "original_verdict": "MISSING_CONTEXT_REVIEW",
+      "relevant_missing": [],
+      "proposal": "ACCEPT_STATIC_IRRELEVANT_CONTEXT_EXPLANATION",
+      "runtime": "NOT_PROVEN",
+      "lead_acceptance": "PENDING"
+    },
+    {
+      "id": "N23-sg-parent-scope",
+      "observed": "implicitDeny",
+      "original_verdict": "MISSING_CONTEXT_REVIEW",
+      "relevant_missing": [],
+      "proposal": "ACCEPT_STATIC_IRRELEVANT_CONTEXT_EXPLANATION",
+      "runtime": "NOT_PROVEN",
+      "lead_acceptance": "PENDING"
+    },
+    {
+      "id": "N23-sg-request-context",
+      "observed": "implicitDeny",
+      "original_verdict": "MISSING_CONTEXT_REVIEW",
+      "relevant_missing": [],
+      "proposal": "ACCEPT_STATIC_IRRELEVANT_CONTEXT_EXPLANATION",
+      "runtime": "NOT_PROVEN",
+      "lead_acceptance": "PENDING"
+    }
+  ],
+  "scope": "Preparation decision proposal; not IAM runtime acceptance"
+}

@@ -1,0 +1,13 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "HoldUntilReviewedActivation",
+      "Effect": "Deny",
+      "Principal": {
+        "AWS": "arn:aws:iam::774055931866:root"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
