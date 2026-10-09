@@ -42,6 +42,25 @@ run "adopted_geometry_and_minimum_public_route" {
   }
 }
 
+run "single_nat_private_egress" {
+  command = plan
+  variables {
+    execution_enabled = true
+  }
+  assert {
+    condition     = aws_eip.nat.domain == "vpc" && aws_nat_gateway.platform.connectivity_type == "public"
+    error_message = "NAT must be one public NAT with its own VPC EIP."
+  }
+  assert {
+    condition     = length(aws_route.private_egress) == 3 && alltrue([for r in aws_route.private_egress : r.destination_cidr_block == "0.0.0.0/0"])
+    error_message = "Exactly private_a/b/c receive the default route to NAT."
+  }
+  assert {
+    condition     = !contains(keys(aws_route.private_egress), "public_transport_a")
+    error_message = "Transport subnet must keep its IGW route, not NAT."
+  }
+}
+
 run "wrong_account_az_mapping_is_rejected" {
   command = plan
   variables {
