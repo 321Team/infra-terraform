@@ -18,8 +18,9 @@ account role 이름·trust·부착 정책은 ROSA CLI 1.2.53 `create account-rol
 
 ## 실행 identity와 권한
 
-- `FDS-IaC-Operator`(본인 MFA AssumeRole) + `iam/rosa-prereq-draft-20261009/policies/FDS-IaC-RosaPrereq.json` + Guardrails v2 후보(리전 Deny 예외). 둘 다 **별도 승인 전 미부착**.
-- Terraform 생성 역할·OIDC provider에는 `default_tags`로 `Project=fds-hybrid`·`ManagedBy=terraform`이 붙는다. A3 정책이 이 두 요청 태그를 요구한다.
+- **apply(생성·삭제)는 중앙 실행 경로**에서 한다(rev2, `iam/rosa-prereq-draft-20261009/README.md` "중앙 실행 경로"). 위임 역할 `FDS-IaC-Operator`에는 IAM 쓰기를 붙이지 않는다. 실제 실행 주체·작업창은 실행 승인에서 정한다(미정).
+- `FDS-IaC-Operator` + `FDS-IaC-RosaPrereq.json`(조회만) + Guardrails v2 후보로는 생성 후 readback과 plan refresh만 한다. 둘 다 **별도 승인 전 미부착**.
+- Terraform 생성 역할·OIDC provider에는 `default_tags`로 `Project=fds-hybrid`·`ManagedBy=terraform`이 붙는다.
 - Red Hat 인증은 환경변수(`RHCS_CLIENT_ID`/`RHCS_CLIENT_SECRET` 또는 `RHCS_TOKEN`)로만 넣는다. tfvars·저장소·증적에 넣지 않는다.
 
 ## 입력
@@ -36,7 +37,7 @@ account role 이름·trust·부착 정책은 ROSA CLI 1.2.53 `create account-rol
 
 1. `terraform init -backend-config=backend.hcl` (state `phase2/rosa-prereq/terraform.tfstate`)
 2. **단계 1** `terraform plan -var execution_enabled=true -var-file=<비공개>.tfvars -out=stage1.plan`
-   - 확인: 생성 3+4+1+1, 변경·삭제 0, account role trust가 CLI 출력 표와 같음
+   - 확인: 생성 3+4+1+1, 변경·삭제 0, `terraform show -json`의 역할별 trust Principal·조건과 부착 정책 ARN이 승인 표(CLI manual 출력)와 1:1 일치. 표에 없는 principal·정책·IAM 자원이 있으면 STOP
 3. 단계 1 apply → readback: `aws iam get-role`(3), `rosa list account-roles`, `rosa list oidc-config`, `aws iam get-open-id-connect-provider`. 실패하면 단계 2로 가지 않는다
 4. 단계 2 전 대조: `rosa create operator-roles --hosted-cp --prefix fds-rosa --oidc-config-id <id> --installer-role-arn <installer arn> --mode manual` 출력의 역할 이름·namespace·service account·정책을 `main.tf` `operator_roles`와 대조. 다르면 코드 수정 후 리뷰
 5. **단계 2** `terraform plan -var execution_enabled=true -var create_operator_roles=true ...` → 생성 8+8, 변경·삭제 0 확인 → apply → readback `rosa list operator-roles`
@@ -54,4 +55,4 @@ terraform test
 
 ## 정리
 
-`terraform destroy`는 Cleanup 정책과 Guardrails 정리 단계 변경이 별도 승인된 뒤, 클러스터 삭제·공유 참조 확인 후에만 한다(실행 자료 §2).
+`terraform destroy`도 중앙 실행 경로에서, 클러스터 삭제·공유 참조 확인과 별도 승인 후에만 한다(실행 자료 §2). rev1의 Cleanup 정책은 삭제했다.

@@ -19,14 +19,7 @@
         "iam:GetPolicyVersion",
         "iam:ListPolicyVersions",
         "iam:GetOpenIDConnectProvider",
-        "iam:ListOpenIDConnectProviders",
-        "iam:CreateRole",
-        "iam:TagRole",
-        "iam:CreatePolicy",
-        "iam:TagPolicy",
-        "iam:AttachRolePolicy",
-        "iam:CreateOpenIDConnectProvider",
-        "iam:TagOpenIDConnectProvider"
+        "iam:ListOpenIDConnectProviders"
       ],
       "Resource": "*",
       "Condition": {

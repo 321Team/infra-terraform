@@ -1,30 +1,33 @@
 # #12 ROSA 계정 준비 A1·A3 full policy 초안 — 2026-10-09
 
-상태: **DRAFT / 부여 아님 / 실행 아님**
+상태: **DRAFT rev2 (2026-10-10) / 부여 아님 / 실행 아님**
+
+> **rev2 변경 요약:** [PR21 리뷰](https://github.com/321Team/infra-terraform/pull/21#pullrequestreview-5471849615) 차단 1(임의 trust·정책 생성/연결 경로)에 따라 **A3의 IAM 쓰기(역할·고객 정책·OIDC provider 생성·부착·삭제)를 `FDS-IaC-Operator`에서 제거하고 중앙 실행 경로로 옮겼다.** IaC 역할에는 조회 권한만 남는다. 차단 2(시뮬레이션 성공 종료 조건)는 스크립트를 다시 작성해 반영했다. 아래 [중앙 실행 경로](#중앙-실행-경로-rev2)와 [rev2 시뮬레이션](#rev2-시뮬레이션--실행-대기)을 본다.
 대상 이슈: [infra-terraform#12](https://github.com/321Team/infra-terraform/issues/12) · 원티켓 [#35](https://github.com/321Team/fds-project-baseline/issues/35)
 근거: [v3 보완판](https://github.com/321Team/fds-project-baseline/issues/35#issuecomment-6074050926), [이권욱 실행 자료 요청](https://github.com/321Team/fds-project-baseline/issues/35#issuecomment-6074663186), 실행 자료 [EXECUTION-PACK.md](EXECUTION-PACK.md)
 비용: 파일 작성·로컬 문법 검사만 — **비용 없음**
 
 ## 한눈에 보기
 
-| 정책 파일 | 단계 | 붙일 곳 | 붙이는 기간 |
+| 정책 파일 / 경로 | 단계 | 붙일 곳 | 붙이는 기간 |
 |---|---|---|---|
 | `FDS-RosaBootstrap-Subscribe.json` | A1 ROSA 활성화 | `FDS-IaC-Operator` (하영 세션) | **A1 1회만.** 활성화 readback 후 바로 떼어냄 |
-| `FDS-IaC-RosaPrereq.json` | A3 역할·OIDC 생성·조회 | `FDS-IaC-Operator` | A3 기간. ROSA 운영 중 Terraform plan readback에도 필요 |
-| `FDS-IaC-RosaPrereq-Cleanup.json` | 정리(회수) | `FDS-IaC-Operator` | **정리 단계에만.** 클러스터 삭제·공유 참조 확인 후 별도 승인으로 부착 |
+| `FDS-IaC-RosaPrereq.json` | A3 **조회만**(생성 후 readback, Terraform plan refresh, `rosa list`) | `FDS-IaC-Operator` | A3 기간과 ROSA 운영 중 readback |
+| 중앙 실행 경로 (정책 파일 없음) | A3 **생성·부착·정리** — account/operator role, IAM OIDC provider, CLI `ocm-role`·`user-role`과 그 고객 정책 | 승인된 중앙 주체 1회 실행 | 단계별 별도 실행 승인. 위임 역할에 IAM 쓰기를 붙이지 않음 |
+
+- rev1의 `FDS-IaC-RosaPrereq-Cleanup.json`은 삭제했다. IaC 역할이 만들지 않으므로 정리(회수)도 중앙 실행 경로에서 한다.
 
 - A2(Red Hat 청구 연결)는 AWS 쪽 추가 권한이 필요 없다고 **가정**한다. 실행 직전 화면 흐름에서 거부가 나오면 그 Action만 추가해 리뷰를 받는다.
-- 새 실행 역할은 만들지 않는다. `FDS-IaC-Operator`는 이미 `phase2/rosa-prereq/terraform.tfstate` 읽기·쓰기 권한(`FDS-IaC-State-PassRole`)과 MFA·본인 RoleSessionName trust를 갖고 있다.
+- 새 위임 역할은 만들지 않는다. `FDS-IaC-Operator`는 `phase2/rosa-prereq/terraform.tfstate` 읽기 권한으로 생성 후 readback·plan refresh에 쓴다. state 쓰기를 동반하는 apply는 중앙 실행 경로에서 한다(state bucket policy의 허용 주체는 `FDS-IaC-Operator`와 root뿐이다).
 - 이 정책들에는 `iam:PassRole`이 없다. 클러스터 생성(#4)은 이 범위가 아니다.
 
 ## 설계 원칙 (쉽게)
 
-1. **`fds-rosa`로 시작하는 이름만.** 역할·정책·OIDC provider 쓰기는 모두 이름 prefix나 정확한 ARN으로 제한한다.
-2. **Terraform이 만드는 것은 우리 태그 필수.** account/operator role과 OIDC provider는 생성 시 `Project=fds-hybrid`, `ManagedBy=terraform` 태그가 없으면 거부된다(기존 IaC 규칙과 같음).
-3. **CLI가 만드는 것은 이름으로만 제한.** `ocm-role`·`user-role`은 ROSA CLI가 자체 태그를 붙여서 우리 태그를 강제할 수 없다. 대신 이름 패턴을 좁게 둔다.
-4. **ROSA 정책만 붙일 수 있다.** `AttachRolePolicy`는 AWS 관리형 `service-role/ROSA*` 정책, Worker 역할용 `AmazonEC2ContainerRegistryReadOnly`(정확한 ARN 1개), `fds-rosa-*` 정책만 허용한다. 관리자 권한(AdministratorAccess 등)은 붙일 수 없다.
-5. **만들기와 지우기는 분리한다.** 삭제 권한은 Cleanup 정책에만 두고 평소에는 붙이지 않는다. 기존 역할의 trust 덮어쓰기(`iam:UpdateAssumeRolePolicy`)는 어느 정책에도 없다.
-6. **Unsubscribe는 없다.** A1에는 `Subscribe`·`ViewSubscriptions`만 두고, `ROSAManageSubscription` 관리형 정책은 붙이지 않는다.
+1. **위임 역할에는 IAM 쓰기가 없다(rev2).** `iam:CreateRole`은 trust 내용을, `iam:CreatePolicy`는 정책 내용을 조건으로 제한할 수 없다. 이름 prefix·태그·부착 대상 제한만으로는 "허용 이름의 역할을 임의 trust로 만들고, 같은 prefix의 임의 내용 정책을 붙이는" 경로를 막지 못한다(rev1 리뷰 차단 1). 그래서 생성·부착·삭제는 위임 역할에서 뺀다.
+2. **IAM 쓰기는 중앙 실행 경로에서 검토된 내용으로 1회.** trust·부착 정책은 검토된 Terraform source와 ROSA CLI `--mode manual` 출력으로 고정하고, 실행 전 plan JSON 대조 → 실행 후 readback으로 확인한다. 이 대조는 IAM simulation이 아니라 소스·실행 전후 대조다.
+3. **조회 범위는 `fds-rosa` 이름과 정확한 ARN.** 역할·정책·OIDC provider 조회는 prefix나 정확한 ARN으로 제한한다. 리소스 단위 제한을 지원하지 않는 `ListRoles`·`ListOpenIDConnectProviders`만 `*`이다.
+4. **Unsubscribe는 없다.** A1에는 `Subscribe`·`ViewSubscriptions`만 두고, `ROSAManageSubscription` 관리형 정책은 붙이지 않는다.
+5. **PassRole·UpdateAssumeRolePolicy는 어디에도 없다.**
 
 ## Action별 한 줄 용도
 
@@ -45,27 +48,15 @@
 | ReadRosaPolicies | `iam:GetPolicy`·`GetPolicyVersion`·`ListPolicyVersions` | AWS 관리형 ROSA 정책·ECR 읽기 정책 내용 확인, CLI가 만든 정책 readback | `aws:policy/service-role/ROSA*`, `aws:policy/AmazonEC2ContainerRegistryReadOnly`, `policy/fds-rosa-*` |
 | ReadRosaOidcProvider | `iam:GetOpenIDConnectProvider` | OIDC provider readback | `oidc-provider/oidc.op1.openshiftapps.com/*` |
 | ListOidcProvidersNoResourceLevel | `iam:ListOpenIDConnectProviders` | Terraform·CLI의 OIDC provider 존재 확인 | `*` — 리소스 단위 제한 미지원. **사유 검토 대상** |
-| CreateTerraformOwnedRosaRoles | `iam:CreateRole`·`TagRole` | Terraform이 account role(Installer·Support·Worker)과 operator role 생성 | `role/fds-rosa-HCP-ROSA-*`, `role/fds-rosa-openshift-*`, `role/fds-rosa-kube-system-*` + 우리 태그 필수 |
-| CreateCliOwnedOrgLinkRoles | `iam:CreateRole`·`TagRole` | ROSA CLI가 `ocm-role`·`user-role` 생성 | `role/fds-rosa-OCM-Role-*`, `role/fds-rosa-User-*` |
-| CreateCliOwnedRolePolicy | `iam:CreatePolicy`·`TagPolicy` | CLI가 `ocm-role`용 고객 관리형 정책을 만들 때 | `policy/fds-rosa-*` |
-| AttachOnlyRosaPolicies | `iam:AttachRolePolicy` | account/operator role에 AWS 관리형 ROSA 정책, Worker 역할에 ECR 읽기 정책, ocm-role에 그 정책 부착 | `role/fds-rosa-*` + 붙일 정책을 `ROSA*`·ECR ReadOnly 1개·`fds-rosa-*`로 제한 |
-| CreateTerraformOwnedOidcProvider | `iam:CreateOpenIDConnectProvider`·`TagOpenIDConnectProvider` | Terraform이 managed OIDC config에 대응하는 IAM OIDC provider 생성 | `oidc-provider/oidc.op1.openshiftapps.com/*` + 우리 태그 필수 |
 
-### FDS-IaC-RosaPrereq-Cleanup (정리 단계만)
-
-| Sid | Action | 용도 | Resource 범위 |
-|---|---|---|---|
-| DetachOnlyRosaPolicies | `iam:DetachRolePolicy` | 역할 삭제 전 ROSA 정책 떼기 | `role/fds-rosa-*` + `ROSA*`·ECR ReadOnly 1개·`fds-rosa-*` 정책만 |
-| DeleteRosaRoles | `iam:ListInstanceProfilesForRole`·`DeleteRole` | Terraform destroy·CLI 역할 삭제 | `role/fds-rosa-*` |
-| DeleteCliOwnedRolePolicy | `iam:DeletePolicy` | ocm-role용 정책 삭제 | `policy/fds-rosa-*` |
-| DeleteRosaOidcProvider | `iam:DeleteOpenIDConnectProvider` | OIDC provider 삭제 | `oidc-provider/oidc.op1.openshiftapps.com/*` |
+rev1에 있던 생성·부착 Sid 5개(`CreateTerraformOwnedRosaRoles`, `CreateCliOwnedOrgLinkRoles`, `CreateCliOwnedRolePolicy`, `AttachOnlyRosaPolicies`, `CreateTerraformOwnedOidcProvider`)와 Cleanup 정책은 **rev2에서 제거했다.** 해당 동작은 [중앙 실행 경로](#중앙-실행-경로-rev2)에서 한다.
 
 ## ⚠️ 기존 정책과의 충돌 — Guardrails 리전 거부
 
 `FDS-IaC-Guardrails`의 `DenyOutsideSeoul`은 `aws:RequestedRegion != ap-northeast-2`인 요청을 거부한다. 예외(NotAction)는 `iam:GetRole`·`GetInstanceProfile`·`PassRole`·`sts:GetCallerIdentity` 4개뿐이다.
 
 - IAM과 Marketplace는 글로벌 서비스라 요청 리전이 **us-east-1**로 평가되는 것으로 알고 있다. 그러면 위 A1·A3 Action 대부분이 Guardrails의 명시적 거부에 막혀 **허용 정책을 붙여도 실행되지 않는다.**
-- 제안: `DenyOutsideSeoul` NotAction에 이 초안의 IAM·Marketplace Action을 **정확한 이름으로** 추가한다(`iam:*` 와일드카드는 쓰지 않음). Guardrails는 이권욱 IaC Grant 준비안([PR18](https://github.com/321Team/infra-terraform/pull/18)) 범위이므로 그쪽 판단으로 반영한다.
+- 제안(rev2): `DenyOutsideSeoul` NotAction에 이 초안의 **IAM 조회·Marketplace Action 11개**만 **정확한 이름으로** 추가한다(`iam:*` 와일드카드 없음, IAM 쓰기 Action 없음). Guardrails는 이권욱 IaC Grant 준비안([PR18](https://github.com/321Team/infra-terraform/pull/18)) 범위이므로 그쪽 판단으로 반영한다.
 - 실행 전 중앙 simulation에서 Guardrails와 함께 평가해 실제로 거부되는지 확인한다.
 
 **실제 런타임 근거 (2026-10-09 U1 자체 시험 N6, `~/u1-hayeoung-20261009-090652/N6-iam-list-users.stderr`)**
@@ -99,16 +90,16 @@
 
 **ROSA CLI 1.2.53 `--mode manual` 출력 대조 (03-*.txt)**
 
-| CLI 명령 | 출력된 aws 호출 | 생성 이름 | 이 초안 Sid |
+| CLI 명령 | 출력된 aws 호출 | 생성 이름 | rev1 Sid → rev2 실행 주체 |
 |---|---|---|---|
-| `create ocm-role` (admin 질문 없음 = basic) | `iam create-role`(tags), `iam create-policy`(tags), `iam attach-role-policy` → `rosa link ocm-role` | 역할 `fds-rosa-OCM-Role-<조직 External ID>`, 정책 `fds-rosa-OCM-Role-<조직 External ID>-Policy` | CreateCliOwnedOrgLinkRoles, CreateCliOwnedRolePolicy, AttachOnlyRosaPolicies |
-| `create user-role` | `iam create-role`(tags, 정책 부착 없음) → `rosa link user-role` | `fds-rosa-User-<Red Hat 사용자명>-Role` | CreateCliOwnedOrgLinkRoles |
-| `create account-roles --hosted-cp` (Terraform으로 만들 대상, 이름·정책 대조용) | `iam create-role` ×3, `iam attach-role-policy` ×4 | `fds-rosa-HCP-ROSA-Installer/Support/Worker-Role` | CreateTerraformOwnedRosaRoles, AttachOnlyRosaPolicies |
+| `create ocm-role` (admin 질문 없음 = basic) | `iam create-role`(tags), `iam create-policy`(tags), `iam attach-role-policy` → `rosa link ocm-role` | 역할 `fds-rosa-OCM-Role-<조직 External ID>`, 정책 `fds-rosa-OCM-Role-<조직 External ID>-Policy` | 중앙 실행(manual 출력의 aws 명령을 검토 후 그대로 실행) |
+| `create user-role` | `iam create-role`(tags, 정책 부착 없음) → `rosa link user-role` | `fds-rosa-User-<Red Hat 사용자명>-Role` | 중앙 실행(필요할 때만, 실행 자료 §1-2) |
+| `create account-roles --hosted-cp` (Terraform으로 만들 대상, 이름·정책 대조용) | `iam create-role` ×3, `iam attach-role-policy` ×4 | `fds-rosa-HCP-ROSA-Installer/Support/Worker-Role` | 중앙 실행(Terraform `rosa-prereq` 단계 1) |
 
 - Worker 역할에는 `ROSAWorkerInstancePolicy` 외에 **`arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly`**도 붙는다. 처음 초안의 부착 조건(`ROSA*`만)은 이를 막았으므로 정확한 ARN 1개를 추가했다.
 - CLI가 붙이는 태그: `red-hat-managed=true`, `rosa_role_prefix=fds-rosa`, `rosa_role_type`, `rosa_openshift_version=4.22` 등. Terraform 생성분은 여기에 `Project`·`ManagedBy`가 더해진다.
 - user-role 이름에 Red Hat 사용자명이 들어가므로 공개 문서에서는 마스킹한다.
-- `iam:CreateRole`·`CreatePolicy`에 tag가 함께 전달되므로 `iam:TagRole`·`iam:TagPolicy`가 필요하다(초안에 포함).
+- `iam:CreateRole`·`CreatePolicy`에 tag가 함께 전달되므로 실행 주체에게 `iam:TagRole`·`iam:TagPolicy`도 필요하다(rev2에서는 중앙 실행 주체의 권한이며 위임 정책에는 없음).
 
 **trust 내용 (같은 manual 실행이 만든 `sts_*_trust_policy.json`, 05-trust-files.txt)**
 
@@ -127,7 +118,7 @@
 
 - Allow 1개, Resource `*`, Action 10개 모두 조회: `ec2:DescribeSubnets`·`DescribeVpcs`·`DescribeRegions`·`DescribeRouteTables`·`DescribeInstanceTypeOfferings`, `iam:GetRole`·`ListRoles`·`ListRoleTags`·`GetOpenIDConnectProvider`·`GetPolicy`
 - `iam:Create*`·`Attach*`·`Delete*` 없음 → Red Hat이 ocm-role로 operator role·OIDC를 자동 생성할 수 없다. **Terraform 소유 자원과 겹치지 않음**(v3 §4-3 근거).
-- 이 정책은 CLI가 `fds-rosa-OCM-Role-<조직 External ID>-Policy`로 만들며, 그 생성·부착은 이 초안의 CreateCliOwnedRolePolicy·AttachOnlyRosaPolicies가 허용한다.
+- 이 정책은 CLI가 `fds-rosa-OCM-Role-<조직 External ID>-Policy`로 만들며, rev2에서는 manual 출력의 정책 원문(위 Action 10개)을 검토한 뒤 중앙 실행 경로에서 생성·부착한다.
 
 - 3·4는 `rosa login`(하영 Red Hat 토큰, 비공유)이 필요하다. 출력에 토큰은 없지만 증적에 넣기 전에 확인한다.
 - 위 확인 결과로 이 JSON의 이름 패턴·Action을 고치면 SHA256SUMS를 다시 만든다.
@@ -136,11 +127,37 @@
 
 | 위험 | 대응 |
 |---|---|
-| `iam:CreateRole`은 trust 내용을 제한할 수 없어, `fds-rosa-*` 이름으로 아무 principal을 믿는 역할을 만들 수 있다 | 붙일 수 있는 정책이 ROSA 관리형·`fds-rosa-*`로 제한되고 PassRole이 없다. 생성 후 trust readback을 rhcs data source 값과 대조한다 |
-| CLI 역할(`ocm-role`·`user-role`)은 우리 태그를 강제할 수 없다 | 이름 패턴을 좁게 두고 §inventory(실행 자료 §2)에 ARN을 기록한다 |
-| `iam:TagRole`에 태그 조건이 있어 Terraform이 다른 태그만 바꾸는 갱신은 거부될 수 있다 | 의도된 동작. 필요하면 그때 리뷰를 받는다 |
+| `iam:CreateRole`은 trust 내용을, `iam:CreatePolicy`는 정책 내용을 제한할 수 없다(rev1 차단 1) | **rev2: 위임 역할에서 IAM 쓰기를 제거.** 생성은 중앙 실행 경로에서 검토된 source·manual 출력으로만 하고, plan JSON 대조와 apply 후 readback으로 trust·부착 정책을 확인한다. permissions boundary만으로는 외부 계정 principal을 trust에 넣는 경로를 막지 못하므로 채택하지 않았다 |
+| 중앙 실행 주체는 강한 권한을 가진다 | 실행 단위·입력·대조 기준을 이 문서와 실행 승인에 고정하고, 실행 기록(명령·RC·plan/readback 원본)을 증적으로 남긴다. 대상 외 IAM 변경이 plan에 나오면 STOP |
+| CLI 역할(`ocm-role`·`user-role`)은 우리 태그를 강제할 수 없다 | 이름과 manual 출력 원문을 고정하고 §inventory(실행 자료 §2)에 ARN을 기록한다 |
+| 생성된 역할의 trust가 나중에 바뀔 수 있다 | 위임 역할에는 `UpdateAssumeRolePolicy`가 없다. ROSA 운영 중 IaC 역할의 조회 권한으로 trust readback을 주기적으로 대조할 수 있다 |
 
-## Guardrails 조합 시뮬레이션 결과 — 2026-10-09 22:58 KST (#35 6078438929 요청 대응)
+## 중앙 실행 경로 (rev2)
+
+위임 역할이 하지 않는 A3 IAM 쓰기를 어떻게 하는지에 대한 계약이다. **실행 승인 요청이 아니다.**
+
+| 항목 | 내용 |
+|---|---|
+| 대상 | Terraform `terraform/rosa-prereq` 단계 1(account role 3 + 부착 4 + managed OIDC config + IAM OIDC provider)·단계 2(operator role 8 + 부착 8), CLI `ocm-role`(역할 1 + 고객 정책 1 + 부착 1), 필요할 때만 `user-role`, 정리 단계의 역순 삭제 |
+| 실행 주체 | 승인된 중앙 주체. 기존 10-07 중앙 bootstrap과 같은 경로를 기본안으로 한다. state bucket policy상 `phase2/rosa-prereq` state 쓰기 허용 주체는 `FDS-IaC-Operator`와 root뿐이다. **실제 실행자·작업창은 이권욱과 협의해 실행 승인에서 정한다(미정).** |
+| 고정 입력 | source commit SHA, `.terraform.lock.hcl`, Terraform 1.16.4·ROSA CLI 1.2.53 바이너리 SHA-256, 비공개 tfvars(조직 External ID 포함), CLI manual 출력 원문(`sts_*_trust_policy.json`, `sts_ocm_permission_policy.json`) |
+| 실행 전 대조 | `terraform show -json` plan에서 역할별 `assume_role_policy`의 Principal·조건과 부착 정책 ARN을 위 trust 표·CLI 출력 표와 1:1 대조한다. 승인 표에 없는 principal·조건·정책, 대상 외 IAM 자원, 변경·삭제가 하나라도 있으면 STOP. CLI 역할은 manual 출력의 aws 명령과 정책 원문을 검토한 뒤 그 명령을 그대로 실행한다(`--mode auto` 사용 안 함) |
+| 실행 후 readback | `aws iam get-role`(trust 원문 SHA)·`list-attached-role-policies`·`list-role-policies`(inline 0)·`get-open-id-connect-provider`, `rosa list account-roles / oidc-config / operator-roles / ocm-role`. readback은 IaC 역할의 조회 권한(이 문서의 `FDS-IaC-RosaPrereq`)으로도 할 수 있다 |
+| 증적 | 명령·시각·RC·plan JSON·readback 원본을 비공개 보관하고, 마스킹된 대조표를 증적 PR로 독립 리뷰 |
+| 하지 않는 것 | 위임 역할에 IAM 쓰기 부착, permissions boundary만으로의 대체, IAM simulation으로 trust 내용을 검증했다고 표시하기 |
+
+## rev2 시뮬레이션 — 실행 대기
+
+- 스크립트: `sim-rosa-guardrails-v2.sh` rev2(SHA는 `SHA256SUMS`). rev1 결과(아래)는 이전 정책 기준이며 rev2 정책에는 적용하지 않는다.
+- 성공 조건(리뷰 차단 2 반영): ① `sts get-caller-identity` 성공 + 계정 `774055931866` + 실행자 ARN이 `EXPECTED_ARN`(기본 `321team-hayeoung`)과 일치 ② live `FDS-IaC-Guardrails` 기본 버전이 내장 v1과 정규화 비교 MATCH(DIFF·읽기 실패는 exit 2) ③ 내장 후보 v2 = v1 + 조회·Subscribe 11개와 파일 원문 일치 ④ 각 API 호출 RC와 결과 파싱 성공 ⑤ case 35개, 고유 ID, 기대 ID 집합 일치, 모두 PASS ⑥ MissingContextValues 계약: rev2 정책에는 case와 무관한 조건 키가 없으므로 35개 case 모두 빈 목록이어야 하며, 하나라도 보고되면 그 case를 FAIL로 기록한다.
+- 호출 실패는 `set -e`로 즉시 끝내지 않고 case 행(`RC<n>`/FAIL)과 오류 파일을 남긴 뒤 최종 판정에서 실패한다.
+- case 묶음: A(4) v1 충돌 / S(1) 거부 Statement 확정 / B(12) v2에서 조회·Subscribe 허용 / **W(11) Guardrails 없이 IaC 허용 정책만으로 IAM 쓰기 전부 implicitDeny**(허용 prefix 내 임의 정책 생성, ROSA·임의·Admin 정책 부착, 역할·OIDC 생성, trust 변경, 삭제, 태그, PassRole) / N(7) v2에서도 거부 유지.
+- 로컬 확인(2026-10-10, AWS 미접속): `bash -n` 통과. 가짜 `aws` 명령으로 정상(PASS 35/35, exit 0), live DIFF(exit 2), 읽기 거부(exit 2), 다른 실행자(exit 1), 판정 불일치·MissingContext 보고·API 실패(각 해당 case FAIL, exit 1)의 종료 경로를 확인했다. 실제 AWS 평가 결과가 아니다.
+- **실제 결과는 CloudShell 재실행 후 이 절에 추가한다.** CloudShell 다운로드 권한이 없으므로 `summary.tsv`·`meta.txt`·`SHA256SUMS` 화면 출력을 제출한다.
+
+## rev1 Guardrails 조합 시뮬레이션 결과 (이전 정책 기준) — 2026-10-09 22:58 KST (#35 6078438929 요청 대응)
+
+> 아래는 rev1 정책(IAM 쓰기 포함)과 rev1 스크립트(SHA-256 `4cc90b82…`)의 결과다. rev2에서 정책·스크립트가 바뀌었으므로 현재 판정 근거로 쓰지 않고 이력으로만 남긴다.
 
 - 실행: CloudShell 서울, `321team-hayeoung`, `sim-rosa-guardrails-v2.sh`(SHA-256 `4cc90b82b846fbe5650ec35697f67e04d281192d07337c79b7296b36bb19e22a`). `iam simulate-custom-policy`와 정책 조회만. AWS 변경·Subscribe 0. 비용 없음.
 - 원본: CloudShell `~/sim-rosa-gr-20261009-135843/` (case별 input/out/err JSON, summary.tsv, SHA256SUMS). 1차 실행 `~/sim-rosa-gr-20261009-134758/`(B10 FAIL → `ListRoles` Resource `*`로 수정)도 보존.
@@ -157,6 +174,6 @@
 
 **합계 26/26 PASS.** N01·N02·N03·N04·N09의 MissingContextValues는 해당 case와 무관한 다른 Statement의 조건 키(또는 N02의 의도적 태그 생략)이며 판정에 영향 없음.
 
-후보 Guardrails: `guardrails-candidate/FDS-IaC-Guardrails.v2-candidate.json` — v1 대비 `DenyOutsideSeoul.NotAction`에 A1/A3 Action 18개를 정확한 이름으로 추가한 것 외 변경 없음. `iam:*`·`aws-marketplace:*` 없음. Cleanup Action은 미포함(정리 단계에서 별도 변경안).
+후보 Guardrails(rev2): `guardrails-candidate/FDS-IaC-Guardrails.v2-candidate.json` — v1 대비 `DenyOutsideSeoul.NotAction`에 A1 Marketplace 2개와 A3 IAM **조회** 9개, 모두 11개를 정확한 이름으로 추가한 것 외 변경 없음. rev1의 IAM 쓰기 7개(`CreateRole`·`TagRole`·`CreatePolicy`·`TagPolicy`·`AttachRolePolicy`·`CreateOpenIDConnectProvider`·`TagOpenIDConnectProvider`)는 제거했다. `iam:*`·`aws-marketplace:*` 없음.
 
 한계: 시뮬레이션은 identity 정책 평가만이며 실제 API 호출·trust·SCP·리소스 정책은 포함하지 않는다. 실제 동작은 승인 후 부착·실행 단계에서 readback으로 확인한다.

@@ -22,7 +22,7 @@ v3 §3 ②의 "조회로 접근 검증"을 아래로 대체한다. **조회 성�
 #### 1-2. user-role은 필요할 때만
 
 - 대체 계정이 클러스터를 **삭제**하는 데 본인 `user-role`(AWS 역할)과 AWS 계정 연결이 꼭 필요한지 Red Hat 문서로 먼저 확인한다.
-- **필요할 때만** 각자 `rosa create user-role --prefix fds-rosa`로 만들고 §2 inventory에 넣는다. 필요 없으면 만들지 않는다(AWS 자원·IAM 권한을 늘리지 않음).
+- **필요할 때만** `rosa create user-role --prefix fds-rosa --mode manual` 출력을 검토한 뒤 중앙 실행 경로에서 만들고 §2 inventory에 넣는다(rev2: 위임 역할에는 IAM 쓰기가 없다). 필요 없으면 만들지 않는다(AWS 자원·IAM 권한을 늘리지 않음).
 - 판단 결과와 근거 문서 링크를 §1-1 표에 적는다.
 
 #### 1-3. 삭제 권한 증명 방법 (실제 삭제 시험 없음)
@@ -31,7 +31,7 @@ v3 §3 ②의 "조회로 접근 검증"을 아래로 대체한다. **조회 성�
 |---|---|
 | 역할 증거 | 조직 User Access 화면의 부여 역할 이름 캡처 + 그 역할에 클러스터 삭제 권한이 있다는 Red Hat 문서 근거 |
 | 연결 증거 | 각자 본인 로그인으로 `rosa whoami`(조직 `2042****` 확인), user-role을 만든 경우 `rosa list user-role` Linked 상태 |
-| AWS 증거 | 정리 단계에 필요한 AWS 권한(operator role·OIDC provider 회수)이 본인 MFA 역할 경로에 있는지 정책 대조 |
+| AWS 증거 | rev2에서 AWS IAM 생성·회수(operator role·OIDC provider 등)는 중앙 실행 경로다. 대체 계정은 본인 MFA 역할의 조회 권한으로 readback할 수 있는지만 확인한다 |
 | 판정 | 위 3개가 모두 있으면 `ALT_DELETE_CAPABILITY=EVIDENCED(문서·역할 기준)`. 조회만 되면 `ACCESS_ONLY` |
 
 ---
@@ -88,7 +88,7 @@ v3 §3의 "AWS 콘솔 ROSA·EC2 자원 0건"을 **철회**한다. 교육장 계�
 
 | 산출물 | 상태 |
 |---|---|
-| A1·A3 full policy/trust JSON + 정책 SHA + Action별 한 줄 용도 설명 | 작성 예정 |
+| A1·A3 full policy/trust JSON + 정책 SHA + Action별 한 줄 용도 설명 | rev2 작성(A3는 조회만, IAM 쓰기는 중앙 실행 경로 — README) |
 | Terraform `rosa-prereq` source + source commit SHA | 작성 예정 |
 | `.terraform.lock.hcl`(AWS 6.66.0·rhcs 1.7.9 hash) | 작성 예정 |
 | Terraform 1.16.4·ROSA CLI exact 버전·바이너리 SHA-256 | 설치 후 기록 |
