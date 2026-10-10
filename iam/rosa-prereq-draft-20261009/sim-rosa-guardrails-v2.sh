@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # #12 ROSA A1/A3 IaC 정책 + FDS-IaC-Guardrails 조합 시뮬레이션 (infra-terraform#12, PR21 rev2 2026-10-10)
+# rev2.1(2026-10-10): MissingContextValues 계약을 case별 기대값(implicitDeny=조건 키−제공 키)으로 정정.
 # rev2: A3 IAM 쓰기(역할·정책·OIDC 생성/부착)를 IaC 역할에서 제거하고 중앙 실행으로 이관한 정책 기준.
 #       실행자·계정 확인, live Guardrails MATCH, 호출 RC, case 수·고유 ID·MissingContextValues 계약을 성공 조건에 결속.
 # 실행 위치: AWS CloudShell(서울). 기본 실행자 321team-hayeoung. 다른 승인 실행자는 EXPECTED_ARN 환경변수로 지정하고 기록에 남긴다.
@@ -80,10 +81,16 @@ ROLE=arn:aws:iam::$ACC:role; POL=arn:aws:iam::$ACC:policy; AWSPOL=arn:aws:iam::a
 OIDC=arn:aws:iam::$ACC:oidc-provider/oidc.op1.openshiftapps.com/EXAMPLE
 CUR="rosa.json sub.json gr-v1.json"; CAND="rosa.json sub.json gr-v2-candidate.json"; ONLY="rosa.json sub.json"
 
-# MissingContextValues 계약: 모든 case는 판정에 필요한 context를 제공한다. rev2 정책에는 case와 무관한 조건 키가
-# 남아 있지 않으므로 기대값은 case 전부 "빈 목록"이다. 하나라도 보고되면 그 case를 FAIL로 기록한다.
+# MissingContextValues 계약(case별 기대값): allowed·explicitDeny는 빈 목록이어야 한다. implicitDeny는 AWS가
+# 입력 정책 전체의 조건 키 중 ContextEntries로 주지 않은 키를 모두 보고한다(2026-10-10 1차 실행 35건 관측과 일치).
+# 그래서 implicitDeny의 기대값 = (입력 정책들의 Condition 키 집합) − (이 case에 준 context 키 집합)이며 정확히 같아야 한다.
+# 기대 밖 키가 하나라도 있거나 빠지면 그 case를 FAIL로 기록한다.
 sim(){
-  local c=$1 files=$2 a=$3 r=$4 exp=$5 cx=$6 pl rc act miss res
+  local c=$1 files=$2 a=$3 r=$4 exp=$5 cx=$6 pl rc act miss res expmiss=''
+  if [ "$exp" = implicitDeny ]; then
+    # shellcheck disable=SC2086
+    expmiss=$(jq -s -r --argjson cx "[$cx]" '[.[] | .Statement[] | (.Condition // {}) | .[] | keys[]] | unique - [$cx[].ContextKeyName] | sort | join(",")' $files) || expmiss=CONTRACT_ERROR
+  fi
   if ! pl=$(for f in $files; do jq -c . "$f" | jq -Rs . || exit 1; done | jq -s .); then
     printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$c" "$a" "$exp" INPUT_ERROR FAIL - >> summary.tsv; echo "[FAIL] $c input"; return; fi
   if ! jq -n --arg a "$a" --arg r "$r" --argjson cx "[$cx]" --argjson pl "$pl" \
@@ -92,11 +99,11 @@ sim(){
   aws iam simulate-custom-policy --cli-input-json "file://$c.input.json" --output json > "$c.out.json" 2> "$c.err"; rc=$?
   if [ "$rc" -eq 0 ]; then
     act=$(jq -er '.EvaluationResults | if length==1 then .[0].EvalDecision else error("results") end' "$c.out.json") || act=PARSE_ERROR
-    miss=$(jq -er '[.EvaluationResults[0].MissingContextValues[]?] | join(",")' "$c.out.json") || miss=PARSE_ERROR
+    miss=$(jq -er '[.EvaluationResults[0].MissingContextValues[]?] | sort | join(",")' "$c.out.json") || miss=PARSE_ERROR
   else act="RC$rc"; miss="-"; fi
-  res=FAIL; [ "$act" = "$exp" ] && [ -z "$miss" ] && res=PASS
+  res=FAIL; [ "$act" = "$exp" ] && [ "$miss" = "$expmiss" ] && res=PASS
   printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$c" "$a" "$exp" "$act" "$res" "${miss:--}" >> summary.tsv || stop summary_write
-  echo "[$res] $c expect=$exp actual=$act missing=${miss:--}"
+  echo "[$res] $c expect=$exp actual=$act missing=${miss:--} expected_missing=${expmiss:--}"
 }
 # A. 현재 Guardrails v1에서 ROSA 조회·Subscribe가 리전 Deny에 막히는지(충돌 확인)
 sim A01-v1-list-attached     "$CUR"  iam:ListAttachedRolePolicies "$ROLE/fds-rosa-HCP-ROSA-Installer-Role" explicitDeny "$R"

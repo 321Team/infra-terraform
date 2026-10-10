@@ -149,11 +149,18 @@ rev1에 있던 생성·부착 Sid 5개(`CreateTerraformOwnedRosaRoles`, `CreateC
 ## rev2 시뮬레이션 — 실행 대기
 
 - 스크립트: `sim-rosa-guardrails-v2.sh` rev2(SHA는 `SHA256SUMS`). rev1 결과(아래)는 이전 정책 기준이며 rev2 정책에는 적용하지 않는다.
-- 성공 조건(리뷰 차단 2 반영): ① `sts get-caller-identity` 성공 + 계정 `774055931866` + 실행자 ARN이 `EXPECTED_ARN`(기본 `321team-hayeoung`)과 일치 ② live `FDS-IaC-Guardrails` 기본 버전이 내장 v1과 정규화 비교 MATCH(DIFF·읽기 실패는 exit 2) ③ 내장 후보 v2 = v1 + 조회·Subscribe 11개와 파일 원문 일치 ④ 각 API 호출 RC와 결과 파싱 성공 ⑤ case 35개, 고유 ID, 기대 ID 집합 일치, 모두 PASS ⑥ MissingContextValues 계약: rev2 정책에는 case와 무관한 조건 키가 없으므로 35개 case 모두 빈 목록이어야 하며, 하나라도 보고되면 그 case를 FAIL로 기록한다.
+- 성공 조건(리뷰 차단 2 반영): ① `sts get-caller-identity` 성공 + 계정 `774055931866` + 실행자 ARN이 `EXPECTED_ARN`(기본 `321team-hayeoung`)과 일치 ② live `FDS-IaC-Guardrails` 기본 버전이 내장 v1과 정규화 비교 MATCH(DIFF·읽기 실패는 exit 2) ③ 내장 후보 v2 = v1 + 조회·Subscribe 11개와 파일 원문 일치 ④ 각 API 호출 RC와 결과 파싱 성공 ⑤ case 35개, 고유 ID, 기대 ID 집합 일치, 모두 PASS ⑥ MissingContextValues **case별 기대값**(rev2.1): allowed·explicitDeny는 빈 목록, implicitDeny는 "입력 정책들의 Condition 키 집합 − 그 case에 준 context 키 집합"과 정확히 같아야 한다. 다르면 그 case를 FAIL로 기록한다.
 - 호출 실패는 `set -e`로 즉시 끝내지 않고 case 행(`RC<n>`/FAIL)과 오류 파일을 남긴 뒤 최종 판정에서 실패한다.
 - case 묶음: A(4) v1 충돌 / S(1) 거부 Statement 확정 / B(12) v2에서 조회·Subscribe 허용 / **W(11) Guardrails 없이 IaC 허용 정책만으로 IAM 쓰기 전부 implicitDeny**(허용 prefix 내 임의 정책 생성, ROSA·임의·Admin 정책 부착, 역할·OIDC 생성, trust 변경, 삭제, 태그, PassRole) / N(7) v2에서도 거부 유지.
 - 로컬 확인(2026-10-10, AWS 미접속): `bash -n` 통과. 가짜 `aws` 명령으로 정상(PASS 35/35, exit 0), live DIFF(exit 2), 읽기 거부(exit 2), 다른 실행자(exit 1), 판정 불일치·MissingContext 보고·API 실패(각 해당 case FAIL, exit 1)의 종료 경로를 확인했다. 실제 AWS 평가 결과가 아니다.
-- **실제 결과는 CloudShell 재실행 후 이 절에 추가한다.** CloudShell 다운로드 권한이 없으므로 `summary.tsv`·`meta.txt`·`SHA256SUMS` 화면 출력을 제출한다.
+- **1차 실제 실행(rev2 스크립트 SHA-256 `613983133f8e…`, 2026-10-10 16:00 KST, CloudShell 서울, `321team-hayeoung`)**: `live_guardrails=MATCH(v1)`. **판정(EvalDecision)은 35/35 모두 기대값과 일치**했다. 그러나 결과는 `FAIL(exit 1)`이었다. 원인은 정책이 아니라 rev2의 MissingContextValues 계약("전부 빈 목록")이 틀렸기 때문이다. AWS는 implicitDeny일 때 입력 정책 전체의 조건 키 중 context로 주지 않은 키를 모두 보고한다.
+  - W01~W11(Guardrails 없이 평가): `aws-marketplace:ProductId` — Subscribe 문장의 키
+  - N04: Guardrails 태그 키 3개(`aws:RequestTag/ManagedBy`·`aws:RequestTag/Project`·`aws:TagKeys`) — ProductId는 제공됨
+  - N06·N07: 위 4개 모두
+  - allowed·explicitDeny 21건: 빈 목록
+  - 원본: CloudShell `~/sim-rosa-gr-20261010-070006-JLXV/`. 이 실행 결과는 FAIL로 그대로 보존한다.
+- **rev2.1**: 계약을 case별 기대값으로 정정했다(정책·case·기대 판정은 그대로). 1차 실행의 관측값 35건을 재생한 가짜 `aws` 시험에서 PASS 35/35였고, 키 하나만 달라도 FAIL로 잡히는 것을 확인했다.
+- **rev2.1 실제 재실행 결과는 CloudShell 실행 후 이 절에 추가한다.** CloudShell 다운로드 권한이 없으므로 `summary.tsv`·`meta.txt`·`SHA256SUMS` 화면 출력을 제출한다.
 
 ## rev1 Guardrails 조합 시뮬레이션 결과 (이전 정책 기준) — 2026-10-09 22:58 KST (#35 6078438929 요청 대응)
 
