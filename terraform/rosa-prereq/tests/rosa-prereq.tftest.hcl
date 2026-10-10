@@ -84,7 +84,7 @@ run "stage2_operator_roles" {
   }
   assert {
     condition     = alltrue([for r in aws_iam_role.operator : length(r.name) <= 64 && (startswith(r.name, "fds-rosa-openshift-") || startswith(r.name, "fds-rosa-kube-system-"))])
-    error_message = "Operator role names must fit the A3 IAM policy name patterns and the 64-character IAM limit."
+    error_message = "Operator role names must fit the fds-rosa-* scope of the central-path review and the A3 read policy, and the 64-character IAM limit."
   }
   assert {
     condition     = alltrue([for a in aws_iam_role_policy_attachment.operator : startswith(a.policy_arn, "arn:aws:iam::aws:policy/service-role/ROSA")])

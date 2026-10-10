@@ -169,7 +169,7 @@ resource "aws_iam_openid_connect_provider" "rosa" {
   lifecycle {
     precondition {
       condition     = startswith(local.oidc_host, "oidc.op1.openshiftapps.com/")
-      error_message = "Unexpected managed OIDC issuer host. The A3 IAM policy only allows oidc-provider/oidc.op1.openshiftapps.com/*."
+      error_message = "Unexpected managed OIDC issuer host. The central-path trust review and the A3 read policy (ReadRosaOidcProvider) only cover oidc-provider/oidc.op1.openshiftapps.com/*."
     }
   }
 }
