@@ -141,8 +141,8 @@ rev1에 있던 생성·부착 Sid 5개(`CreateTerraformOwnedRosaRoles`, `CreateC
 | 대상 | Terraform `terraform/rosa-prereq` 단계 1(account role 3 + 부착 4 + managed OIDC config + IAM OIDC provider)·단계 2(operator role 8 + 부착 8), CLI `ocm-role`(역할 1 + 고객 정책 1 + 부착 1), 필요할 때만 `user-role`, 정리 단계의 역순 삭제 |
 | 실행 주체 | 승인된 중앙 주체. 기존 10-07 중앙 bootstrap과 같은 경로를 기본안으로 한다. state bucket policy상 `phase2/rosa-prereq` state 쓰기 허용 주체는 `FDS-IaC-Operator`와 root뿐이다. **실제 실행자·작업창은 이권욱과 협의해 실행 승인에서 정한다(미정).** |
 | 고정 입력 | source commit SHA, `.terraform.lock.hcl`, Terraform 1.16.4·ROSA CLI 1.2.53 바이너리 SHA-256, 비공개 tfvars(조직 External ID 포함), CLI manual 출력 원문(`sts_*_trust_policy.json`, `sts_ocm_permission_policy.json`) |
-| 실행 전 대조 | `terraform show -json` plan에서 역할별 `assume_role_policy`의 Principal·조건과 부착 정책 ARN을 위 trust 표·CLI 출력 표와 1:1 대조한다. 승인 표에 없는 principal·조건·정책, 대상 외 IAM 자원, 변경·삭제가 하나라도 있으면 STOP. CLI 역할은 manual 출력의 aws 명령과 정책 원문을 검토한 뒤 그 명령을 그대로 실행한다(`--mode auto` 사용 안 함) |
-| 실행 후 readback | `aws iam get-role`(trust 원문 SHA)·`list-attached-role-policies`·`list-role-policies`(inline 0)·`get-open-id-connect-provider`, `rosa list account-roles / oidc-config / operator-roles / ocm-role`. readback은 IaC 역할의 조회 권한(이 문서의 `FDS-IaC-RosaPrereq`)으로도 할 수 있다 |
+| 실행 전 대조 | `tools/rosa_prereq_check.py plan`으로 자동 대조(exit 0이 아니면 STOP). `terraform show -json` plan에서 역할별 `assume_role_policy`의 Principal·조건과 부착 정책 ARN을 위 trust 표·CLI 출력 표와 1:1 대조한다. 승인 표에 없는 principal·조건·정책, 대상 외 IAM 자원, 변경·삭제가 하나라도 있으면 STOP. CLI 역할은 manual 출력의 aws 명령과 정책 원문을 검토한 뒤 그 명령을 그대로 실행한다(`--mode auto` 사용 안 함) |
+| 실행 후 readback | `tools/rosa_prereq_check.py readback`으로 자동 대조. `aws iam get-role`(trust 원문 SHA)·`list-attached-role-policies`·`list-role-policies`(inline 0)·`get-open-id-connect-provider`, `rosa list account-roles / oidc-config / operator-roles / ocm-role`. readback은 IaC 역할의 조회 권한(이 문서의 `FDS-IaC-RosaPrereq`)으로도 할 수 있다 |
 | 증적 | 명령·시각·RC·plan JSON·readback 원본을 비공개 보관하고, 마스킹된 대조표를 증적 PR로 독립 리뷰 |
 | 하지 않는 것 | 위임 역할에 IAM 쓰기 부착, permissions boundary만으로의 대체, IAM simulation으로 trust 내용을 검증했다고 표시하기 |
 
