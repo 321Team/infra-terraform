@@ -35,6 +35,8 @@ account role 이름·trust·부착 정책은 ROSA CLI 1.2.53 `create account-rol
 
 ## 실행 순서 (승인 후)
 
+**실행 도구는 별도 PR로 분리했다**(대조 `tools/rosa_prereq_check.py`, 부여 `tools/rosa_grant.py`, 브랜치 `tools/rosa-grant-check-12`). 그 PR이 독립 리뷰를 통과해 병합되기 전에는 중앙 실행(정책 부여·Guardrails 전환·plan/apply)을 하지 않는다. 눈으로 하는 대조로 대신하지 않는다.
+
 1. `terraform init -backend-config=backend.hcl` (state `phase2/rosa-prereq/terraform.tfstate`)
 2. **단계 1** `terraform plan -var execution_enabled=true -var-file=<비공개>.tfvars -out=stage1.plan`
    - 확인: 생성 3+4+1+1, 변경·삭제 0, `terraform show -json`의 역할별 trust Principal·조건과 부착 정책 ARN이 승인 표(CLI manual 출력)와 1:1 일치. 표에 없는 principal·정책·IAM 자원이 있으면 STOP
@@ -53,20 +55,6 @@ terraform test
 ```
 
 `terraform test`는 mock provider만 쓴다. AWS·Red Hat 런타임 증적이 아니다.
-
-## 중앙 실행 대조 스크립트 `tools/rosa_prereq_check.py`
-
-승인 표(ROSA CLI 1.2.53 manual 출력 기준)를 스크립트 안에 `main.tf`와 **따로** 적어 두고 비교한다. 둘 중 하나를 바꾸면 같은 PR에서 둘 다 바꾼다.
-
-| 모드 | 하는 일 | AWS 호출 | STOP 조건 |
-|---|---|---|---|
-| `plan` | `terraform show -json` 결과 대조 | 없음 | Terraform 버전 불일치, 승인 목록 밖 자원, create(단계 2의 단계 1 자원은 no-op) 외 동작, 역할 이름·trust(Statement·Principal·Action·Condition)·부착 정책 ARN 불일치, inline 정책·permissions boundary, plan 시점 trust 미확정 |
-| `readback` | apply 뒤 실제 IAM 대조 | 조회만(`get-role`·`list-attached-role-policies`·`list-role-policies`·OIDC provider 조회). `FDS-IaC-RosaPrereq.json`으로 가능 | 계정 불일치, 역할 없음, trust·부착 정책 불일치, inline 정책 1개 이상, `oidc.op1` provider가 1개가 아님, client ID 불일치 |
-
-- 결과: exit 0 PASS, 1 STOP, 2 입력 오류. 출력에서 Red Hat 조직 External ID는 `<masked>`로 가린다. plan 모드는 plan JSON SHA-256을 출력한다.
-- `--support-principal`은 CLI `sts_support_trust_policy.json` 값을 넣는다. 커밋하지 않는다.
-- `ocm-role`·`user-role`(CLI 소유)은 대상이 아니다. manual 출력 원문과 실행 명령을 검토해 따로 대조한다.
-- 오프라인 테스트: `python3 -m unittest tests/test_rosa_prereq_check.py` (정상 단계 1·2, trust principal 추가, statement 추가, 조건 연산자 변경, AdministratorAccess 부착, 승인 밖 자원, update·delete·replace, inline 정책, trust 미확정, 버전 불일치, 입력 오류, 출력 마스킹 등 18건).
 
 ## 정리
 

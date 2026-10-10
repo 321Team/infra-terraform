@@ -89,8 +89,9 @@ v3 §3의 "AWS 콘솔 ROSA·EC2 자원 0건"을 **철회**한다. 교육장 계�
 | 산출물 | 상태 |
 |---|---|
 | A1·A3 full policy/trust JSON + 정책 SHA + Action별 한 줄 용도 설명 | rev2 작성(A3는 조회만, IAM 쓰기는 중앙 실행 경로 — README) |
-| Terraform `rosa-prereq` source + source commit SHA | 작성 예정 |
-| `.terraform.lock.hcl`(AWS 6.66.0·rhcs 1.7.9 hash) | 작성 예정 |
+| Terraform `rosa-prereq` source + source commit SHA | 작성(`terraform/rosa-prereq`). commit SHA는 실행 승인 시 고정 |
+| `.terraform.lock.hcl`(AWS 6.66.0·rhcs 1.7.9 hash) | 작성(`terraform/rosa-prereq/.terraform.lock.hcl`) |
+| 실행 도구(대조·부여) | 별도 PR(브랜치 `tools/rosa-grant-check-12`). 병합 전 실행 안 함 |
 | Terraform 1.16.4·ROSA CLI exact 버전·바이너리 SHA-256 | 설치 후 기록 |
 | 이 문서(대체 접근·inventory·부분 실패 대조) | 초안 |
 

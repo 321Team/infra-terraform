@@ -2,7 +2,7 @@
 
 상태: **DRAFT rev2 (2026-10-10) / 부여 아님 / 실행 아님**
 
-> **rev2 변경 요약:** [PR21 리뷰](https://github.com/321Team/infra-terraform/pull/21#pullrequestreview-5471849615) 차단 1(임의 trust·정책 생성/연결 경로)에 따라 **A3의 IAM 쓰기(역할·고객 정책·OIDC provider 생성·부착·삭제)를 `FDS-IaC-Operator`에서 제거하고 중앙 실행 경로로 옮겼다.** IaC 역할에는 조회 권한만 남는다. 차단 2(시뮬레이션 성공 종료 조건)는 스크립트를 다시 작성해 반영했다. 아래 [중앙 실행 경로](#중앙-실행-경로-rev2)와 [rev2 시뮬레이션](#rev2-시뮬레이션--실행-대기)을 본다.
+> **rev2 변경 요약:** [PR21 리뷰](https://github.com/321Team/infra-terraform/pull/21#pullrequestreview-5471849615) 차단 1(임의 trust·정책 생성/연결 경로)에 따라 **A3의 IAM 쓰기(역할·고객 정책·OIDC provider 생성·부착·삭제)를 `FDS-IaC-Operator`에서 제거하고 중앙 실행 경로로 옮겼다.** IaC 역할에는 조회 권한만 남는다. 차단 2(시뮬레이션 성공 종료 조건)는 스크립트를 다시 작성해 반영했다. 아래 [중앙 실행 경로](#중앙-실행-경로-rev2)와 [rev2 시뮬레이션](#rev2-시뮬레이션)을 본다.
 대상 이슈: [infra-terraform#12](https://github.com/321Team/infra-terraform/issues/12) · 원티켓 [#35](https://github.com/321Team/fds-project-baseline/issues/35)
 근거: [v3 보완판](https://github.com/321Team/fds-project-baseline/issues/35#issuecomment-6074050926), [이권욱 실행 자료 요청](https://github.com/321Team/fds-project-baseline/issues/35#issuecomment-6074663186), 실행 자료 [EXECUTION-PACK.md](EXECUTION-PACK.md)
 비용: 파일 작성·로컬 문법 검사만 — **비용 없음**
@@ -15,7 +15,7 @@
 | `FDS-IaC-RosaPrereq.json` | A3 **조회만**(생성 후 readback, Terraform plan refresh, `rosa list`) | `FDS-IaC-Operator` | A3 기간과 ROSA 운영 중 readback |
 | 중앙 실행 경로 (정책 파일 없음) | A3 **생성·부착·정리** — account/operator role, IAM OIDC provider, CLI `ocm-role`·`user-role`과 그 고객 정책 | 승인된 중앙 주체 1회 실행 | 단계별 별도 실행 승인. 위임 역할에 IAM 쓰기를 붙이지 않음 |
 
-- 위 두 정책의 생성·부착·분리와 Guardrails v2 전환은 중앙 주체가 [`tools/rosa_grant.py`](#위임-역할-정책-부여-실행기-toolsrosa_grantpy)로 한 단계씩 실행한다.
+- 위 두 정책의 생성·부착·분리와 Guardrails v2 전환은 중앙 주체가 부여 도구로 한 단계씩 실행한다. **실행 도구는 별도 PR로 분리했다**(대조 `tools/rosa_prereq_check.py`, 부여 `tools/rosa_grant.py`, 브랜치 `tools/rosa-grant-check-12`). 그 PR이 독립 리뷰를 통과해 병합되기 전에는 중앙 실행(정책 부여·Guardrails 전환·plan/apply)을 하지 않는다. 눈으로 하는 대조로 대신하지 않는다.
 - rev1의 `FDS-IaC-RosaPrereq-Cleanup.json`은 삭제했다. IaC 역할이 만들지 않으므로 정리(회수)도 중앙 실행 경로에서 한다.
 
 - A2(Red Hat 청구 연결)는 AWS 쪽 추가 권한이 필요 없다고 **가정**한다. 실행 직전 화면 흐름에서 거부가 나오면 그 Action만 추가해 리뷰를 받는다.
@@ -142,35 +142,13 @@ rev1에 있던 생성·부착 Sid 5개(`CreateTerraformOwnedRosaRoles`, `CreateC
 | 대상 | Terraform `terraform/rosa-prereq` 단계 1(account role 3 + 부착 4 + managed OIDC config + IAM OIDC provider)·단계 2(operator role 8 + 부착 8), CLI `ocm-role`(역할 1 + 고객 정책 1 + 부착 1), 필요할 때만 `user-role`, 정리 단계의 역순 삭제 |
 | 실행 주체 | 승인된 중앙 주체. 기존 10-07 중앙 bootstrap과 같은 경로를 기본안으로 한다. state bucket policy상 `phase2/rosa-prereq` state 쓰기 허용 주체는 `FDS-IaC-Operator`와 root뿐이다. **실제 실행자·작업창은 이권욱과 협의해 실행 승인에서 정한다(미정).** |
 | 고정 입력 | source commit SHA, `.terraform.lock.hcl`, Terraform 1.16.4·ROSA CLI 1.2.53 바이너리 SHA-256, 비공개 tfvars(조직 External ID 포함), CLI manual 출력 원문(`sts_*_trust_policy.json`, `sts_ocm_permission_policy.json`) |
-| 실행 전 대조 | `tools/rosa_prereq_check.py plan`으로 자동 대조(exit 0이 아니면 STOP). `terraform show -json` plan에서 역할별 `assume_role_policy`의 Principal·조건과 부착 정책 ARN을 위 trust 표·CLI 출력 표와 1:1 대조한다. 승인 표에 없는 principal·조건·정책, 대상 외 IAM 자원, 변경·삭제가 하나라도 있으면 STOP. CLI 역할은 manual 출력의 aws 명령과 정책 원문을 검토한 뒤 그 명령을 그대로 실행한다(`--mode auto` 사용 안 함) |
-| 실행 후 readback | `tools/rosa_prereq_check.py readback`으로 자동 대조. `aws iam get-role`(trust 원문 SHA)·`list-attached-role-policies`·`list-role-policies`(inline 0)·`get-open-id-connect-provider`, `rosa list account-roles / oidc-config / operator-roles / ocm-role`. readback은 IaC 역할의 조회 권한(이 문서의 `FDS-IaC-RosaPrereq`)으로도 할 수 있다 |
+| 실행 전 대조 | 대조 도구(별도 PR) `plan` 모드로 자동 대조(exit 0이 아니면 STOP). `terraform show -json` plan에서 역할별 `assume_role_policy`의 Principal·조건과 부착 정책 ARN을 위 trust 표·CLI 출력 표와 1:1 대조한다. 승인 표에 없는 principal·조건·정책, 대상 외 IAM 자원, 변경·삭제가 하나라도 있으면 STOP. CLI 역할은 manual 출력의 aws 명령과 정책 원문을 검토한 뒤 그 명령을 그대로 실행한다(`--mode auto` 사용 안 함) |
+| 실행 후 readback | 대조 도구(별도 PR) `readback` 모드로 자동 대조. `aws iam get-role`(trust 원문 SHA)·`list-attached-role-policies`·`list-role-policies`(inline 0)·`get-open-id-connect-provider`, `rosa list account-roles / oidc-config / operator-roles / ocm-role`. readback은 IaC 역할의 조회 권한(이 문서의 `FDS-IaC-RosaPrereq`)으로도 할 수 있다 |
 | 증적 | 명령·시각·RC·plan JSON·readback 원본을 비공개 보관하고, 마스킹된 대조표를 증적 PR로 독립 리뷰 |
+| 실행 도구 | **실행 도구는 별도 PR로 분리했다**(대조 `tools/rosa_prereq_check.py`, 부여 `tools/rosa_grant.py`, 브랜치 `tools/rosa-grant-check-12`). 그 PR이 독립 리뷰를 통과해 병합되기 전에는 중앙 실행(정책 부여·Guardrails 전환·plan/apply)을 하지 않는다. 눈으로 하는 대조로 대신하지 않는다. |
 | 하지 않는 것 | 위임 역할에 IAM 쓰기 부착, permissions boundary만으로의 대체, IAM simulation으로 trust 내용을 검증했다고 표시하기 |
 
-## 위임 역할 정책 부여 실행기 `tools/rosa_grant.py`
-
-`FDS-IaC-Operator`에 이 폴더의 정책을 붙이고 Guardrails를 v2로 바꾸는 IAM 쓰기를 **한 번 실행에 한 건씩** 한다. 중앙 실행 주체가 실행 승인 뒤에 돌린다. 역할·OIDC 생성(Terraform)과 trust 변경은 하지 않는다.
-
-| 순서 | step | 쓰기 1건 | 실행 전 조건(아니면 STOP) | 실행 후 readback |
-|---|---|---|---|---|
-| 1 | `guardrails-v2` | `create-policy-version --set-as-default` | live 기본 버전 = v1 원문, 버전 5개 미만, Guardrails가 이 역할에만 부착, 역할 부착 = 기본 4개, inline 0 | 기본 버전 = v2 후보 원문 |
-| 2 | `subscribe-create` | `create-policy` FDS-RosaBootstrap-Subscribe | Guardrails v2, 같은 이름 정책 없음(기존 정책 채택 안 함) | 원문 일치, 버전 1개, 미부착 |
-| 3 | `subscribe-attach` | `attach-role-policy` | 이 ledger가 만든 PolicyId, 원문 일치, 미부착 | 이 역할에만 부착 |
-| — | (A1 활성화와 readback) | 실행기 밖 | | |
-| 4 | `subscribe-detach` | `detach-role-policy` | 부착 상태 | 어디에도 미부착 |
-| 5 | `prereq-create` | `create-policy` FDS-IaC-RosaPrereq | 2와 같음 | 2와 같음 |
-| 6 | `prereq-attach` | `attach-role-policy` | 3과 같음 | 3과 같음 |
-| 되돌림 | `prereq-detach`·`subscribe-delete`·`prereq-delete`·`guardrails-v1` | 분리·삭제·기본 버전 v1 복귀 | 삭제는 **이 ledger가 만든 PolicyId**·미부착·버전 1개일 때만. v1 복귀는 ROSA 정책이 모두 분리된 뒤에만 | 각 결과 |
-
-- 기본은 dry-run이다. 조건 확인 뒤 실행할 aws 명령만 출력한다. 실제 쓰기는 `--execute`를 붙일 때만 한다.
-- 매번 `SHA256SUMS`로 정책 파일을 확인하고, 호출 주체 ARN이 `--expected-caller`와 정확히 같은지 확인한다.
-- 쓰기 뒤에는 IAM 반영 지연을 고려해 readback을 최대 12회(5초 간격) 반복한다. 그래도 조건이 맞지 않으면 STOP한다.
-- ledger(`--ledger-dir`, 0700, 저장소 밖)에는 argv·RC·UTC·stdout SHA-256·PolicyId·정책 파일 SHA-256을 남긴다. 자격 증명은 기록하지 않는다.
-- Guardrails의 남은 v2 버전은 삭제하지 않는다. 기본 버전이 아니면 효과가 없다.
-- 사용 예: `python3 tools/rosa_grant.py --expected-caller <승인된 ARN> --ledger-dir <비공개 경로> status`, 이어서 `... guardrails-v2`(dry-run) → `... guardrails-v2 --execute`.
-- 오프라인 테스트: `python3 -m unittest tests/test_rosa_grant.py` (18건: 정방향 6단계와 되돌림 4단계, dry-run 무쓰기, 1회 1쓰기, 호출 주체 불일치, 순서 위반, 동명 정책 채택·삭제 거부, live v1 drift, 다른 주체에 Guardrails 공유, 버전 한도, 예상 외 부착·inline, 쓰기 실패 기록, 반영 지연 재시도·미수렴, 원문 hash 불일치, v2 = v1 + NotAction 11개).
-
-## rev2 시뮬레이션 — 실행 대기
+## rev2 시뮬레이션
 
 - 스크립트: `sim-rosa-guardrails-v2.sh` rev2(SHA는 `SHA256SUMS`). rev1 결과(아래)는 이전 정책 기준이며 rev2 정책에는 적용하지 않는다.
 - 성공 조건(리뷰 차단 2 반영): ① `sts get-caller-identity` 성공 + 계정 `774055931866` + 실행자 ARN이 `EXPECTED_ARN`(기본 `321team-hayeoung`)과 일치 ② live `FDS-IaC-Guardrails` 기본 버전이 내장 v1과 정규화 비교 MATCH(DIFF·읽기 실패는 exit 2) ③ 내장 후보 v2 = v1 + 조회·Subscribe 11개와 파일 원문 일치 ④ 각 API 호출 RC와 결과 파싱 성공 ⑤ case 35개, 고유 ID, 기대 ID 집합 일치, 모두 PASS ⑥ MissingContextValues **case별 기대값**(rev2.1): allowed·explicitDeny는 빈 목록, implicitDeny는 "입력 정책들의 Condition 키 집합 − 그 case에 준 context 키 집합"과 정확히 같아야 한다. 다르면 그 case를 FAIL로 기록한다.
