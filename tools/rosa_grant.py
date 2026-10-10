@@ -8,6 +8,21 @@ One reviewed IAM write per invocation. Each `run <step>`:
   4. with --execute: runs that single write, re-reads state until the postcondition holds,
      and appends argv/RC/UTC/IDs to a private ledger (no credentials are recorded).
 
+Ledger = durable journal (PR21 review B1). One run_id per write, appended and fsynced in phases:
+  INTENT          before the write (if this cannot be recorded, no write is made)
+  WRITE_RETURNED  RC, stdout hash and IDs from the write response, before any readback
+  OUTCOME_UNKNOWN the write call raised (timeout, interrupted, ...)
+  READBACK        result of the bounded readback (verified true/false)
+  RECONCILED      `reconcile --run-id` compared live state with the step pre/post: APPLIED or NOT_APPLIED
+A run is resolved only when READBACK verified=true or RECONCILED. While any run is unresolved, every
+step STOPs: inspect the ledger and live IAM, then `reconcile --run-id <id> --execute`. A run whose live
+state matches neither pre nor post is AMBIGUOUS and stays unresolved for manual review; nothing is
+rewritten or deleted automatically. A lock file in the ledger dir blocks concurrent runs; a stale lock
+after a crash is removed by hand after review.
+
+Supported: POSIX only (Linux, AWS CloudShell), Python 3.9+, AWS CLI v2. Windows is refused at start
+because the private ledger relies on POSIX file modes.
+
 Steps (A1 → A3; rollback steps are listed in STEPS too):
   guardrails-v2     FDS-IaC-Guardrails new default version = v2 candidate (v1 + 11 NotAction)
   subscribe-create  CreatePolicy FDS-RosaBootstrap-Subscribe (not attached)
@@ -32,6 +47,7 @@ from pathlib import Path
 import subprocess
 import sys
 import time
+import uuid
 
 ACCOUNT = '774055931866'
 ROLE = 'FDS-IaC-Operator'
@@ -58,6 +74,9 @@ NEW = {
     'prereq': ('FDS-IaC-RosaPrereq', 'phase2-rosa-a3-read'),
 }
 MAX_POLICY_VERSIONS = 5
+AWS_TIMEOUT_SECONDS = 120
+LEDGER_NAME = 'rosa-grant-ledger.jsonl'
+LOCK_NAME = 'rosa-grant.lock'
 
 
 class Stop(RuntimeError):
@@ -92,8 +111,19 @@ def load_sources():
 
 
 def aws_cli(*args):
-    proc = subprocess.run(['aws', *args, '--output', 'json'], capture_output=True, text=True)
+    proc = subprocess.run(['aws', *args, '--output', 'json'], capture_output=True, text=True,
+                          timeout=AWS_TIMEOUT_SECONDS)
     return proc.returncode, proc.stdout, proc.stderr
+
+
+def require_posix():
+    if os.name != 'posix':
+        raise InputError('POSIX only (Linux / AWS CloudShell). Windows is not supported: '
+                         'the private ledger relies on POSIX file modes.')
+
+
+def file_mode(path):
+    return os.stat(path).st_mode & 0o777
 
 
 class Aws:
@@ -212,10 +242,12 @@ def make_create(key):
 def owned(key, s, ledger):
     """Policy must be the exact one this ledger created (PolicyId match), not just the same name."""
     p = s['policies'][key]
-    created = [e for e in ledger if e.get('step') == f'{key}-create' and e.get('verified')]
+    created = [ids for entries in runs_of(ledger).values()
+               if entries[0].get('step') == f'{key}-create'
+               for ids in [applied_ids(entries)] if ids is not None]
     if p is None:
         return [f'{NEW[key][0]} not found']
-    if not created or created[-1]['ids'].get('policy_id') != p['id']:
+    if not created or created[-1].get('policy_id') != p['id']:
         return [f'{NEW[key][0]} PolicyId {p["id"]} is not recorded as created by this ledger']
     return []
 
@@ -345,26 +377,140 @@ def summary(s, src):
 def read_ledger(path):
     if not path.exists():
         return []
-    return [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+    entries = []
+    for n, line in enumerate(path.read_text(encoding='utf-8').splitlines(), 1):
+        if not line.strip():
+            continue
+        try:
+            e = json.loads(line)
+        except ValueError:
+            raise InputError(f'ledger line {n} is not JSON; review the ledger by hand before any run')
+        if not isinstance(e, dict) or not e.get('run_id') or not e.get('phase'):
+            raise InputError(f'ledger line {n} has no run_id/phase (unsupported format); review by hand')
+        entries.append(e)
+    return entries
 
 
-def run(step, expected_caller, ledger_dir, execute, aws=None, sleep=time.sleep, attempts=12):
+def append_journal(path, entry):
+    """Append one line and fsync. Raises Stop if it cannot be made durable."""
+    try:
+        fd = os.open(path, os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o600)
+        with os.fdopen(fd, 'a', encoding='utf-8') as fh:
+            fh.write(json.dumps(entry, ensure_ascii=False, sort_keys=True) + '\n')
+            fh.flush()
+            os.fsync(fh.fileno())
+    except OSError as e:
+        raise Stop(f'ledger write failed ({entry.get("phase")}): {e}')
+    if file_mode(path) & 0o077:
+        raise Stop(f'ledger file must be private (0600): {path}')
+
+
+def runs_of(ledger):
+    out = {}
+    for e in ledger:
+        out.setdefault(e['run_id'], []).append(e)
+    return out
+
+
+def applied_ids(entries):
+    """IDs of a run that is resolved as applied, else None."""
+    last = entries[-1]
+    if last['phase'] == 'READBACK' and last.get('verified'):
+        return last.get('ids', {})
+    if last['phase'] == 'RECONCILED' and last.get('outcome') == 'APPLIED':
+        return last.get('ids', {})
+    return None
+
+
+def unresolved(ledger):
+    bad = []
+    for run_id, entries in runs_of(ledger).items():
+        last = entries[-1]
+        if (last['phase'] == 'READBACK' and last.get('verified')) or last['phase'] == 'RECONCILED':
+            continue
+        bad.append((run_id, entries[0].get('step'), last['phase']))
+    return bad
+
+
+def response_ids(out):
+    """IDs returned by the write itself (kept even if the later readback fails)."""
+    try:
+        body = json.loads(out or '{}')
+    except ValueError:
+        return {'response_parse_error': True}
+    if not isinstance(body, dict):
+        return {'response_parse_error': True}
+    ids = {}
+    pol = body.get('Policy') or {}
+    for k in ('PolicyId', 'Arn'):
+        if pol.get(k):
+            ids[k] = pol[k]
+    ver = body.get('PolicyVersion') or {}
+    if ver.get('VersionId'):
+        ids['VersionId'] = ver['VersionId']
+    return ids
+
+
+class Lock:
+    def __init__(self, ledger_dir):
+        self.path = Path(ledger_dir) / LOCK_NAME
+        self.held = False
+
+    def __enter__(self):
+        try:
+            fd = os.open(self.path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        except FileExistsError:
+            raise Stop(f'lock {self.path} exists: another run is in progress or a previous run stopped '
+                       'abnormally. Review the ledger and live IAM, then remove the lock by hand.')
+        with os.fdopen(fd, 'w') as fh:
+            fh.write(f'pid={os.getpid()} utc={utc()}\n')
+        self.held = True
+        return self
+
+    def __exit__(self, *exc):
+        if self.held:
+            self.path.unlink()
+
+
+READ_ERRORS = (Stop, KeyError, ValueError, TypeError, OSError, subprocess.SubprocessError)
+
+
+def print_summary(s, src):
+    try:
+        for line in summary(s, src):
+            print(line)
+    except (KeyError, TypeError) as e:
+        print(f'summary unavailable: {type(e).__name__}')
+
+
+def run(step, expected_caller, ledger_dir, execute, aws=None, sleep=time.sleep, attempts=12, run_id=None):
+    require_posix()
     aws = aws or Aws()
     src = load_sources()
     ledger_dir = Path(ledger_dir)
     ledger_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
-    if ledger_dir.stat().st_mode & 0o077:
+    if file_mode(ledger_dir) & 0o077:
         raise InputError(f'ledger dir must be private (0700): {ledger_dir}')
-    ledger_path = ledger_dir / 'rosa-grant-ledger.jsonl'
+    ledger_path = ledger_dir / LEDGER_NAME
+    if ledger_path.exists() and file_mode(ledger_path) & 0o077:
+        raise InputError(f'ledger file must be private (0600): {ledger_path}')
     ledger = read_ledger(ledger_path)
 
     s = aws.state()
     if s['caller'].get('Account') != ACCOUNT or s['caller'].get('Arn') != expected_caller:
         raise Stop(f'caller mismatch: {s["caller"].get("Arn")} != {expected_caller}')
-    for line in summary(s, src):
-        print(line)
+    print_summary(s, src)
+    pending = unresolved(ledger)
+    for rid, st, phase in pending:
+        print(f'UNRESOLVED run_id={rid} step={st} last_phase={phase}')
     if step == 'status':
         return 0
+    if step == 'reconcile':
+        return reconcile(run_id, s, src, ledger, ledger_path, execute)
+    if pending:
+        print('STOP  unresolved run(s) above: review live IAM, then `reconcile --run-id <id> --execute`. '
+              'No new write until every run is resolved.')
+        return 1
 
     spec = STEPS[step]
     fails = spec['pre'](s, src, ledger)
@@ -378,45 +524,109 @@ def run(step, expected_caller, ledger_dir, execute, aws=None, sleep=time.sleep, 
         print('dry-run: no write. Re-run with --execute inside the approved window.')
         return 0
 
-    entry = {'utc_start': utc(), 'step': step, 'caller': s['caller'].get('Arn'), 'argv': ['aws', *argv],
-             'source_sha256': {k: sha256(Path(p).read_bytes()) for k, (p, _) in src.items()}}
-    rc, out, err = aws.call(*argv)
-    entry.update(rc=rc, stdout_sha256=sha256(out.encode()), stderr=err.strip()[:500], utc_end=utc())
-    fails = [f'write rc={rc}'] if rc != 0 else []
-    if rc == 0:
-        for i in range(attempts):
-            s = aws.state()
-            fails = spec['post'](s, src, ledger)
+    with Lock(ledger_dir):
+        entry = {'run_id': uuid.uuid4().hex, 'step': step, 'caller': s['caller'].get('Arn'),
+                 'argv': ['aws', *argv],
+                 'source_sha256': {k: sha256(Path(p).read_bytes()) for k, (p, _) in src.items()}}
+        append_journal(ledger_path, dict(entry, phase='INTENT', utc=utc()))
+        try:
+            rc, out, err = aws.call(*argv)
+        except Exception as exc:
+            append_journal(ledger_path, dict(entry, phase='OUTCOME_UNKNOWN', utc=utc(),
+                                             error=f'{type(exc).__name__}: {str(exc)[:300]}'))
+            raise Stop(f'write outcome unknown ({type(exc).__name__}); run_id={entry["run_id"]} stays '
+                       'unresolved until reconciled')
+        append_journal(ledger_path, dict(entry, phase='WRITE_RETURNED', utc=utc(), rc=rc,
+                                         stdout_sha256=sha256(out.encode()), stderr=err.strip()[:500],
+                                         response_ids=response_ids(out)))
+        fails = [f'write rc={rc}'] if rc != 0 else ['readback not completed']
+        ids = {}
+        if rc == 0:
+            for i in range(attempts):
+                try:
+                    s = aws.state()
+                    fails = spec['post'](s, src, ledger)
+                except READ_ERRORS as exc:
+                    fails = [f'readback failed: {type(exc).__name__}: {str(exc)[:300]}']
+                if not fails:
+                    break
+                if i + 1 < attempts:
+                    sleep(5)
             if not fails:
-                break
-            sleep(5)
-        entry['ids'] = spec['record'](s) if not fails else {}
-    entry.update(verified=not fails, post_failures=fails, utc_readback=utc())
-    with ledger_path.open('a') as fh:
-        fh.write(json.dumps(entry, ensure_ascii=False, sort_keys=True) + '\n')
-    os.chmod(ledger_path, 0o600)
-    for line in summary(s, src):
-        print(line)
+                ids = spec['record'](s)
+        append_journal(ledger_path, dict(entry, phase='READBACK', utc=utc(), verified=not fails,
+                                         post_failures=fails, ids=ids))
+    print_summary(s, src)
     for f in fails:
         print(f'STOP  post: {f}')
-    print(f'result={"VERIFIED" if not fails else "STOP"} step={step} ledger={ledger_path}')
+    if fails:
+        print(f'run_id={entry["run_id"]} is unresolved: review, then `reconcile --run-id {entry["run_id"]}`')
+    print(f'result={"VERIFIED" if not fails else "STOP"} step={step} run_id={entry["run_id"]} '
+          f'ledger={ledger_path}')
     return 0 if not fails else 1
+
+
+def reconcile(run_id, s, src, ledger, ledger_path, execute):
+    """Resolve an unresolved run by comparing live state with that step's pre/post. Ledger-only write."""
+    if not run_id:
+        raise InputError('reconcile needs --run-id')
+    runs = runs_of(ledger)
+    if run_id not in runs:
+        raise InputError(f'run_id {run_id} not in ledger')
+    if run_id not in {r for r, _, _ in unresolved(ledger)}:
+        raise InputError(f'run_id {run_id} is already resolved')
+    entries = runs[run_id]
+    step = entries[0]['step']
+    spec = STEPS[step]
+    others = [e for e in ledger if e['run_id'] != run_id]
+    post = spec['post'](s, src, others)
+    pre = spec['pre'](s, src, others)
+    returned = next((e for e in entries if e['phase'] == 'WRITE_RETURNED'), {})
+    if not post and pre:
+        outcome, ids = 'APPLIED', spec['record'](s)
+        want = returned.get('response_ids', {}).get('PolicyId')
+        if want and ids.get('policy_id') != want:
+            outcome = 'AMBIGUOUS'
+            print(f'STOP  live PolicyId {ids.get("policy_id")} != PolicyId returned by the write {want}')
+    elif post and not pre:
+        outcome, ids = 'NOT_APPLIED', {}
+    else:
+        outcome, ids = 'AMBIGUOUS', {}
+    print(f'reconcile run_id={run_id} step={step} outcome={outcome}')
+    for f in pre:
+        print(f'      pre now fails: {f}')
+    for f in post:
+        print(f'      post now fails: {f}')
+    if outcome == 'AMBIGUOUS':
+        print('STOP  live state matches neither the step precondition nor its postcondition; '
+              'manual review. The run stays unresolved.')
+        return 1
+    if not execute:
+        print('dry-run: ledger not changed. Re-run with --execute to record RECONCILED.')
+        return 0
+    with Lock(ledger_path.parent):
+        append_journal(ledger_path, {'run_id': run_id, 'step': step, 'phase': 'RECONCILED', 'utc': utc(),
+                                     'caller': s['caller'].get('Arn'), 'outcome': outcome, 'ids': ids})
+    print(f'result=RECONCILED outcome={outcome} run_id={run_id}')
+    return 0
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
     ap.add_argument('--expected-caller', required=True, help='exact ARN of the approved central session')
     ap.add_argument('--ledger-dir', required=True, help='private 0700 directory outside the repo')
-    ap.add_argument('step', choices=['status', *STEPS])
-    ap.add_argument('--execute', action='store_true', help='perform the single write (default: dry-run)')
+    ap.add_argument('step', choices=['status', 'reconcile', *STEPS])
+    ap.add_argument('--execute', action='store_true',
+                    help='perform the single write, or record RECONCILED (default: dry-run)')
+    ap.add_argument('--run-id', help='reconcile only: the unresolved run to resolve')
     args = ap.parse_args(argv)
     try:
-        return run(args.step, args.expected_caller, args.ledger_dir, args.execute)
+        return run(args.step, args.expected_caller, args.ledger_dir, args.execute, run_id=args.run_id)
     except InputError as e:
         print(f'INPUT ERROR: {e}', file=sys.stderr)
         return 2
-    except (Stop, KeyError, ValueError) as e:
-        print(f'STOP: {e}', file=sys.stderr)
+    except READ_ERRORS as e:
+        print(f'STOP: {type(e).__name__}: {e}', file=sys.stderr)
         return 1
 
 

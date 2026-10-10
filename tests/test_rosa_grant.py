@@ -1,4 +1,4 @@
-"""Offline only: no AWS process or credentials required."""
+"""Offline only: no AWS process or credentials required. POSIX only, like the runner itself."""
 import importlib.util
 import io
 import json
@@ -75,10 +75,12 @@ class FakeIam:
         doc = lambda: json.loads(Path(opt['--policy-document'][len('file://'):]).read_text())
         if op == 'create-policy':
             self._create(name, doc())
+            return ok({'Policy': {'PolicyId': self.policies[name]['id'], 'Arn': m.arn(name)}})
         elif op == 'create-policy-version':
             v = f'v{len(p["docs"]) + 1}'
             p['docs'][v] = doc()
             p['default'] = v
+            return ok({'PolicyVersion': {'VersionId': v, 'IsDefaultVersion': True}})
         elif op == 'set-default-policy-version':
             p['default'] = opt['--version-id']
         elif op == 'attach-role-policy':
@@ -110,6 +112,37 @@ class Lagging(m.Aws):
         return super().state()
 
 
+class ReadErrorsAfterWrite(m.Aws):
+    """After the first write, the next N state reads fail (denied / corrupt JSON / timeout)."""
+
+    def __init__(self, fake, n, kind='denied'):
+        super().__init__(fake)
+        self.n, self.kind, self.base = n, kind, len(fake.writes)
+
+    def state(self):
+        if len(self.call.writes) > self.base and self.n:
+            self.n -= 1
+            if self.kind == 'denied':
+                raise m.Stop('read failed: aws iam get-policy rc=254 AccessDenied')
+            if self.kind == 'corrupt':
+                raise ValueError('Expecting value: line 1 column 1 (char 0)')
+            raise m.subprocess.TimeoutExpired(['aws'], 120)
+        return super().state()
+
+
+def raising_call(fake, apply_first):
+    def call(*args):
+        if args[1] in WRITES:
+            if apply_first:
+                fake(*args)
+            else:
+                fake.writes.append(args)
+            raise m.subprocess.TimeoutExpired(['aws', *args], 120)
+        return fake(*args)
+    return call
+
+
+@unittest.skipUnless(os.name == 'posix', 'runner is POSIX only (Linux / CloudShell)')
 class Runner(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -119,10 +152,11 @@ class Runner(unittest.TestCase):
     def tearDown(self):
         self.tmp.cleanup()
 
-    def run_step(self, step, execute=True, aws=None, caller=CALLER):
+    def run_step(self, step, execute=True, aws=None, caller=CALLER, run_id=None):
         buf = io.StringIO()
         with redirect_stdout(buf):
-            rc = m.run(step, caller, self.ledger, execute, aws=aws or m.Aws(self.fake), sleep=lambda s: None)
+            rc = m.run(step, caller, self.ledger, execute, aws=aws or m.Aws(self.fake), sleep=lambda s: None,
+                       run_id=run_id)
         self.out = buf.getvalue()
         return rc
 
@@ -132,7 +166,15 @@ class Runner(unittest.TestCase):
             self.assertEqual(self.run_step(step), 0, (step, self.out))
 
     def ledger_entries(self):
-        return [json.loads(x) for x in (self.ledger / 'rosa-grant-ledger.jsonl').read_text().splitlines()]
+        return [json.loads(x) for x in (self.ledger / m.LEDGER_NAME).read_text(encoding='utf-8').splitlines()]
+
+    def runs(self):
+        return m.runs_of(self.ledger_entries())
+
+    def only_unresolved(self):
+        bad = m.unresolved(self.ledger_entries())
+        self.assertEqual(len(bad), 1, bad)
+        return bad[0][0]
 
     def test_full_forward_then_rollback(self):
         self.full_forward()
@@ -143,16 +185,22 @@ class Runner(unittest.TestCase):
         self.assertEqual(self.fake.attached, m.BASE_ATTACHED)
         self.assertNotIn('FDS-IaC-RosaPrereq', self.fake.policies)
         self.assertEqual(self.fake.policies['FDS-IaC-Guardrails']['default'], 'v1')
-        entries = self.ledger_entries()
-        self.assertEqual(len(entries), 10)
-        self.assertTrue(all(e['verified'] and e['rc'] == 0 for e in entries))
-        self.assertEqual(os.stat(self.ledger).st_mode & 0o777, 0o700)
+        runs = self.runs()
+        self.assertEqual(len(runs), 10)
+        for entries in runs.values():
+            self.assertEqual([e['phase'] for e in entries], ['INTENT', 'WRITE_RETURNED', 'READBACK'])
+            self.assertEqual(entries[1]['rc'], 0)
+            self.assertTrue(entries[2]['verified'])
+        self.assertEqual(m.unresolved(self.ledger_entries()), [])
+        self.assertEqual(m.file_mode(self.ledger), 0o700)
+        self.assertEqual(m.file_mode(self.ledger / m.LEDGER_NAME), 0o600)
+        self.assertFalse((self.ledger / m.LOCK_NAME).exists())
 
     def test_dry_run_never_writes(self):
         self.assertEqual(self.run_step('guardrails-v2', execute=False), 0)
         self.assertIn('PLAN  aws iam create-policy-version', self.out)
         self.assertEqual(self.fake.writes, [])
-        self.assertFalse((self.ledger / 'rosa-grant-ledger.jsonl').exists())
+        self.assertFalse((self.ledger / m.LEDGER_NAME).exists())
 
     def test_one_write_per_run(self):
         self.run_step('guardrails-v2')
@@ -209,8 +257,16 @@ class Runner(unittest.TestCase):
     def test_write_failure_recorded_and_stops(self):
         self.fake.fail_write = 'create-policy-version'
         self.assertEqual(self.run_step('guardrails-v2'), 1)
-        e = self.ledger_entries()[-1]
-        self.assertEqual((e['rc'], e['verified']), (254, False))
+        returned, readback = self.ledger_entries()[1:]
+        self.assertEqual((returned['rc'], readback['verified']), (254, False))
+        # a failed write is still unresolved until compared with live state
+        rid = self.only_unresolved()
+        self.fake.fail_write = None
+        self.assertEqual(self.run_step('guardrails-v2'), 1)
+        self.assertIn('unresolved run', self.out)
+        self.assertEqual(self.run_step('reconcile', run_id=rid), 0)
+        self.assertEqual(self.ledger_entries()[-1]['outcome'], 'NOT_APPLIED')
+        self.assertEqual(self.run_step('guardrails-v2'), 0, self.out)
 
     def test_eventual_consistency_retries_readback(self):
         self.assertEqual(self.run_step('guardrails-v2', aws=Lagging(self.fake, 3)), 0, self.out)
@@ -218,6 +274,128 @@ class Runner(unittest.TestCase):
     def test_readback_never_converges_stops(self):
         self.assertEqual(self.run_step('guardrails-v2', aws=Lagging(self.fake, 99)), 1)
         self.assertFalse(self.ledger_entries()[-1]['verified'])
+        self.only_unresolved()
+
+    # --- PR21 review B1: write succeeded, readback raised ---
+    def test_create_then_read_denied(self):
+        self.check_create_then_read_error('denied')
+
+    def test_create_then_read_corrupt_json(self):
+        self.check_create_then_read_error('corrupt')
+
+    def test_create_then_read_timeout(self):
+        self.check_create_then_read_error('timeout')
+
+    def check_create_then_read_error(self, kind):
+        self.run_step('guardrails-v2')
+        self.assertEqual(self.run_step('subscribe-create', aws=ReadErrorsAfterWrite(self.fake, 99, kind)), 1)
+        created = self.fake.policies['FDS-RosaBootstrap-Subscribe']['id']
+        rid = self.only_unresolved()
+        returned = self.runs()[rid][1]
+        self.assertEqual(returned['phase'], 'WRITE_RETURNED')
+        self.assertEqual(returned['response_ids']['PolicyId'], created)
+        self.assertIn('readback failed', self.ledger_entries()[-1]['post_failures'][0])
+        # no new write, not even rollback, until reconciled
+        n = len(self.fake.writes)
+        self.assertEqual(self.run_step('subscribe-attach'), 1)
+        self.assertEqual(self.run_step('subscribe-delete'), 1)
+        self.assertEqual(len(self.fake.writes), n)
+        # reconcile: dry-run does not touch the ledger, --execute records APPLIED with the same id
+        before = len(self.ledger_entries())
+        self.assertEqual(self.run_step('reconcile', execute=False, run_id=rid), 0)
+        self.assertEqual(len(self.ledger_entries()), before)
+        self.assertEqual(self.run_step('reconcile', run_id=rid), 0, self.out)
+        last = self.ledger_entries()[-1]
+        self.assertEqual((last['outcome'], last['ids']['policy_id']), ('APPLIED', created))
+        # the reviewer's case: subscribe-delete can now find its own PolicyId
+        self.assertEqual(self.run_step('subscribe-delete'), 0, self.out)
+
+    def test_transient_read_error_then_recovers(self):
+        self.run_step('guardrails-v2')
+        self.assertEqual(self.run_step('subscribe-create', aws=ReadErrorsAfterWrite(self.fake, 2)), 0, self.out)
+        self.assertEqual(m.unresolved(self.ledger_entries()), [])
+
+    def test_write_call_raises_outcome_unknown(self):
+        self.run_step('guardrails-v2')
+        for apply_first, outcome in ((False, 'NOT_APPLIED'), (True, 'APPLIED')):
+            with self.subTest(apply_first=apply_first):
+                with self.assertRaises(m.Stop):
+                    self.run_step('subscribe-create', aws=m.Aws(raising_call(self.fake, apply_first)))
+                rid = self.only_unresolved()
+                self.assertEqual([e['phase'] for e in self.runs()[rid]], ['INTENT', 'OUTCOME_UNKNOWN'])
+                self.assertFalse((self.ledger / m.LOCK_NAME).exists())
+                self.assertEqual(self.run_step('reconcile', run_id=rid), 0, self.out)
+                self.assertEqual(self.ledger_entries()[-1]['outcome'], outcome)
+
+    def test_intent_not_durable_means_no_write(self):
+        real = m.append_journal
+        try:
+            def broken(path, entry):
+                raise m.Stop('ledger write failed (INTENT): No space left on device')
+            m.append_journal = broken
+            with self.assertRaises(m.Stop):
+                self.run_step('guardrails-v2')
+        finally:
+            m.append_journal = real
+        self.assertEqual(self.fake.writes, [])
+
+    def test_readback_record_not_durable_leaves_run_unresolved(self):
+        real = m.append_journal
+        try:
+            def broken(path, entry):
+                if entry['phase'] == 'READBACK':
+                    raise m.Stop('ledger write failed (READBACK): I/O error')
+                real(path, entry)
+            m.append_journal = broken
+            with self.assertRaises(m.Stop):
+                self.run_step('guardrails-v2')
+        finally:
+            m.append_journal = real
+        rid = self.only_unresolved()
+        self.assertEqual(self.runs()[rid][-1]['phase'], 'WRITE_RETURNED')
+        self.assertEqual(self.run_step('subscribe-create'), 1)
+
+    def test_lock_blocks_concurrent_run(self):
+        self.run_step('status')
+        (self.ledger / m.LOCK_NAME).write_text('pid=1\n')
+        with self.assertRaises(m.Stop):
+            self.run_step('guardrails-v2')
+        self.assertEqual(self.fake.writes, [])
+
+    def test_ambiguous_reconcile_stays_unresolved(self):
+        self.fake.fail_write = 'create-policy-version'
+        self.run_step('guardrails-v2')
+        rid = self.only_unresolved()
+        g = self.fake.policies['FDS-IaC-Guardrails']
+        g['docs']['v2'] = SRC['v2'][1]  # v2 version exists but is not default: neither pre nor post
+        self.assertEqual(self.run_step('reconcile', run_id=rid), 1)
+        self.assertIn('AMBIGUOUS', self.out)
+        self.assertEqual(self.only_unresolved(), rid)
+
+    def test_reconcile_input_errors(self):
+        self.run_step('guardrails-v2')
+        rid = next(iter(self.runs()))
+        with self.assertRaises(m.InputError):
+            self.run_step('reconcile', run_id=rid)  # already resolved
+        with self.assertRaises(m.InputError):
+            self.run_step('reconcile', run_id='nope')
+        with self.assertRaises(m.InputError):
+            self.run_step('reconcile')
+
+    def test_corrupt_or_old_format_ledger_refused(self):
+        self.run_step('status')
+        path = self.ledger / m.LEDGER_NAME
+        for line in ('not json', json.dumps({'step': 'guardrails-v2', 'verified': True})):
+            path.write_text(line + '\n')
+            os.chmod(path, 0o600)
+            with self.assertRaises(m.InputError):
+                self.run_step('status')
+
+    def test_public_ledger_file_refused(self):
+        self.run_step('guardrails-v2')
+        os.chmod(self.ledger / m.LEDGER_NAME, 0o644)
+        with self.assertRaises(m.InputError):
+            self.run_step('status')
 
     def test_rollback_v1_requires_rosa_policies_detached(self):
         self.full_forward()
@@ -257,6 +435,17 @@ class Runner(unittest.TestCase):
         a1, a2 = s1['DenyOutsideSeoul']['NotAction'], s2['DenyOutsideSeoul']['NotAction']
         self.assertEqual(a2[:len(a1)], a1)
         self.assertEqual(len(a2) - len(a1), 11)
+
+
+class Platform(unittest.TestCase):
+    def test_non_posix_refused_at_start(self):
+        real = m.os.name
+        try:
+            m.os.name = 'nt'
+            with self.assertRaises(m.InputError):
+                m.require_posix()
+        finally:
+            m.os.name = real
 
 
 if __name__ == '__main__':
