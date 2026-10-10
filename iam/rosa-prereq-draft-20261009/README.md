@@ -170,6 +170,10 @@ rev1에 있던 생성·부착 Sid 5개(`CreateTerraformOwnedRosaRoles`, `CreateC
 | B(12) 후보 v2 | allowed 12/12 — 역할·정책·OIDC 조회, ListRoles·ListOpenIDConnectProviders, ROSA Subscribe·ViewSubscriptions |
 | **W(11) IaC 허용 정책만(Guardrails 없이)** | **implicitDeny 11/11** — 역할 생성(account·CLI), prefix 정책 생성, ROSA·prefix·Admin 정책 부착, OIDC 생성, trust 변경, 삭제, 태그, PassRole. 위임 역할에는 IAM 쓰기 권한이 없다 |
 | N(7) 후보 v2에서도 거부 | 7/7 — 생성·부착 explicitDeny, Unsubscribe explicitDeny, 다른 제품 Subscribe implicitDeny, us-east-1 EC2 explicitDeny, 다른 역할·Admin 정책 조회 implicitDeny |
+
+- **rev2.2(PR21 리뷰 B3)**: `finish()`만 바꿨다. 종료 기록(`meta.txt`)·manifest(`SHA256SUMS`) 생성·대조 중 하나라도 실패하면 PASS로 끝나지 않는다(원래 code가 0이면 1, 0이 아니면 원래 code 유지). 원래 결과는 stderr에 남긴다. 각 단계 RC는 명령 직후 직접 받는다(`if ! ( … ) > file` 형태는 리다이렉트 실패를 놓쳐 쓰지 않음, bash 5.3에서 확인). 정책·case·기대 판정·MissingContextValues 계약은 rev2.1과 같다. 스크립트 SHA-256은 `SHA256SUMS`.
+  - 로컬 고장 주입(2026-10-10, Git Bash 5.3, AWS 미접속, `finish()`만 떼어 실행): 정상 exit 0 / meta 쓰기 실패 1 / manifest 쓰기 실패 1 / 해시 계산 실패 1 / manifest 대조 실패 1 / 원래 FAIL 1 / 원래 DIFF(2)+manifest 실패 2 / 원래 DIFF(2) 2. 실제 AWS 실행이 아니다.
+  - 위 rev2.1 PASS 35/35는 rev2.1 스크립트(`7240f17f…`) 결과다. rev2.2로 다시 실행하지 않았다.
 | MissingContextValues | 35/35 case별 기대값과 일치(implicitDeny 14건은 조건 키 − 제공 키, 나머지 21건은 빈 목록) |
 
   - 제출 범위: 사용자 화면 출력(case 행·summary 표·result 줄)이다. 원격 폴더의 `meta.txt`·`SHA256SUMS`·case별 input/out JSON은 CloudShell 다운로드 권한이 없어 받지 못했으며, 원격 원본을 재해시했다고 주장하지 않는다.

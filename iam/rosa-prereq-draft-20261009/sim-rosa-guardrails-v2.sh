@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # #12 ROSA A1/A3 IaC 정책 + FDS-IaC-Guardrails 조합 시뮬레이션 (infra-terraform#12, PR21 rev2 2026-10-10)
+# rev2.2(2026-10-10): 종료 기록·manifest 실패를 경고가 아닌 비정상 종료로 처리(PR21 리뷰 B3).
 # rev2.1(2026-10-10): MissingContextValues 계약을 case별 기대값(implicitDeny=조건 키−제공 키)으로 정정.
 # rev2: A3 IAM 쓰기(역할·정책·OIDC 생성/부착)를 IaC 역할에서 제거하고 중앙 실행으로 이관한 정책 기준.
 #       실행자·계정 확인, live Guardrails MATCH, 호출 RC, case 수·고유 ID·MissingContextValues 계약을 성공 조건에 결속.
@@ -7,6 +8,7 @@
 # 필요 권한: sts:GetCallerIdentity, iam:SimulateCustomPolicy, iam:GetPolicy, iam:GetPolicyVersion
 # 비용: 없음. 모의 계산과 정책 조회만. AWS 자원 생성/수정/삭제 0, 실제 Subscribe 0
 # 종료코드: 0=전 case PASS / 1=case FAIL·도구·입력·identity 오류 / 2=live Guardrails가 승인 v1과 MATCH가 아님(읽기 실패 포함)
+#   종료 기록(meta.txt)·manifest(SHA256SUMS) 생성·대조 실패는 PASS로 끝나지 않는다(원래 code가 0이면 1, 아니면 원래 code 유지).
 set -u -o pipefail
 ACC=774055931866
 EXPECTED_ARN="${EXPECTED_ARN:-arn:aws:iam::$ACC:user/321team-hayeoung}"
@@ -14,10 +16,20 @@ EXPECTED_CASES=35
 EXPECTED_IDS="A01-v1-list-attached A02-v1-get-rosa-policy A03-v1-subscribe-rosa A04-v1-get-oidc S01-region-only B01-v2-get-role B02-v2-list-role-policies B03-v2-list-attached B04-v2-list-role-tags B05-v2-list-roles B06-v2-get-rosa-policy B07-v2-get-ecr-policy-version B08-v2-list-cli-policy-versions B09-v2-get-oidc B10-v2-list-oidc B11-v2-subscribe-rosa B12-v2-view-subscriptions W01-create-account-role W02-create-cli-role W03-create-prefixed-policy W04-attach-rosa-policy W05-attach-prefixed-cross W06-attach-admin W07-create-oidc W08-update-trust W09-delete-role W10-tag-role W11-pass-rosa-role N01-v2-create-account-role N02-v2-attach-rosa-policy N03-v2-unsubscribe-rosa N04-v2-subscribe-other N05-v2-ec2-us-east-1 N06-v2-read-other-role N07-v2-get-admin-policy"
 OUT=$(mktemp -d "$HOME/sim-rosa-gr-$(date +%Y%m%d-%H%M%S)-XXXX") && chmod 700 "$OUT" && cd "$OUT" || { echo "STOP: cannot create result folder under $HOME" >&2; exit 1; }
 kst(){ TZ=Asia/Seoul date '+%Y-%m-%dT%H:%M:%S%z'; }
-finish(){ # $1=result $2=exit code
-  echo "result=$1" >> meta.txt; echo "end_kst=$(kst)" >> meta.txt
-  sha256sum -- * > SHA256SUMS 2>/dev/null || echo "WARN: SHA256SUMS write failed" >&2
-  echo "result=$1 (exit $2) 결과 폴더: $OUT"; exit "$2"; }
+finish(){ # $1=result $2=exit code. 종료 기록·manifest 생성·대조가 모두 성공해야 원래 code로 끝난다(B3).
+  # 실패하면 원래 결과를 stderr에 남기고 비정상 종료한다. 원래 code가 0이 아니면 그 code를 유지하고, 0이면 1로 바꾼다.
+  # RC는 명령 직후 직접 받는다. `if ! ( … ) > file` 형태는 리다이렉트 실패를 놓친다(bash 5.3 확인).
+  local result=$1 code=$2 bad f rc
+  bad=$code; [ "$bad" -eq 0 ] && bad=1
+  printf 'result=%s
+end_kst=%s
+' "$result" "$(kst)" >> meta.txt; rc=$?
+  [ "$rc" -eq 0 ] || { echo "STOP: meta write failed (original result=$result exit=$code) 결과 폴더: $OUT" >&2; exit "$bad"; }
+  ( for f in *; do [ "$f" = SHA256SUMS ] && continue; sha256sum -- "$f" || exit 1; done ) > SHA256SUMS; rc=$?
+  [ "$rc" -eq 0 ] || { echo "STOP: manifest write/hash failed (original result=$result exit=$code) 결과 폴더: $OUT" >&2; exit "$bad"; }
+  sha256sum -c --quiet SHA256SUMS; rc=$?
+  [ "$rc" -eq 0 ] || { echo "STOP: manifest verification failed (original result=$result exit=$code) 결과 폴더: $OUT" >&2; exit "$bad"; }
+  echo "result=$result (exit $code) 결과 폴더: $OUT"; exit "$code"; }
 stop(){ echo "STOP: $1" | tee -a meta.txt >&2; finish "STOP($1)" "${2:-1}"; }
 echo "start_kst=$(kst)" > meta.txt || { echo "STOP: meta write failed" >&2; exit 1; }
 for t in aws jq sha256sum awk cmp; do command -v "$t" >/dev/null || stop "missing_tool_$t"; done

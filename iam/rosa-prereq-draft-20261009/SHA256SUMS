@@ -1,4 +1,4 @@
 b8bfc55489c6fdde623e4050817461a7b471b6c418469780a19b053d8898b4a2 *policies/FDS-IaC-RosaPrereq.json
 d3dca1500541ff3b12ccf0bcd69c31e8174a5e5978a554124e09090d5b052644 *policies/FDS-RosaBootstrap-Subscribe.json
 a397cecb7848911b8ea19be1c6613e5de9f066ac5ced4488c4fed40053360e34 *guardrails-candidate/FDS-IaC-Guardrails.v2-candidate.json
-7240f17f6e8dd63423bc450a0a960d386c65a2bd5fae93e91f5312f8ac0cb2c0 *sim-rosa-guardrails-v2.sh
+159b679022f88481648e31bbacf82d20cd621e4d24d3dd8df2a9147a0189fcf8 *sim-rosa-guardrails-v2.sh
