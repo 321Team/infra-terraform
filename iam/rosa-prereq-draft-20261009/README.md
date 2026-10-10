@@ -160,7 +160,18 @@ rev1에 있던 생성·부착 Sid 5개(`CreateTerraformOwnedRosaRoles`, `CreateC
   - allowed·explicitDeny 21건: 빈 목록
   - 원본: CloudShell `~/sim-rosa-gr-20261010-070006-JLXV/`. 이 실행 결과는 FAIL로 그대로 보존한다.
 - **rev2.1**: 계약을 case별 기대값으로 정정했다(정책·case·기대 판정은 그대로). 1차 실행의 관측값 35건을 재생한 가짜 `aws` 시험에서 PASS 35/35였고, 키 하나만 달라도 FAIL로 잡히는 것을 확인했다.
-- **rev2.1 실제 재실행 결과는 CloudShell 실행 후 이 절에 추가한다.** CloudShell 다운로드 권한이 없으므로 `summary.tsv`·`meta.txt`·`SHA256SUMS` 화면 출력을 제출한다.
+- **rev2.1 실제 실행 — PASS 35/35 (exit 0).** 스크립트 SHA-256 `7240f17f6e8dd63423bc450a0a960d386c65a2bd5fae93e91f5312f8ac0cb2c0`(CloudShell `sha256sum` 출력 일치), 2026-10-10 16:04 KST, CloudShell 서울, `321team-hayeoung`, `live_guardrails=MATCH(v1)`. 원본은 `~/sim-rosa-gr-20261010-070419-xmFM/`.
+
+| 묶음 | 결과 |
+|---|---|
+| A(4)·S(1) 현재 v1 충돌 | explicitDeny 5/5 — 조회·Subscribe도 v1 리전 Deny에 막힘, 거부 Statement는 `DenyOutsideSeoul` |
+| B(12) 후보 v2 | allowed 12/12 — 역할·정책·OIDC 조회, ListRoles·ListOpenIDConnectProviders, ROSA Subscribe·ViewSubscriptions |
+| **W(11) IaC 허용 정책만(Guardrails 없이)** | **implicitDeny 11/11** — 역할 생성(account·CLI), prefix 정책 생성, ROSA·prefix·Admin 정책 부착, OIDC 생성, trust 변경, 삭제, 태그, PassRole. 위임 역할에는 IAM 쓰기 권한이 없다 |
+| N(7) 후보 v2에서도 거부 | 7/7 — 생성·부착 explicitDeny, Unsubscribe explicitDeny, 다른 제품 Subscribe implicitDeny, us-east-1 EC2 explicitDeny, 다른 역할·Admin 정책 조회 implicitDeny |
+| MissingContextValues | 35/35 case별 기대값과 일치(implicitDeny 14건은 조건 키 − 제공 키, 나머지 21건은 빈 목록) |
+
+  - 제출 범위: 사용자 화면 출력(case 행·summary 표·result 줄)이다. 원격 폴더의 `meta.txt`·`SHA256SUMS`·case별 input/out JSON은 CloudShell 다운로드 권한이 없어 받지 못했으며, 원격 원본을 재해시했다고 주장하지 않는다.
+  - 이 결과는 identity 정책 평가다. 실제 부착·Guardrails 변경·Subscribe·중앙 실행의 Runtime 결과가 아니다.
 
 ## rev1 Guardrails 조합 시뮬레이션 결과 (이전 정책 기준) — 2026-10-09 22:58 KST (#35 6078438929 요청 대응)
 
