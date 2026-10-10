@@ -28,6 +28,26 @@ def operator_trust(key):
         'Condition': {'StringEquals': {f'{HOST}:sub': [f'system:serviceaccount:{ns}:{sa}' for sa in sas]}}}]})
 
 
+# Provider-computed role fields are unknown on create (after: absent, after_unknown: true).
+COMPUTED_ROLE_UNKNOWN = {'inline_policy': True, 'managed_policy_arns': True}
+
+
+def role_after(name, trust):
+    return {'name': name, 'assume_role_policy': trust, 'path': '/', 'permissions_boundary': None}
+
+
+# Mirrors terraform/rosa-prereq/main.tf: no inline_policy / managed_policy_arns / boundary configured.
+CONFIGURATION = {'root_module': {'resources': [
+    {'address': 'aws_iam_role.account', 'expressions': {'name': {}, 'assume_role_policy': {}, 'tags': {}}},
+    {'address': 'aws_iam_role_policy_attachment.account', 'expressions': {'role': {}, 'policy_arn': {}}},
+    {'address': 'rhcs_rosa_oidc_config.managed', 'expressions': {'managed': {}}},
+    {'address': 'aws_iam_openid_connect_provider.rosa',
+     'expressions': {'url': {}, 'client_id_list': {}, 'thumbprint_list': {}}},
+    {'address': 'aws_iam_role.operator', 'expressions': {'name': {}, 'assume_role_policy': {}, 'tags': {}}},
+    {'address': 'aws_iam_role_policy_attachment.operator', 'expressions': {'role': {}, 'policy_arn': {}}},
+]}}
+
+
 def rc(addr, actions, after, unknown=None):
     return {'address': addr, 'mode': 'managed',
             'change': {'actions': actions, 'after': after, 'after_unknown': unknown or {}}}
@@ -36,9 +56,13 @@ def rc(addr, actions, after, unknown=None):
 def account_changes(action):
     out = []
     for k, (name, _, _, policies) in m.ACCOUNT_ROLES.items():
-        out.append(rc(f'aws_iam_role.account["{k}"]', [action],
-                      {'name': name, 'assume_role_policy': account_trust(k), 'path': '/',
-                       'permissions_boundary': None, 'inline_policy': []}))
+        if action == 'create':
+            out.append(rc(f'aws_iam_role.account["{k}"]', [action], role_after(name, account_trust(k)),
+                          COMPUTED_ROLE_UNKNOWN))
+        else:
+            out.append(rc(f'aws_iam_role.account["{k}"]', [action],
+                          dict(role_after(name, account_trust(k)), inline_policy=[],
+                               managed_policy_arns=[f'{m.AWS_POLICY}/{p}' for p in policies])))
         for p in policies:
             out.append(rc(f'aws_iam_role_policy_attachment.account["{k}:{p.rsplit("/", 1)[-1]}"]', [action],
                           {'role': name, 'policy_arn': f'{m.AWS_POLICY}/{p}'}))
@@ -55,9 +79,8 @@ def operator_changes():
     out = []
     for k, (ns, name, _, policy) in m.OPERATOR_ROLES.items():
         role = m.operator_role_name(ns, name)
-        out.append(rc(f'aws_iam_role.operator["{k}"]', ['create'],
-                      {'name': role, 'assume_role_policy': operator_trust(k), 'path': '/',
-                       'permissions_boundary': None, 'inline_policy': []}))
+        out.append(rc(f'aws_iam_role.operator["{k}"]', ['create'], role_after(role, operator_trust(k)),
+                      COMPUTED_ROLE_UNKNOWN))
         out.append(rc(f'aws_iam_role_policy_attachment.operator["{k}"]', ['create'],
                       {'role': role, 'policy_arn': f'{m.AWS_POLICY}/service-role/{policy}'}))
     return out
@@ -66,7 +89,7 @@ def operator_changes():
 def plan(stage):
     changes = account_changes('create') if stage == 1 else account_changes('no-op') + operator_changes()
     return {'format_version': '1.2', 'terraform_version': m.TF_VERSION, 'errored': False,
-            'resource_changes': changes}
+            'resource_changes': changes, 'configuration': json.loads(json.dumps(CONFIGURATION))}
 
 
 def find(p, addr):
@@ -132,6 +155,66 @@ class Plan(unittest.TestCase):
     def test_unknown_trust_stops(self):
         p = plan(2)
         find(p, 'aws_iam_role.operator["ingress"]')['change']['after']['assume_role_policy'] = None
+        self.assertTrue(self.stops(p, 2))
+
+    def test_normal_plan_labels_deferred_fields(self):
+        rows = m.check_plan(plan(1), 1, SUPPORT).rows
+        deferred = [item for ok, item, _ in rows if item.startswith('DEFERRED')]
+        self.assertTrue(all(ok for ok, item, _ in rows if item.startswith('DEFERRED')))
+        self.assertEqual(len(deferred), 3 * 2 + 1)  # 3 roles x (inline, managed) + OIDC url
+
+    # --- PR21 review B2 counterexamples ---
+    def test_unknown_attachment_role_stops(self):
+        p = plan(1)
+        c = find(p, 'aws_iam_role_policy_attachment.account["worker:AmazonEC2ContainerRegistryReadOnly"]')
+        del c['change']['after']['role']
+        c['change']['after_unknown'] = {'role': True}
+        self.assertTrue(self.stops(p))
+
+    def test_unknown_attachment_policy_stops(self):
+        p = plan(2)
+        c = find(p, 'aws_iam_role_policy_attachment.operator["ingress"]')
+        del c['change']['after']['policy_arn']
+        c['change']['after_unknown'] = {'policy_arn': True}
+        self.assertTrue(self.stops(p, 2))
+
+    def test_unknown_inline_policy_when_configured_stops(self):
+        p = plan(1)
+        p['configuration']['root_module']['resources'][0]['expressions']['inline_policy'] = [{}]
+        self.assertTrue(self.stops(p))
+
+    def test_unknown_computed_field_without_configuration_stops(self):
+        p = plan(1)
+        del p['configuration']
+        self.assertTrue(self.stops(p))
+
+    def test_unknown_permissions_boundary_stops(self):
+        p = plan(1)
+        c = find(p, 'aws_iam_role.account["installer"]')
+        del c['change']['after']['permissions_boundary']
+        c['change']['after_unknown'] = dict(c['change']['after_unknown'], permissions_boundary=True)
+        self.assertTrue(self.stops(p))
+
+    def test_known_managed_policy_arns_extra_stops(self):
+        p = plan(2)
+        c = find(p, 'aws_iam_role.account["worker"]')
+        c['change']['after']['managed_policy_arns'].append('arn:aws:iam::aws:policy/AdministratorAccess')
+        self.assertTrue(self.stops(p, 2))
+
+    def test_stage2_changed_oidc_client_ids_stops(self):
+        p = plan(2)
+        find(p, 'aws_iam_openid_connect_provider.rosa')['change']['after']['client_id_list'] = ['openshift', 'x']
+        self.assertTrue(self.stops(p, 2))
+
+    def test_stage2_oidc_url_mismatch_stops(self):
+        p = plan(2)
+        find(p, 'aws_iam_openid_connect_provider.rosa')['change']['after']['url'] = (
+            'https://oidc.op1.openshiftapps.com/other000')
+        self.assertTrue(self.stops(p, 2))
+
+    def test_stage2_oidc_not_managed_stops(self):
+        p = plan(2)
+        find(p, 'rhcs_rosa_oidc_config.managed')['change']['after']['managed'] = False
         self.assertTrue(self.stops(p, 2))
 
     def test_terraform_version_stops(self):

@@ -10,6 +10,13 @@ The expected table below is written independently of terraform/rosa-prereq/main.
 it mirrors ROSA CLI 1.2.53 `--mode manual` output (2026-10-09). If either side changes, both
 change in the same reviewed PR.
 
+Unknown is not absence (PR21 review B2). In `terraform show -json`, a value that is only known after
+apply is null in `after` and true in `after_unknown`. Security fields (role name, trust, permissions
+boundary, path, attachment role/policy ARN, OIDC settings) must be known at plan or the check STOPs.
+Provider-computed role fields (`inline_policy`, `managed_policy_arns`) may be unknown at plan only
+when the plan `configuration` shows they are not set for that resource; the plan output labels them
+DEFERRED and `readback` checks them (inline = 0, attachments exact).
+
 Exit: 0 PASS, 1 STOP (any mismatch), 2 input/usage error.
 No create/update/delete call, no credential handling. ocm-role / user-role are out of scope.
 """
@@ -65,6 +72,29 @@ class Stop(RuntimeError):
 
 class InputError(RuntimeError):
     pass
+
+
+ROLE_KNOWN_FIELDS = ('name', 'assume_role_policy', 'permissions_boundary', 'path')
+ROLE_DEFERRED_FIELDS = ('inline_policy', 'managed_policy_arns')
+ATTACHMENT_FIELDS = ('role', 'policy_arn')
+
+
+def unresolved(flag):
+    """True if any part of an after_unknown entry is unknown."""
+    if isinstance(flag, dict):
+        return any(unresolved(v) for v in flag.values())
+    if isinstance(flag, list):
+        return any(unresolved(v) for v in flag)
+    return flag is True
+
+
+def config_expressions(plan, addr):
+    """Expressions configured for the resource (index stripped), or None if the plan has no such entry."""
+    base = re.sub(r'\[.*\]$', '', addr)
+    for res in ((plan.get('configuration') or {}).get('root_module') or {}).get('resources', []):
+        if res.get('address') == base:
+            return res.get('expressions') or {}
+    return None
 
 
 def operator_role_name(namespace, name):
@@ -193,19 +223,24 @@ def check_plan(plan, stage, support_arn, oidc_host=None):
     after = {a: (c['change'].get('after') or {}) for a, c in changes.items()}
     unknown = {a: (c['change'].get('after_unknown') or {}) for a, c in changes.items()}
 
+    cfg = after.get('rhcs_rosa_oidc_config.managed', {})
+    prov = after.get('aws_iam_openid_connect_provider.rosa', {})
+    prov_unknown = unknown.get('aws_iam_openid_connect_provider.rosa', {})
+    r.check('oidc config managed=true', cfg.get('managed') is True, f"managed={cfg.get('managed')}")
+    r.check('oidc provider client_id_list known', not unresolved(prov_unknown.get('client_id_list')))
+    r.check('oidc provider client_id_list', sorted(prov.get('client_id_list') or []) == CLIENT_IDS,
+            f"got {prov.get('client_id_list')}")
+    url = prov.get('url')
     if stage == 1:
-        cfg = after.get('rhcs_rosa_oidc_config.managed', {})
-        r.check('oidc config managed=true', cfg.get('managed') is True, f"managed={cfg.get('managed')}")
-        prov = after.get('aws_iam_openid_connect_provider.rosa', {})
-        url = prov.get('url')
-        # URL is known after the rhcs config exists; at stage 1 plan time it is normally unknown.
+        # URL comes from the rhcs config created in the same apply, so it is unknown at stage 1 plan.
         if url is None:
-            r.check('oidc provider url unknown at plan (checked at readback)',
-                    unknown.get('aws_iam_openid_connect_provider.rosa', {}).get('url') is True)
+            r.check('DEFERRED oidc provider url unknown at plan (checked at readback)',
+                    prov_unknown.get('url') is True, 'url null but not marked unknown')
         else:
             r.check('oidc provider url host', url.startswith('https://' + OIDC_PREFIX), url)
-        r.check('oidc provider client_id_list', sorted(prov.get('client_id_list') or []) == CLIENT_IDS,
-                f"got {prov.get('client_id_list')}")
+    else:
+        # Stage 2: stage 1 objects are in state; their values must match the stage 1 readback exactly.
+        r.check('stage2 oidc provider url == stage 1 readback', url == 'https://' + oidc_host, f'got {url}')
 
     exp = expected_roles(stage, support_arn, oidc_host)
     # Stage 2 also re-checks the no-op stage 1 roles and attachments as they are in state.
@@ -215,6 +250,15 @@ def check_plan(plan, stage, support_arn, oidc_host=None):
         a = after.get(addr, {})
         name = a.get('name')
         by_name[name] = addr
+        u = unknown.get(addr, {})
+        for field in ROLE_KNOWN_FIELDS:
+            r.check(f'{addr} {field} known at plan', not unresolved(u.get(field)))
+        exprs = config_expressions(plan, addr)
+        for field in ROLE_DEFERRED_FIELDS:
+            if unresolved(u.get(field)):
+                r.check(f'DEFERRED {addr} {field} unknown at plan, not configured (checked at readback)',
+                        exprs is not None and field not in exprs,
+                        'plan configuration missing' if exprs is None else f'{field} is configured')
         r.check(f'{addr} name in approved table', name in exp, f'name={name}')
         if name not in exp:
             continue
@@ -227,22 +271,26 @@ def check_plan(plan, stage, support_arn, oidc_host=None):
                 f'got {json.dumps(got, sort_keys=True)}')
         r.check(f'{name} no inline policy', not a.get('inline_policy'), f"inline={a.get('inline_policy')}")
         r.check(f'{name} no permissions boundary', not a.get('permissions_boundary'))
-        r.check(f'{name} path /', a.get('path', '/') == '/', f"path={a.get('path')}")
+        r.check(f'{name} path /', a.get('path') == '/', f"path={a.get('path')}")
+        managed = a.get('managed_policy_arns')
+        if managed is not None:
+            r.check(f'{name} managed_policy_arns empty or approved',
+                    sorted(managed) in ([], exp[name][1]), f'got {sorted(managed)}')
     r.check('approved roles all planned', set(by_name) == set(exp),
             f'missing={sorted(set(exp) - set(by_name))}')
 
     got_att = {}
     for addr in sorted(a for a in create | noop if a.startswith('aws_iam_role_policy_attachment.')):
         a = after.get(addr, {})
-        role = a.get('role')
-        if role is None:
-            # role name is a reference to a role created in the same plan; resolve via address.
-            role_addr = addr.replace('aws_iam_role_policy_attachment.', 'aws_iam_role.')
-            if addr.startswith('aws_iam_role_policy_attachment.account'):
-                key = addr.split('["', 1)[1].split(':', 1)[0]
-                role_addr = f'aws_iam_role.account["{key}"]'
-            role = after.get(role_addr, {}).get('name')
-        got_att.setdefault(role, []).append(a.get('policy_arn'))
+        u = unknown.get(addr, {})
+        # No address-based inference: the attached role and policy must be known strings at plan.
+        known = True
+        for field in ATTACHMENT_FIELDS:
+            ok = not unresolved(u.get(field)) and isinstance(a.get(field), str) and bool(a.get(field))
+            r.check(f'{addr} {field} known at plan', ok, f'{field}={a.get(field)!r}')
+            known = known and ok
+        if known:
+            got_att.setdefault(a['role'], []).append(a['policy_arn'])
     for name, (_, policies) in sorted(exp.items()):
         r.check(f'{name} attachments == approved', sorted(got_att.get(name, [])) == policies,
                 f'got {sorted(got_att.get(name, []))}')
