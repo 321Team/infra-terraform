@@ -130,6 +130,23 @@ class ReadErrorsAfterWrite(m.Aws):
         return super().state()
 
 
+class StaleView(m.Aws):
+    """IAM reads keep returning a fixed earlier snapshot for N calls (eventual consistency), then live."""
+
+    def __init__(self, fake, snapshot, n):
+        super().__init__(fake)
+        self.snapshot, self.n = snapshot, n
+
+    def state(self):
+        if self.n:
+            self.n -= 1
+            return self.snapshot
+        return super().state()
+
+
+EVIDENCE = 'CloudTrail eventID 00000000-0000-0000-0000-000000000000 errorCode=AccessDenied'
+
+
 def raising_call(fake, apply_first):
     def call(*args):
         if args[1] in WRITES:
@@ -152,11 +169,11 @@ class Runner(unittest.TestCase):
     def tearDown(self):
         self.tmp.cleanup()
 
-    def run_step(self, step, execute=True, aws=None, caller=CALLER, run_id=None):
+    def run_step(self, step, execute=True, aws=None, caller=CALLER, run_id=None, evidence=None, reviewer=None):
         buf = io.StringIO()
         with redirect_stdout(buf):
             rc = m.run(step, caller, self.ledger, execute, aws=aws or m.Aws(self.fake), sleep=lambda s: None,
-                       run_id=run_id)
+                       run_id=run_id, evidence=evidence, reviewer=reviewer)
         self.out = buf.getvalue()
         return rc
 
@@ -264,8 +281,15 @@ class Runner(unittest.TestCase):
         self.fake.fail_write = None
         self.assertEqual(self.run_step('guardrails-v2'), 1)
         self.assertIn('unresolved run', self.out)
-        self.assertEqual(self.run_step('reconcile', run_id=rid), 0)
-        self.assertEqual(self.ledger_entries()[-1]['outcome'], 'NOT_APPLIED')
+        # B3: reconcile never decides "not applied" by itself; a person closes it with evidence
+        self.assertEqual(self.run_step('reconcile', run_id=rid), 1)
+        self.assertIn('outcome=AMBIGUOUS', self.out)
+        self.assertEqual(self.only_unresolved(), rid)
+        self.assertEqual(self.run_step('confirm-not-applied', run_id=rid, evidence=EVIDENCE, reviewer='GWONUK'), 0,
+                         self.out)
+        last = self.ledger_entries()[-1]
+        self.assertEqual((last['outcome'], last['evidence'], last['reviewer']),
+                         ('NOT_APPLIED_CONFIRMED', EVIDENCE, 'GWONUK'))
         self.assertEqual(self.run_step('guardrails-v2'), 0, self.out)
 
     def test_eventual_consistency_retries_readback(self):
@@ -317,17 +341,24 @@ class Runner(unittest.TestCase):
 
     def test_write_call_raises_outcome_unknown(self):
         self.run_step('guardrails-v2')
-        # not applied: resolvable. applied without a response PolicyId: never adopted (PR24 B1).
-        for apply_first, rc, outcome in ((False, 0, 'NOT_APPLIED'), (True, 1, 'AMBIGUOUS')):
+        # reconcile never closes an outcome-unknown create by itself: not applied -> AMBIGUOUS (B3),
+        # applied without a response PolicyId -> AMBIGUOUS (B1).
+        for apply_first in (False, True):
             with self.subTest(apply_first=apply_first):
                 with self.assertRaises(m.Stop):
                     self.run_step('subscribe-create', aws=m.Aws(raising_call(self.fake, apply_first)))
                 rid = self.only_unresolved()
                 self.assertEqual([e['phase'] for e in self.runs()[rid]], ['INTENT', 'OUTCOME_UNKNOWN'])
                 self.assertFalse((self.ledger / m.LOCK_NAME).exists())
-                self.assertEqual(self.run_step('reconcile', run_id=rid), rc, self.out)
-                self.assertIn(f'outcome={outcome}', self.out)
+                self.assertEqual(self.run_step('reconcile', run_id=rid), 1, self.out)
+                self.assertIn('outcome=AMBIGUOUS', self.out)
+                if not apply_first:  # really not applied: a reviewer closes it with evidence
+                    self.assertEqual(self.run_step('confirm-not-applied', run_id=rid, evidence=EVIDENCE,
+                                                   reviewer='GWONUK'), 0, self.out)
         self.assertIn('missing durable create PolicyId/Arn', self.out)
+        # applied: live shows the policy, so it cannot be confirmed as not applied either
+        self.assertEqual(self.run_step('confirm-not-applied', run_id=rid, evidence=EVIDENCE, reviewer='GWONUK'), 1)
+        self.assertIn('already shows the postcondition', self.out)
         self.assertEqual(self.only_unresolved(), rid)
         n = len(self.fake.writes)
         self.assertEqual(self.run_step('subscribe-delete'), 1)
@@ -404,6 +435,55 @@ class Runner(unittest.TestCase):
         rid = self.only_unresolved()
         self.assertEqual(self.run_step('reconcile', run_id=rid), 1)
         self.assertIn('missing durable create-policy-version VersionId', self.out)
+
+    # --- PR24 review B3: a stale read is not proof that a write was not applied ---
+    def test_stale_read_after_success_response_stays_unresolved(self):
+        before = m.Aws(self.fake).state()  # pre-write view that reads keep returning
+        self.assertEqual(self.run_step('guardrails-v2', aws=StaleView(self.fake, before, 99)), 1)
+        self.assertEqual(self.fake.policies['FDS-IaC-Guardrails']['default'], 'v2')  # really applied
+        rid = self.only_unresolved()
+        n_reconciled = sum(e['phase'] == 'RECONCILED' for e in self.ledger_entries())
+        self.assertEqual(self.run_step('reconcile', run_id=rid, aws=StaleView(self.fake, before, 99)), 1)
+        self.assertIn('outcome=AMBIGUOUS', self.out)
+        self.assertIn('not proof of "not applied"', self.out)
+        self.assertEqual(sum(e['phase'] == 'RECONCILED' for e in self.ledger_entries()), n_reconciled)
+        self.assertEqual(self.only_unresolved(), rid)
+        # a success response can never be confirmed as not applied, and nothing is rewritten
+        with self.assertRaises(m.InputError):
+            self.run_step('confirm-not-applied', run_id=rid, evidence=EVIDENCE, reviewer='GWONUK',
+                          aws=StaleView(self.fake, before, 99))
+        self.assertEqual(self.run_step('guardrails-v2', aws=StaleView(self.fake, before, 99)), 1)
+        self.assertEqual(len(self.fake.writes), 1)
+        # once reads converge, the returned VersionId binds and the run is APPLIED
+        self.assertEqual(self.run_step('reconcile', run_id=rid), 0, self.out)
+        self.assertEqual(self.ledger_entries()[-1]['outcome'], 'APPLIED')
+
+    def test_stale_read_after_outcome_unknown_stays_unresolved(self):
+        before = m.Aws(self.fake).state()
+        with self.assertRaises(m.Stop):  # timeout, but the server applied the new default version
+            self.run_step('guardrails-v2', aws=m.Aws(raising_call(self.fake, apply_first=True)))
+        rid = self.only_unresolved()
+        self.assertEqual(self.run_step('reconcile', run_id=rid, aws=StaleView(self.fake, before, 99)), 1)
+        self.assertIn('outcome=AMBIGUOUS', self.out)
+        self.assertEqual(self.only_unresolved(), rid)
+        # with the real (converged) view a person cannot record "not applied" either
+        self.assertEqual(self.run_step('confirm-not-applied', run_id=rid, evidence=EVIDENCE, reviewer='GWONUK'), 1)
+        self.assertEqual(self.only_unresolved(), rid)
+        self.assertEqual(self.run_step('guardrails-v2'), 1)  # no automatic second write
+        self.assertEqual(len(self.fake.writes), 1)
+
+    def test_confirm_not_applied_requires_evidence_reviewer_and_execute(self):
+        self.fake.fail_write = 'create-policy-version'
+        self.run_step('guardrails-v2')
+        rid = self.only_unresolved()
+        for ev, rv in ((None, 'GWONUK'), (EVIDENCE, None), ('  ', 'GWONUK')):
+            with self.assertRaises(m.InputError):
+                self.run_step('confirm-not-applied', run_id=rid, evidence=ev, reviewer=rv)
+        n = len(self.ledger_entries())
+        self.assertEqual(self.run_step('confirm-not-applied', execute=False, run_id=rid, evidence=EVIDENCE,
+                                       reviewer='GWONUK'), 0)
+        self.assertEqual(len(self.ledger_entries()), n)
+        self.assertEqual(self.only_unresolved(), rid)
 
     # --- PR24 review B2: everything an --execute run decides on is read under the lock ---
     def inject_before_lock(self, action):

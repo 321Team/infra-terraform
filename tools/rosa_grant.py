@@ -13,7 +13,13 @@ Ledger = durable journal (PR21 review B1). One run_id per write, appended and fs
   WRITE_RETURNED  RC, stdout hash and IDs from the write response, before any readback
   OUTCOME_UNKNOWN the write call raised (timeout, interrupted, ...)
   READBACK        result of the bounded readback (verified true/false)
-  RECONCILED      `reconcile --run-id` compared live state with the step pre/post: APPLIED or NOT_APPLIED
+  RECONCILED      `reconcile --run-id`: live post + IDs converged -> APPLIED, or
+                  `confirm-not-applied --run-id`: a person recorded reviewed evidence -> NOT_APPLIED_CONFIRMED
+Stale reads (PR24 review B3): IAM reads are eventually consistent, so live state that still looks like
+the precondition does not prove a write was not applied. reconcile never records "not applied" by
+itself; such a run stays AMBIGUOUS. Only `confirm-not-applied` can close it, and only for a run with no
+successful write response (rc!=0 or OUTCOME_UNKNOWN), while live state still does not show the
+postcondition, with --evidence (e.g. a CloudTrail event ID / errorCode) and --reviewer recorded.
 Identity binding (PR24 review B1): a create step is recorded only when the live PolicyId/Arn equal the
 PolicyId/Arn returned by that run's own create call; guardrails-v2 only when the live default version
 equals the VersionId it returned. A run without a durable response ID (e.g. OUTCOME_UNKNOWN) is never
@@ -517,7 +523,8 @@ def print_summary(s, src):
         print(f'summary unavailable: {type(e).__name__}')
 
 
-def run(step, expected_caller, ledger_dir, execute, aws=None, sleep=time.sleep, attempts=12, run_id=None):
+def run(step, expected_caller, ledger_dir, execute, aws=None, sleep=time.sleep, attempts=12, run_id=None,
+        evidence=None, reviewer=None):
     require_posix()
     aws = aws or Aws()
     src = load_sources()
@@ -529,11 +536,13 @@ def run(step, expected_caller, ledger_dir, execute, aws=None, sleep=time.sleep, 
     if execute and step != 'status':
         # B2: lock first; every input below is read under the lock.
         with Lock(ledger_dir):
-            return _run(step, expected_caller, ledger_path, True, aws, src, sleep, attempts, run_id)
-    return _run(step, expected_caller, ledger_path, False, aws, src, sleep, attempts, run_id)
+            return _run(step, expected_caller, ledger_path, True, aws, src, sleep, attempts, run_id,
+                        evidence, reviewer)
+    return _run(step, expected_caller, ledger_path, False, aws, src, sleep, attempts, run_id,
+                evidence, reviewer)
 
 
-def _run(step, expected_caller, ledger_path, execute, aws, src, sleep, attempts, run_id):
+def _run(step, expected_caller, ledger_path, execute, aws, src, sleep, attempts, run_id, evidence, reviewer):
     """Body of run(). With execute=True the caller holds the lock for the whole call."""
     if ledger_path.exists() and file_mode(ledger_path) & 0o077:
         raise InputError(f'ledger file must be private (0600): {ledger_path}')
@@ -550,6 +559,8 @@ def _run(step, expected_caller, ledger_path, execute, aws, src, sleep, attempts,
         return 0
     if step == 'reconcile':
         return reconcile(run_id, s, src, ledger, ledger_path, execute)
+    if step == 'confirm-not-applied':
+        return confirm_not_applied(run_id, s, src, ledger, ledger_path, execute, evidence, reviewer)
     if pending:
         print('STOP  unresolved run(s) above: review live IAM, then `reconcile --run-id <id> --execute`. '
               'No new write until every run is resolved.')
@@ -612,16 +623,24 @@ def _run(step, expected_caller, ledger_path, execute, aws, src, sleep, attempts,
     return 0 if not fails else 1
 
 
-def reconcile(run_id, s, src, ledger, ledger_path, execute):
-    """Resolve an unresolved run by comparing live state with that step's pre/post. Ledger-only write."""
+def unresolved_run(run_id, ledger, what):
     if not run_id:
-        raise InputError('reconcile needs --run-id')
+        raise InputError(f'{what} needs --run-id')
     runs = runs_of(ledger)
     if run_id not in runs:
         raise InputError(f'run_id {run_id} not in ledger')
     if run_id not in {r for r, _, _ in unresolved(ledger)}:
         raise InputError(f'run_id {run_id} is already resolved')
-    entries = runs[run_id]
+    return runs[run_id]
+
+
+def reconcile(run_id, s, src, ledger, ledger_path, execute):
+    """Resolve an unresolved run as APPLIED when live post and IDs converged. Ledger-only write.
+
+    Live state that still matches the precondition is not proof of "not applied" (stale IAM reads,
+    PR24 B3): the run stays AMBIGUOUS. Use confirm-not-applied with reviewed evidence for that case.
+    """
+    entries = unresolved_run(run_id, ledger, 'reconcile')
     step = entries[0]['step']
     spec = STEPS[step]
     others = [e for e in ledger if e['run_id'] != run_id]
@@ -636,7 +655,11 @@ def reconcile(run_id, s, src, ledger, ledger_path, execute):
             for f in bind:
                 print(f'STOP  identity: {f}')
     elif post and not pre:
-        outcome, ids = 'NOT_APPLIED', {}
+        # B3: a stale IAM read cannot prove that the write was not applied.
+        outcome, ids = 'AMBIGUOUS', {}
+        print('STOP  live state still looks like before the write. IAM reads can lag, so this is not '
+              'proof of "not applied". Re-run reconcile later, or after reviewing evidence use '
+              '`confirm-not-applied --run-id <id> --evidence <...> --reviewer <...>`.')
     else:
         outcome, ids = 'AMBIGUOUS', {}
     print(f'reconcile run_id={run_id} step={step} outcome={outcome}')
@@ -645,7 +668,7 @@ def reconcile(run_id, s, src, ledger, ledger_path, execute):
     for f in post:
         print(f'      post now fails: {f}')
     if outcome == 'AMBIGUOUS':
-        print('STOP  live state matches neither the step precondition nor its postcondition; '
+        print('STOP  pre/post mismatch, or the outcome/ownership cannot be established from live state; '
               'manual review. The run stays unresolved.')
         return 1
     if not execute:
@@ -658,17 +681,56 @@ def reconcile(run_id, s, src, ledger, ledger_path, execute):
     return 0
 
 
+def confirm_not_applied(run_id, s, src, ledger, ledger_path, execute, evidence, reviewer):
+    """Person-confirmed closure of a run that did not get a successful write response. Ledger-only write.
+
+    The tool does not decide "not applied" (B3). It only records a reviewed human decision, and refuses
+    when the write returned success or when live state already shows the postcondition.
+    """
+    entries = unresolved_run(run_id, ledger, 'confirm-not-applied')
+    if not (evidence or '').strip() or not (reviewer or '').strip():
+        raise InputError('confirm-not-applied needs --evidence (e.g. CloudTrail event ID and errorCode) '
+                         'and --reviewer (GitHub ID of the person who reviewed it)')
+    returned = next((e for e in entries if e['phase'] == 'WRITE_RETURNED'), None)
+    if returned is not None and returned.get('rc') == 0:
+        raise InputError(f'run_id {run_id} got a successful write response (rc=0); it cannot be confirmed '
+                         'as not applied. Wait for IAM to converge and run reconcile.')
+    step = entries[0]['step']
+    others = [e for e in ledger if e['run_id'] != run_id]
+    post = STEPS[step]['post'](s, src, others)
+    if not post:
+        print('STOP  live state already shows the postcondition; use reconcile, not confirm-not-applied.')
+        return 1
+    print(f'confirm-not-applied run_id={run_id} step={step} last_phase={entries[-1]["phase"]} '
+          f'reviewer={reviewer.strip()}')
+    for f in post:
+        print(f'      post now fails: {f}')
+    if not execute:
+        print('dry-run: ledger not changed. Re-run with --execute to record NOT_APPLIED_CONFIRMED.')
+        return 0
+    append_journal(ledger_path, {'run_id': run_id, 'step': step, 'phase': 'RECONCILED', 'utc': utc(),
+                                 'caller': s['caller'].get('Arn'), 'outcome': 'NOT_APPLIED_CONFIRMED',
+                                 'ids': {}, 'evidence': evidence.strip()[:500],
+                                 'reviewer': reviewer.strip()[:100]})
+    print(f'result=RECONCILED outcome=NOT_APPLIED_CONFIRMED run_id={run_id}')
+    return 0
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
     ap.add_argument('--expected-caller', required=True, help='exact ARN of the approved central session')
     ap.add_argument('--ledger-dir', required=True, help='private 0700 directory outside the repo')
-    ap.add_argument('step', choices=['status', 'reconcile', *STEPS])
+    ap.add_argument('step', choices=['status', 'reconcile', 'confirm-not-applied', *STEPS])
     ap.add_argument('--execute', action='store_true',
                     help='perform the single write, or record RECONCILED (default: dry-run)')
-    ap.add_argument('--run-id', help='reconcile only: the unresolved run to resolve')
+    ap.add_argument('--run-id', help='reconcile / confirm-not-applied: the unresolved run to resolve')
+    ap.add_argument('--evidence', help='confirm-not-applied only: reviewed evidence, e.g. CloudTrail event ID '
+                    'and errorCode')
+    ap.add_argument('--reviewer', help='confirm-not-applied only: GitHub ID of the reviewer')
     args = ap.parse_args(argv)
     try:
-        return run(args.step, args.expected_caller, args.ledger_dir, args.execute, run_id=args.run_id)
+        return run(args.step, args.expected_caller, args.ledger_dir, args.execute, run_id=args.run_id,
+                   evidence=args.evidence, reviewer=args.reviewer)
     except InputError as e:
         print(f'INPUT ERROR: {e}', file=sys.stderr)
         return 2
