@@ -20,13 +20,18 @@
 
 | 파일 | 대상 |
 |---|---|
-| `policies/FDS-IaC-VpnProbe.json` | `FDS-IaC-Operator`에 **probe 시험 기간에만** 붙이는 보충 관리형 정책. 모든 Allow는 `aws:PrincipalArn = FDS-IaC-Operator` 조건 |
+| `policies/FDS-IaC-VpnProbe.json` | `FDS-IaC-Operator`에 **probe 시험 기간에만** 붙이는 보충 관리형 정책. 이미지 Allow `RunWithExactProbeAmi`를 **뺀** 모든 Allow는 `aws:PrincipalArn = FDS-IaC-Operator` 조건. 이미지 Allow는 고정 AMI ARN 1개만 자원으로 둔다(시험 `test_every_iac_allow_is_bound_to_operator_except_image`와 같은 기준) |
 | `policies/FDS-Network-Operator-Probe.json` | 재환 Network-Operator 역할(별도 부여 대기)에 붙이는 probe 세션 정책 |
-| `trust/trust-FDS-P2-VPN-Probe-SSM.json` | 중앙에서 만드는 probe 역할 trust(`ec2.amazonaws.com`, `aws:SourceAccount`) |
+| `trust/trust-FDS-P2-VPN-Probe-SSM.json` | 중앙에서 만드는 probe 역할 trust. Principal `ec2.amazonaws.com`, Action `sts:AssumeRole`만 있고 **Condition 없음** |
 
 ## 중앙 생성 (Terraform이 만들지 않음, #35 조건 1)
 
 - 역할 `FDS-P2-VPN-Probe-SSM`: 위 trust를 쓰고, AWS 관리형 `AmazonSSMManagedInstanceCore` 1개만 붙입니다. inline 정책과 boundary는 없습니다.
+- trust에 `aws:SourceAccount`·`aws:SourceArn` 조건을 두지 않습니다([PR25 리뷰 B1](https://github.com/321Team/infra-terraform/pull/25#pullrequestreview-5479479869)).
+  - EC2가 인스턴스 프로파일 자격증명을 발급하는 AssumeRole 요청에는 이 키가 들어간다는 근거가 없습니다. 키가 없으면 `StringEquals`가 불일치로 평가돼 자격증명 발급·SSM 등록이 막힙니다.
+  - 다른 계정 사용은 trust 조건 대신 다음으로 막습니다: 정확한 역할 1개에만 `iam:PassRole`(`iam:PassedToService = ec2.amazonaws.com`, `aws:PrincipalArn = FDS-IaC-Operator`), provider `allowed_account_ids`, probe identity 변경 Deny.
+  - 실제 AssumeRole·SSM Online은 생성이 승인된 #35/#37 회차에서 IMDSv2 역할 식별(자격증명 값 출력 금지)과 StartSession으로 확인합니다.
+  - 회귀 시험 `test_trust_is_ec2_only_without_source_conditions`가 Principal·Action·조건 부재를 대조합니다.
 - 인스턴스 프로파일 `FDS-P2-VPN-Probe-SSM`에 같은 역할 1개를 넣습니다.
 - Terraform `terraform/vpn-probe`는 이 둘을 `data` source로 읽습니다. ARN이 다르면 Plan이 실패합니다.
 - probe에는 PSK·DB 자격증명을 두지 않습니다. `AmazonSSMManagedInstanceCore`의 Parameter Store 읽기 범위는 #37 6014247521 §2에서 이미 다룬 것과 같고, Parameter Store에는 이 시험용 비밀이 없습니다.

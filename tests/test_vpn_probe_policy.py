@@ -45,6 +45,16 @@ class ProbePolicyTests(unittest.TestCase):
         self.assertNotIn("*", json.dumps([s["Resource"] for s in self.iac["Statement"] if s["Effect"] == "Allow"]),
                          "probe 보충 Allow에 와일드카드 자원 없음")
 
+    def test_trust_is_ec2_only_without_source_conditions(self):
+        # EC2 instance-profile 발급 요청에는 aws:SourceAccount/SourceArn이 없다 → 조건을 두면 AssumeRole이 거부된다(PR25 B1).
+        trust = load(IAM / "trust/trust-FDS-P2-VPN-Probe-SSM.json")
+        self.assertEqual(len(trust["Statement"]), 1)
+        s = trust["Statement"][0]
+        self.assertEqual((s["Effect"], s["Principal"], s["Action"]),
+                         ("Allow", {"Service": "ec2.amazonaws.com"}, "sts:AssumeRole"))
+        self.assertNotIn("Condition", s)
+        self.assertNotIn("aws:Source", json.dumps(trust))
+
     def test_supplement_only_adds_probe_scope(self):
         s = by_sid(self.iac)
         self.assertEqual(s["PassApprovedProbeToEC2"]["Resource"], "arn:aws:iam::774055931866:role/FDS-P2-VPN-Probe-SSM")
