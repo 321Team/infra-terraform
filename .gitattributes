@@ -11,6 +11,7 @@
 *.hcl text eol=lf
 terraform/network/*.example text eol=lf
 terraform/vpn/*.example text eol=lf
+terraform/vpn-probe/*.example text eol=lf
 terraform/vpn/*.tftpl text eol=lf
 # Preserve captured bytes, including Windows stdout/stderr, for SHA256 checks.
 validation/components-20261007/** -text whitespace=cr-at-eol
@@ -29,3 +30,5 @@ validation/network-nat-20261009/** -text whitespace=cr-at-eol,-blank-at-eol
 validation/relay-agent-rpm-20261008/download.json -text whitespace=cr-at-eol,-blank-at-eol
 validation/relay-agent-rpm-20261008/terraform/capture-manifest.json -text whitespace=cr-at-eol,-blank-at-eol
 validation/relay-agent-rpm-20261008/terraform/summary.json -text whitespace=cr-at-eol,-blank-at-eol
+# Preserve vpn-probe candidate manifest and captured helper output bytes.
+validation/vpn-probe-20261009/** -text whitespace=cr-at-eol,-blank-at-eol

@@ -1,0 +1,19 @@
+{
+  "status": "CANDIDATE_STATIC_MOCK_NOT_EXECUTION_APPROVAL",
+  "base": "81162467bb2f99a099cb7067fbc3f63e1c0dbed8",
+  "created_utc": "2026-10-09T12:45:15.909915+00:00",
+  "components": {
+    "vpn-probe": {
+      "mock_tests": 7,
+      "files": {
+        ".terraform.lock.hcl": "19d9d35be5e84e592d2714ebf7ecd11a75610fd3addc2c22a8d1f9445a6ca38f",
+        "backend.hcl.example": "9ab60651da217703d490852b8aedaf76e81b414789dc5f9b37a00d615f1c0fa8",
+        "main.tf": "935962a2348279137c99ed1f917bfe0e17e4f97236a6b73c377b6123a86a56ae",
+        "outputs.tf": "a0ec554f23037da69c1427ef520e8756ce0b7940eecda26e5601351467e788ab",
+        "tests/vpn-probe.tftest.hcl": "2a162f838d173c1048ec75aeffadca5110e3df48f6b85aa15ebb3a5d2d650eb2",
+        "variables.tf": "cc5cd206c774b8e9ea2852a6355fffca04d225defd5cd2efebe037ed4282e907",
+        "versions.tf": "dc8fd451e2f7c97982dabc733d7a944d16fe09c7c41ae76e57eeb6054bc58d80"
+      }
+    }
+  }
+}
