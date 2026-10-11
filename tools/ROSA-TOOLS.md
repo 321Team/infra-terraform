@@ -33,13 +33,14 @@ PR21(정책·시뮬레이션·Terraform source)에서 분리한 실행 도구 2�
   | `READBACK` | 조회 반복 후 | verified·실패 사유·검증된 ID |
   | `RECONCILED` | `reconcile` 실행 후 | APPLIED(실제 반영됨) 또는 NOT_APPLIED(반영 안 됨)·ID |
 - **결과가 확정되지 않은 회차가 하나라도 있으면 모든 step을 STOP한다**(되돌림 포함). 확정 = `READBACK` verified 또는 `RECONCILED`. 프로세스가 중간에 죽어도 `INTENT`가 남아 다음 실행이 막힌다.
-- `reconcile --run-id <id>`: 그 회차 step의 실행 전 조건·실행 후 조건을 live IAM과 다시 맞춰 본다. 실행 후 조건만 맞으면 APPLIED(쓰기 응답의 PolicyId와 다르면 STOP), 실행 전 조건만 맞으면 NOT_APPLIED, 둘 다 아니면 **AMBIGUOUS로 STOP하고 미확정으로 남긴다**(사람이 확인). 기본은 dry-run이고 `--execute`일 때만 ledger에 기록한다. AWS 쓰기는 하지 않는다. 자동 재쓰기·자동 삭제는 없다.
-- 동시 실행 방지: 실행 중 ledger 폴더에 `rosa-grant.lock`(O_EXCL)을 둔다. 있으면 STOP. 비정상 종료로 남은 lock은 ledger·live IAM을 확인한 뒤 사람이 지운다.
+- `reconcile --run-id <id>`: 그 회차 step의 실행 전 조건·실행 후 조건을 live IAM과 다시 맞춰 본다. 실행 후 조건만 맞고 **그 회차 쓰기 응답의 ID와 live ID가 일치할 때만** APPLIED(생성 단계: 응답 PolicyId·Arn = live, `guardrails-v2`: 응답 VersionId = live 기본 버전), 실행 전 조건만 맞으면 NOT_APPLIED, 둘 다 아니면 **AMBIGUOUS로 STOP하고 미확정으로 남긴다**(사람이 확인). 기본은 dry-run이고 `--execute`일 때만 ledger에 기록한다. AWS 쓰기는 하지 않는다. 자동 재쓰기·자동 삭제는 없다.
+- **ID 결속(PR24 B1)**: 정상 readback과 reconcile에 같은 판정을 쓴다. 응답 ID가 없는 회차(`OUTCOME_UNKNOWN` 등)는 이름·원문이 같은 정책이 있어도 **자동 채택하지 않고 AMBIGUOUS**로 둔다. 따라서 그 정책은 이 ledger 소유로 기록되지 않아 `*-delete`가 거부된다. readback 전에 같은 이름 정책이 교체되면 READBACK verified=false로 남는다.
+- 동시 실행 방지(PR24 B2): `--execute`인 실행(쓰기·`reconcile`)은 **먼저** ledger 폴더에 `rosa-grant.lock`(O_EXCL)을 잡고, 그 안에서 ledger·live IAM·호출 주체를 다시 읽어 미확정 회차·실행 전 조건·argv를 판정한 뒤 INTENT→쓰기→readback→기록까지 한다. lock이 있으면 STOP. `status`·dry-run은 lock 없이 읽기 전용으로 본다. 비정상 종료로 남은 lock은 ledger·live IAM을 확인한 뒤 사람이 지운다.
 - ledger 줄이 JSON이 아니거나 `run_id`/`phase`가 없으면(이전 형식 포함) 입력 오류로 멈춘다.
 - **지원 환경: POSIX만(Linux, AWS CloudShell), Python 3.9+, AWS CLI v2.** Windows는 시작 시 거부한다(비공개 ledger가 POSIX 파일 권한에 의존). 권한 검사는 빼지 않는다.
 - Guardrails의 남은 v2 버전은 삭제하지 않는다. 기본 버전이 아니면 효과가 없다.
 - 사용 예: `python3 tools/rosa_grant.py --expected-caller <승인된 ARN> --ledger-dir <비공개 경로> status`, 이어서 `... guardrails-v2`(dry-run) → `... guardrails-v2 --execute`. 미확정 회차가 나오면 `... reconcile --run-id <id>`(dry-run) → 확인 후 `... reconcile --run-id <id> --execute`.
-- 오프라인 테스트(POSIX): `python3 tests/test_rosa_grant.py` (31건: 정방향 6단계·되돌림 4단계, dry-run 무쓰기, 1회 1쓰기, 호출 주체 불일치, 순서 위반, 동명 정책 채택·삭제 거부, live v1 drift, 다른 주체에 Guardrails 공유, 버전 한도, 예상 외 부착·inline, 쓰기 실패 기록→reconcile NOT_APPLIED, 반영 지연 재시도·미수렴, 원문 hash 불일치, v2 = v1 + NotAction 11개. **B1 추가**: 생성 후 조회 거부·손상 JSON·시간초과 각각에서 PolicyId 보존·후속 실행 차단·reconcile APPLIED 후 삭제 가능, 일시 조회 오류 회복, 쓰기 호출 예외(반영 전/후), INTENT 기록 실패 시 무쓰기, READBACK 기록 실패 시 미확정 유지, lock 동시 실행 차단, AMBIGUOUS 유지, reconcile 입력 오류, 손상·이전 형식 ledger 거부, 공개 ledger 파일 거부, Windows 거부).
+- 오프라인 테스트(POSIX): `python3 tests/test_rosa_grant.py` (39건: 정방향 6단계·되돌림 4단계, dry-run 무쓰기, 1회 1쓰기, 호출 주체 불일치, 순서 위반, 동명 정책 채택·삭제 거부, live v1 drift, 다른 주체에 Guardrails 공유, 버전 한도, 예상 외 부착·inline, 쓰기 실패 기록→reconcile NOT_APPLIED, 반영 지연 재시도·미수렴, 원문 hash 불일치, v2 = v1 + NotAction 11개. **B1 추가**: 생성 후 조회 거부·손상 JSON·시간초과 각각에서 PolicyId 보존·후속 실행 차단·reconcile APPLIED 후 삭제 가능, 일시 조회 오류 회복, 쓰기 호출 예외(반영 전/후), INTENT 기록 실패 시 무쓰기, READBACK 기록 실패 시 미확정 유지, lock 동시 실행 차단, AMBIGUOUS 유지, **PR24 B1**: 응답 없는 생성 후 외부 동명 정책 비채택·삭제 거부, create~readback 사이 동명 교체 시 미확정·삭제 거부, 다른 버전이 기본이 되면 VersionId 불일치, guardrails 쓰기 예외 시 비채택, **PR24 B2**: lock 직전 다른 회차 INTENT 주입 시 무쓰기, lock 직전 live 변경 재판정, reconcile이 lock 안에서 ledger 재조회(중복 RECONCILED 없음), status·dry-run은 lock 없이 읽기, reconcile 입력 오류, 손상·이전 형식 ledger 거부, 공개 ledger 파일 거부, Windows 거부).
 
 ## 2. 중앙 실행 대조 스크립트 `tools/rosa_prereq_check.py`
 

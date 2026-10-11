@@ -317,15 +317,141 @@ class Runner(unittest.TestCase):
 
     def test_write_call_raises_outcome_unknown(self):
         self.run_step('guardrails-v2')
-        for apply_first, outcome in ((False, 'NOT_APPLIED'), (True, 'APPLIED')):
+        # not applied: resolvable. applied without a response PolicyId: never adopted (PR24 B1).
+        for apply_first, rc, outcome in ((False, 0, 'NOT_APPLIED'), (True, 1, 'AMBIGUOUS')):
             with self.subTest(apply_first=apply_first):
                 with self.assertRaises(m.Stop):
                     self.run_step('subscribe-create', aws=m.Aws(raising_call(self.fake, apply_first)))
                 rid = self.only_unresolved()
                 self.assertEqual([e['phase'] for e in self.runs()[rid]], ['INTENT', 'OUTCOME_UNKNOWN'])
                 self.assertFalse((self.ledger / m.LOCK_NAME).exists())
-                self.assertEqual(self.run_step('reconcile', run_id=rid), 0, self.out)
-                self.assertEqual(self.ledger_entries()[-1]['outcome'], outcome)
+                self.assertEqual(self.run_step('reconcile', run_id=rid), rc, self.out)
+                self.assertIn(f'outcome={outcome}', self.out)
+        self.assertIn('missing durable create PolicyId/Arn', self.out)
+        self.assertEqual(self.only_unresolved(), rid)
+        n = len(self.fake.writes)
+        self.assertEqual(self.run_step('subscribe-delete'), 1)
+        self.assertEqual(len(self.fake.writes), n)
+
+    # --- PR24 review B1: live object must be the one this run's write returned ---
+    def test_outcome_unknown_then_foreign_same_policy_not_adopted(self):
+        self.run_step('guardrails-v2')
+        with self.assertRaises(m.Stop):  # timeout before the server applied the create
+            self.run_step('subscribe-create', aws=m.Aws(raising_call(self.fake, apply_first=False)))
+        rid = self.only_unresolved()
+        self.fake._create('FDS-RosaBootstrap-Subscribe', SRC['subscribe'][1])  # someone else, same name+doc
+        foreign = self.fake.policies['FDS-RosaBootstrap-Subscribe']['id']
+        self.assertEqual(self.run_step('reconcile', run_id=rid), 1)
+        self.assertIn('outcome=AMBIGUOUS', self.out)
+        self.assertEqual(self.only_unresolved(), rid)
+        n = len(self.fake.writes)
+        self.assertEqual(self.run_step('subscribe-delete'), 1)
+        self.assertEqual(len(self.fake.writes), n)
+        self.assertEqual(self.fake.policies['FDS-RosaBootstrap-Subscribe']['id'], foreign)
+
+    def test_policy_replaced_between_create_and_readback(self):
+        self.run_step('guardrails-v2')
+        fake = self.fake
+
+        class ReplaceAfterCreate(m.Aws):
+            done = False
+
+            def state(self):
+                if not self.done and fake.writes and fake.writes[-1][1] == 'create-policy':
+                    self.done = True
+                    del fake.policies['FDS-RosaBootstrap-Subscribe']
+                    fake._create('FDS-RosaBootstrap-Subscribe', SRC['subscribe'][1])
+                return super().state()
+
+        self.assertEqual(self.run_step('subscribe-create', aws=ReplaceAfterCreate(fake)), 1)
+        returned = self.runs()[self.only_unresolved()][1]['response_ids']['PolicyId']
+        live = fake.policies['FDS-RosaBootstrap-Subscribe']['id']
+        self.assertNotEqual(returned, live)
+        last = self.ledger_entries()[-1]
+        self.assertEqual((last['phase'], last['verified'], last['ids']), ('READBACK', False, {}))
+        self.assertIn('differs from create response', last['post_failures'][0])
+        rid = self.only_unresolved()
+        self.assertEqual(self.run_step('reconcile', run_id=rid), 1)
+        self.assertIn('outcome=AMBIGUOUS', self.out)
+        n = len(fake.writes)
+        self.assertEqual(self.run_step('subscribe-delete'), 1)
+        self.assertEqual(len(fake.writes), n)
+        self.assertEqual(fake.policies['FDS-RosaBootstrap-Subscribe']['id'], live)
+
+    def test_guardrails_version_bound_to_returned_version_id(self):
+        fake = self.fake
+
+        class OtherVersionBecomesDefault(m.Aws):
+            done = False
+
+            def state(self):
+                if not self.done and fake.writes:
+                    self.done = True
+                    g = fake.policies['FDS-IaC-Guardrails']
+                    g['docs']['v3'] = SRC['v2'][1]  # same document, different version made the default
+                    g['default'] = 'v3'
+                return super().state()
+
+        self.assertEqual(self.run_step('guardrails-v2', aws=OtherVersionBecomesDefault(fake)), 1)
+        self.assertIn('differs from VersionId v2', self.ledger_entries()[-1]['post_failures'][0])
+        rid = self.only_unresolved()
+        self.assertEqual(self.run_step('reconcile', run_id=rid), 1)
+        self.assertIn('outcome=AMBIGUOUS', self.out)
+
+    def test_guardrails_outcome_unknown_not_adopted(self):
+        with self.assertRaises(m.Stop):
+            self.run_step('guardrails-v2', aws=m.Aws(raising_call(self.fake, apply_first=True)))
+        rid = self.only_unresolved()
+        self.assertEqual(self.run_step('reconcile', run_id=rid), 1)
+        self.assertIn('missing durable create-policy-version VersionId', self.out)
+
+    # --- PR24 review B2: everything an --execute run decides on is read under the lock ---
+    def inject_before_lock(self, action):
+        real = m.Lock.__enter__
+
+        def enter(lock):
+            action()
+            return real(lock)
+        m.Lock.__enter__ = enter
+        self.addCleanup(setattr, m.Lock, '__enter__', real)
+
+    def test_foreign_intent_just_before_lock_stops_write(self):
+        self.run_step('status')
+        self.inject_before_lock(lambda: m.append_journal(
+            self.ledger / m.LEDGER_NAME, {'run_id': 'other', 'step': 'guardrails-v2', 'phase': 'INTENT'}))
+        self.assertEqual(self.run_step('guardrails-v2'), 1)
+        self.assertIn('UNRESOLVED run_id=other', self.out)
+        self.assertEqual(self.fake.writes, [])
+        self.assertFalse((self.ledger / m.LOCK_NAME).exists())
+
+    def test_live_change_just_before_lock_rechecked(self):
+        def drift():
+            self.fake._create('AdminLike', {'Statement': []})
+            self.fake._attach(m.arn('AdminLike'))
+        self.inject_before_lock(drift)
+        self.assertEqual(self.run_step('guardrails-v2'), 1)
+        self.assertIn('unexpected policies on role', self.out)
+        self.assertEqual(self.fake.writes, [])
+
+    def test_reconcile_rereads_ledger_under_lock(self):
+        self.fake.fail_write = 'create-policy-version'
+        self.run_step('guardrails-v2')
+        rid = self.only_unresolved()
+        self.fake.fail_write = None
+        path = self.ledger / m.LEDGER_NAME
+        self.inject_before_lock(lambda: m.append_journal(path, {
+            'run_id': rid, 'step': 'guardrails-v2', 'phase': 'RECONCILED', 'outcome': 'NOT_APPLIED', 'ids': {}}))
+        with self.assertRaises(m.InputError):  # already resolved by the other run
+            self.run_step('reconcile', run_id=rid)
+        self.assertEqual(sum(e['phase'] == 'RECONCILED' for e in self.ledger_entries()), 1)
+
+    def test_status_and_dry_run_do_not_take_lock(self):
+        self.run_step('status')
+        (self.ledger / m.LOCK_NAME).write_text('pid=1\n')
+        self.assertEqual(self.run_step('status'), 0)
+        self.assertEqual(self.run_step('guardrails-v2', execute=False), 0)
+        self.assertTrue((self.ledger / m.LOCK_NAME).exists())
+        self.assertEqual(self.fake.writes, [])
 
     def test_intent_not_durable_means_no_write(self):
         real = m.append_journal

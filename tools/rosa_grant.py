@@ -14,11 +14,17 @@ Ledger = durable journal (PR21 review B1). One run_id per write, appended and fs
   OUTCOME_UNKNOWN the write call raised (timeout, interrupted, ...)
   READBACK        result of the bounded readback (verified true/false)
   RECONCILED      `reconcile --run-id` compared live state with the step pre/post: APPLIED or NOT_APPLIED
+Identity binding (PR24 review B1): a create step is recorded only when the live PolicyId/Arn equal the
+PolicyId/Arn returned by that run's own create call; guardrails-v2 only when the live default version
+equals the VersionId it returned. A run without a durable response ID (e.g. OUTCOME_UNKNOWN) is never
+adopted, even if a policy with the same name and document exists: it stays AMBIGUOUS for manual review.
 A run is resolved only when READBACK verified=true or RECONCILED. While any run is unresolved, every
 step STOPs: inspect the ledger and live IAM, then `reconcile --run-id <id> --execute`. A run whose live
 state matches neither pre nor post is AMBIGUOUS and stays unresolved for manual review; nothing is
-rewritten or deleted automatically. A lock file in the ledger dir blocks concurrent runs; a stale lock
-after a crash is removed by hand after review.
+rewritten or deleted automatically. A lock file in the ledger dir blocks concurrent runs. Every
+--execute path (run and reconcile) takes the lock first and only then re-reads the ledger and live IAM,
+so all checks and the write use inputs read under the lock (PR24 review B2). status and dry-run read a
+snapshot without the lock and never write. A stale lock after a crash is removed by hand after review.
 
 Supported: POSIX only (Linux, AWS CloudShell), Python 3.9+, AWS CLI v2. Windows is refused at start
 because the private ledger relies on POSIX file modes.
@@ -235,7 +241,7 @@ def make_create(key):
             f.append(f'{name} must not be attached yet')
         return f
 
-    return {'pre': pre, 'argv': argv, 'post': post,
+    return {'pre': pre, 'argv': argv, 'post': post, 'identity': 'policy',
             'record': lambda s: {'policy_arn': arn(name), 'policy_id': s['policies'][key]['id']}}
 
 
@@ -342,6 +348,7 @@ STEPS = {
                                    '--policy-document', f'file://{src["v2"][0]}', '--set-as-default'],
         'post': lambda s, src, l: guardrails_is(s, src, 'v2') + common_pre(s, src, []),
         'record': lambda s: {'default_version': s['policies']['guardrails']['default']},
+        'identity': 'version',
     },
     'subscribe-create': make_create('subscribe'),
     'subscribe-attach': make_attach('subscribe'),
@@ -451,6 +458,33 @@ def response_ids(out):
     return ids
 
 
+def identity_failures(step, response, ids):
+    """Bind live IDs to the IDs returned by this run's own write (fail closed).
+
+    Same name/document is not proof of ownership: without a durable response ID the run is ambiguous.
+    """
+    kind = STEPS[step].get('identity')
+    if kind == 'policy':
+        want_id, want_arn = response.get('PolicyId'), response.get('Arn')
+        if not want_id or not want_arn:
+            return ['missing durable create PolicyId/Arn; ownership ambiguous']
+        f = []
+        if ids.get('policy_id') != want_id:
+            f.append(f'live PolicyId {ids.get("policy_id")} differs from create response {want_id}')
+        if ids.get('policy_arn') != want_arn:
+            f.append(f'live Arn {ids.get("policy_arn")} differs from create response {want_arn}')
+        return f
+    if kind == 'version':
+        want = response.get('VersionId')
+        if not want:
+            return ['missing durable create-policy-version VersionId; outcome ambiguous']
+        if ids.get('default_version') != want:
+            return [f'live default version {ids.get("default_version")} differs from VersionId {want} '
+                    'returned by the write']
+        return []
+    return []
+
+
 class Lock:
     def __init__(self, ledger_dir):
         self.path = Path(ledger_dir) / LOCK_NAME
@@ -492,6 +526,15 @@ def run(step, expected_caller, ledger_dir, execute, aws=None, sleep=time.sleep, 
     if file_mode(ledger_dir) & 0o077:
         raise InputError(f'ledger dir must be private (0700): {ledger_dir}')
     ledger_path = ledger_dir / LEDGER_NAME
+    if execute and step != 'status':
+        # B2: lock first; every input below is read under the lock.
+        with Lock(ledger_dir):
+            return _run(step, expected_caller, ledger_path, True, aws, src, sleep, attempts, run_id)
+    return _run(step, expected_caller, ledger_path, False, aws, src, sleep, attempts, run_id)
+
+
+def _run(step, expected_caller, ledger_path, execute, aws, src, sleep, attempts, run_id):
+    """Body of run(). With execute=True the caller holds the lock for the whole call."""
     if ledger_path.exists() and file_mode(ledger_path) & 0o077:
         raise InputError(f'ledger file must be private (0600): {ledger_path}')
     ledger = read_ledger(ledger_path)
@@ -524,38 +567,41 @@ def run(step, expected_caller, ledger_dir, execute, aws=None, sleep=time.sleep, 
         print('dry-run: no write. Re-run with --execute inside the approved window.')
         return 0
 
-    with Lock(ledger_dir):
-        entry = {'run_id': uuid.uuid4().hex, 'step': step, 'caller': s['caller'].get('Arn'),
-                 'argv': ['aws', *argv],
-                 'source_sha256': {k: sha256(Path(p).read_bytes()) for k, (p, _) in src.items()}}
-        append_journal(ledger_path, dict(entry, phase='INTENT', utc=utc()))
-        try:
-            rc, out, err = aws.call(*argv)
-        except Exception as exc:
-            append_journal(ledger_path, dict(entry, phase='OUTCOME_UNKNOWN', utc=utc(),
-                                             error=f'{type(exc).__name__}: {str(exc)[:300]}'))
-            raise Stop(f'write outcome unknown ({type(exc).__name__}); run_id={entry["run_id"]} stays '
-                       'unresolved until reconciled')
-        append_journal(ledger_path, dict(entry, phase='WRITE_RETURNED', utc=utc(), rc=rc,
-                                         stdout_sha256=sha256(out.encode()), stderr=err.strip()[:500],
-                                         response_ids=response_ids(out)))
-        fails = [f'write rc={rc}'] if rc != 0 else ['readback not completed']
-        ids = {}
-        if rc == 0:
-            for i in range(attempts):
-                try:
-                    s = aws.state()
-                    fails = spec['post'](s, src, ledger)
-                except READ_ERRORS as exc:
-                    fails = [f'readback failed: {type(exc).__name__}: {str(exc)[:300]}']
-                if not fails:
-                    break
-                if i + 1 < attempts:
-                    sleep(5)
+    entry = {'run_id': uuid.uuid4().hex, 'step': step, 'caller': s['caller'].get('Arn'),
+             'argv': ['aws', *argv],
+             'source_sha256': {k: sha256(Path(p).read_bytes()) for k, (p, _) in src.items()}}
+    append_journal(ledger_path, dict(entry, phase='INTENT', utc=utc()))
+    try:
+        rc, out, err = aws.call(*argv)
+    except Exception as exc:
+        append_journal(ledger_path, dict(entry, phase='OUTCOME_UNKNOWN', utc=utc(),
+                                         error=f'{type(exc).__name__}: {str(exc)[:300]}'))
+        raise Stop(f'write outcome unknown ({type(exc).__name__}); run_id={entry["run_id"]} stays '
+                   'unresolved until reconciled')
+    returned_ids = response_ids(out)
+    append_journal(ledger_path, dict(entry, phase='WRITE_RETURNED', utc=utc(), rc=rc,
+                                     stdout_sha256=sha256(out.encode()), stderr=err.strip()[:500],
+                                     response_ids=returned_ids))
+    fails = [f'write rc={rc}'] if rc != 0 else ['readback not completed']
+    ids = {}
+    if rc == 0:
+        for i in range(attempts):
+            try:
+                s = aws.state()
+                fails = spec['post'](s, src, ledger)
+            except READ_ERRORS as exc:
+                fails = [f'readback failed: {type(exc).__name__}: {str(exc)[:300]}']
             if not fails:
-                ids = spec['record'](s)
-        append_journal(ledger_path, dict(entry, phase='READBACK', utc=utc(), verified=not fails,
-                                         post_failures=fails, ids=ids))
+                break
+            if i + 1 < attempts:
+                sleep(5)
+        if not fails:
+            got = spec['record'](s)
+            # B1: a converged post is not enough; the live object must be the one this write returned.
+            fails = identity_failures(step, returned_ids, got)
+            ids = {} if fails else got
+    append_journal(ledger_path, dict(entry, phase='READBACK', utc=utc(), verified=not fails,
+                                     post_failures=fails, ids=ids))
     print_summary(s, src)
     for f in fails:
         print(f'STOP  post: {f}')
@@ -584,10 +630,11 @@ def reconcile(run_id, s, src, ledger, ledger_path, execute):
     returned = next((e for e in entries if e['phase'] == 'WRITE_RETURNED'), {})
     if not post and pre:
         outcome, ids = 'APPLIED', spec['record'](s)
-        want = returned.get('response_ids', {}).get('PolicyId')
-        if want and ids.get('policy_id') != want:
-            outcome = 'AMBIGUOUS'
-            print(f'STOP  live PolicyId {ids.get("policy_id")} != PolicyId returned by the write {want}')
+        bind = identity_failures(step, returned.get('response_ids', {}), ids)
+        if bind:
+            outcome, ids = 'AMBIGUOUS', {}
+            for f in bind:
+                print(f'STOP  identity: {f}')
     elif post and not pre:
         outcome, ids = 'NOT_APPLIED', {}
     else:
@@ -604,9 +651,9 @@ def reconcile(run_id, s, src, ledger, ledger_path, execute):
     if not execute:
         print('dry-run: ledger not changed. Re-run with --execute to record RECONCILED.')
         return 0
-    with Lock(ledger_path.parent):
-        append_journal(ledger_path, {'run_id': run_id, 'step': step, 'phase': 'RECONCILED', 'utc': utc(),
-                                     'caller': s['caller'].get('Arn'), 'outcome': outcome, 'ids': ids})
+    # The caller (run) holds the lock: ledger and live state above were re-read under it (B2).
+    append_journal(ledger_path, {'run_id': run_id, 'step': step, 'phase': 'RECONCILED', 'utc': utc(),
+                                 'caller': s['caller'].get('Arn'), 'outcome': outcome, 'ids': ids})
     print(f'result=RECONCILED outcome={outcome} run_id={run_id}')
     return 0
 
