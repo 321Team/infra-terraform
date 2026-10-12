@@ -156,6 +156,12 @@ resource "aws_instance" "relay" {
     delete_on_termination = var.root_delete_on_termination
   }
   depends_on = [aws_vpc_security_group_ingress_rule.ike, aws_vpc_security_group_egress_rule.reviewed]
+
+  # Launch-time intent stays false. After aws_eip_association attaches the Relay EIP the provider
+  # reads this ForceNew attribute back as true, so every later plan would replace the Relay (#13 re-plan 2026-10-12).
+  lifecycle {
+    ignore_changes = [associate_public_ip_address]
+  }
 }
 
 # EIP creation is downstream of the guarded instance, not an independent bypass.
