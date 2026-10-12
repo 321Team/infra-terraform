@@ -61,6 +61,25 @@ run "single_nat_private_egress" {
   }
 }
 
+run "rosa_lb_role_tags_only_on_az1" {
+  command = plan
+  variables {
+    execution_enabled = true
+  }
+  assert {
+    condition     = aws_subnet.project["private_a"].tags == tomap({ Name = "fds-private_a", "kubernetes.io/role/internal-elb" = "1" })
+    error_message = "private_a needs exactly Name + internal-elb role tag for ROSA HCP preflight."
+  }
+  assert {
+    condition     = aws_subnet.project["public_transport_a"].tags == tomap({ Name = "fds-public_transport_a", "kubernetes.io/role/elb" = "1" })
+    error_message = "public_transport_a needs exactly Name + elb role tag for ROSA HCP public ingress."
+  }
+  assert {
+    condition     = aws_subnet.project["private_b"].tags == tomap({ Name = "fds-private_b" }) && aws_subnet.project["private_c"].tags == tomap({ Name = "fds-private_c" })
+    error_message = "private_b/c are not used by ROSA (1 AZ) and must stay untagged."
+  }
+}
+
 # Mock apply only: fixes NAT/route targets to the exact generated IDs.
 run "nat_targets_are_wired" {
   command = apply

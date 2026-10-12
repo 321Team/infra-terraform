@@ -31,6 +31,11 @@ locals {
     private_c          = { cidr = "10.20.30.0/24", zone_id = "apne2-az3", expected_az = "ap-northeast-2c" }
     public_transport_a = { cidr = "10.20.110.0/24", zone_id = "apne2-az1", expected_az = "ap-northeast-2a" }
   }
+  # ROSA HCP preflight checks these role tags (infra-rosa#4). Only the az1 subnets ROSA uses; private_b/c stay untagged.
+  rosa_lb_role_tags = {
+    private_a          = { "kubernetes.io/role/internal-elb" = "1" }
+    public_transport_a = { "kubernetes.io/role/elb" = "1" }
+  }
 }
 
 data "aws_availability_zone" "adopted" {
@@ -63,7 +68,7 @@ resource "aws_subnet" "project" {
   cidr_block              = each.value.cidr
   availability_zone_id    = each.value.zone_id
   map_public_ip_on_launch = false
-  tags                    = { Name = "fds-${each.key}" }
+  tags                    = merge({ Name = "fds-${each.key}" }, lookup(local.rosa_lb_role_tags, each.key, {}))
 
   lifecycle {
     postcondition {
