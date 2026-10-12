@@ -10,6 +10,11 @@ provider "aws" {
       Component = "network"
     }
   }
+  # The ROSA installer adds/removes kubernetes.io/cluster/<infra-id> on these subnets (ROSAInstallerPolicy).
+  # Leave only that prefix to the installer; network still owns kubernetes.io/role/* and every other tag.
+  ignore_tags {
+    key_prefixes = ["kubernetes.io/cluster/"]
+  }
 }
 
 # A local safety switch, not evidence of approval or a replacement for #35 gates.
