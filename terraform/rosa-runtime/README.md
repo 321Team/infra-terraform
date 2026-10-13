@@ -34,7 +34,7 @@ ROSA가 우리 계정에 함께 만드는 것(예상, 생성 후 readback으로 
 
 | 변수 | 기본값 | 설명 |
 |---|---|---|
-| `execution_enabled` | `false` | Create GO 작업창에서만 `true` |
+| `execution_enabled` | `false` | 승인된 Plan 수집·Apply 단계에서만 `true`. 승인의 증거가 아니다 |
 | `cluster_name` | 없음 | 생성 후 변경 불가 |
 | `openshift_version` | 없음 | #34 Freeze 값. Plan 전에 `rosa list versions --hosted-cp`로 확인 |
 | `public_cluster` | 없음 | `true` = public API + external Ingress (승인된 방식). `false`(private/private)는 시험용 분기이며 선택·GO가 아니다 |
@@ -46,14 +46,37 @@ ROSA가 우리 계정에 함께 만드는 것(예상, 생성 후 readback으로 
 
 Red Hat 인증은 환경변수(`RHCS_CLIENT_ID`/`RHCS_CLIENT_SECRET` 또는 `RHCS_TOKEN`)로만 넣는다.
 
-## 실행 순서 (모든 Gate 충족 후)
+## 실행 순서
 
-1. 선행 확인: network 태그 apply·readback, rosa-prereq stage 1·2 readback, G4·Freeze·ROSA Cost GO·Create GO 기록
+`execution_enabled=true`는 승인된 단계에서 Plan·Apply를 가능하게 하는 입력일 뿐이다. 그 값을 켰다는 사실이 승인의 증거가 되지 않는다.
+
+**A. 선행 확인 (조회만)**
+1. 실제 선행조건 readback: network 태그 apply·readback([#27](https://github.com/321Team/infra-terraform/pull/27)), rosa-prereq stage 1·2 readback, Red Hat 로그인·조직 연결(계정 준비 기록). G4·ROSA Freeze·중앙 비용 판단의 현재 상태를 기록한다
 2. CA JSON 추출: `git show 70bdb92:evidence/DEC-P2-REG-01/infra-rosa-issue-11-registry-ca-json-20261008/rosa-hcp-registry-additional-trusted-ca.json > <path>` → `sha256sum`이 `4d86507e…1da4`인지 확인
-3. `terraform init -backend-config=backend.hcl` (state `phase2/rosa-runtime/terraform.tfstate`)
-4. `terraform plan -var-file=<비공개>.tfvars -out=create.plan` → 기대: **create 3** (`rhcs_cluster_rosa_hcp.this`, `rhcs_hcp_machine_pool.workers`, `rhcs_hcp_default_ingress.default`), update·delete 0. 3개 중 새 AWS 과금 자원을 직접 만드는 것은 클러스터뿐이다. pool은 기본 pool을 가져오는 것이고, ingress는 기본 Ingress 설정을 바꾸는 것이다. Plan에서 `private = false`, `listening_method = "external"`를 확인한다. 값이 위 표와 다르면 STOP
-5. 독립 리뷰 → 별도 Apply GO → `terraform apply create.plan` (유료, 클러스터 Ready까지 대기)
-6. readback: `rosa describe cluster`(API listening), `rosa list ingress -c <cluster>`(기본 Ingress 1개, external), `rosa list machinepools`·`rosa describe machinepool workers`(3대, surge 1 / unavailable 0), `oc get nodes -o wide`, 예상 자원 실측(infra-rosa#4 A1 — 기본 NLB 1 외 **추가 LB 없음** 확인). 결과는 infra-rosa#4 Ready 확인과 Basic Ready Handoff에 연결
+
+**B. saved Plan 수집 (Plan 수집이 허용된 범위에서, 생성 없음)**
+
+3. `terraform init -backend-config=backend.hcl` (state `phase2/rosa-runtime/terraform.tfstate`, workspace `default`)
+4. `execution_enabled=true`로 `terraform plan -var-file=<비공개>.tfvars -out=create.plan`, `terraform show -json create.plan > create.plan.json`
+   - 기대: **create 3** (`rhcs_cluster_rosa_hcp.this`, `rhcs_hcp_machine_pool.workers`, `rhcs_hcp_default_ingress.default`), update·delete 0
+   - create 3은 AWS 자원 3개라는 뜻이 아니다. 클러스터가 간접으로 만드는 노드·EBS·NLB·endpoint는 생성 후 실제 ID로 따로 센다. pool은 기본 pool을 가져오는 것이고, ingress는 기본 Ingress 설정을 바꾸는 것이다
+   - Plan에서 `private = false`, `listening_method = "external"`, 위 표의 값을 확인한다. 다르면 STOP
+
+**C. 검토와 Apply (유료)**
+
+5. 아래 "생성 승인본에 연결할 것"을 붙여 saved Plan 독립 검토 → 별도 Apply GO
+6. `terraform apply create.plan` — **검토된 그 Plan 파일만** 적용한다. state·source·입력이 바뀌어 Plan이 달라졌으면 옛 Plan을 대신 쓰지 않는다. 바뀐 부분의 영향만 다시 검토받고 새 Plan을 쓴다
+7. readback: `rosa describe cluster`(API listening), `rosa list ingress -c <cluster>`(기본 Ingress 1개, external), `rosa list machinepools`·`rosa describe machinepool workers`(3대, surge 1 / unavailable 0), `oc get nodes -o wide`, 예상 자원 실측(infra-rosa#4 A1 — 기본 NLB 1 외 **추가 LB 없음** 확인). 결과는 infra-rosa#4 Ready 확인과 Basic Ready Handoff에 연결
+
+### 생성 승인본에 연결할 것
+
+| 구분 | 항목 |
+|---|---|
+| source | 저장소 commit SHA, `rosa-runtime` 디렉터리 파일 해시, `.terraform.lock.hcl` 해시 |
+| 입력 | 비공개 tfvars의 SHA256(값은 올리지 않음), CA JSON SHA256 `4d86507e…1da4`, `min_free_transport_ips = 16`(낮추지 않음) |
+| state | backend key `phase2/rosa-runtime/terraform.tfstate`, workspace `default`, state lineage·serial |
+| Plan | `create.plan`과 `create.plan.json`의 SHA256, `terraform plan` 명령·RC |
+| 도구 | Terraform `1.16.4`, aws `6.66.0`, rhcs `1.7.9`, ROSA CLI 버전 |
 
 ## 삭제
 

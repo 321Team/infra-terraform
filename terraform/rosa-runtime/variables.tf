@@ -3,7 +3,7 @@
 variable "execution_enabled" {
   type        = bool
   default     = false
-  description = "Keep false outside mock tests until exact-source review and every infra-rosa#4 entry condition is recorded."
+  description = "Keep false outside mock tests. Set true only for an approved saved-Plan collection or Apply step; setting it is not an approval."
 }
 
 variable "network_handoff" {
