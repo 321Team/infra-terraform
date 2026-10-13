@@ -27,6 +27,16 @@ class RenderTest(unittest.TestCase):
         cond = [s for s in doc["Statement"] if s["Sid"] == "ManageOnlyOwnSessionsOnExactRelay"][0]["Condition"]
         self.assertEqual(cond["StringEquals"]["ssm:resourceTag/aws:ssmmessages:target-id"], GOOD)
 
+    def test_start_session_instance_statement_uses_boolifexists(self):
+        doc = json.loads(R.render(GOOD))
+        st = [s for s in doc["Statement"] if s["Sid"] == "StartSessionOnExactRelayWithDocumentCheck"][0]
+        self.assertEqual(st["Action"], "ssm:StartSession")
+        self.assertEqual(st["Resource"], f"arn:aws:ec2:ap-northeast-2:774055931866:instance/{GOOD}")
+        self.assertEqual(st["Condition"]["StringEquals"], {"aws:RequestedRegion": "ap-northeast-2"})
+        self.assertEqual(st["Condition"]["BoolIfExists"], {"ssm:SessionDocumentAccessCheck": "true"})
+        self.assertNotIn("Bool", st["Condition"])
+        self.assertEqual(set(st["Condition"]), {"StringEquals", "BoolIfExists"})
+
     def test_rejects_bad_ids(self):
         for bad in ("", "i-123", "I-0123456789ABCDEF0", "i-0123456789abcdef0*", "i-*", "*",
                     "i-0123456789abcdef0 ", "i-0123456789abcdefg"):
