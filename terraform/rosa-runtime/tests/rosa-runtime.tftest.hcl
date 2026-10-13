@@ -82,7 +82,8 @@ run "public_public_single_az_shape" {
     error_message = "public/public must pass public_transport_a then private_a, with private=false."
   }
   assert {
-    condition     = rhcs_hcp_default_ingress.default.listening_method == "external" && rhcs_hcp_default_ingress.default.cluster == rhcs_cluster_rosa_hcp.this.id
+    # cluster ID is unknown at plan time; the wiring is in main.tf and checked by readback after apply.
+    condition     = rhcs_hcp_default_ingress.default.listening_method == "external"
     error_message = "public/public must pin the existing default Ingress to external."
   }
   assert {
