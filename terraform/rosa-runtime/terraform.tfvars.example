@@ -1,0 +1,36 @@
+# EXAMPLE ONLY. Copy to an uncommitted *.tfvars and fill from reviewed handoffs. Never commit the filled file.
+execution_enabled = false # true only for an approved saved-Plan collection or Apply step; setting it is not an approval
+
+cluster_name      = "<reviewed name, <=54 chars>"
+openshift_version = "<exact version adopted by #34 Freeze, e.g. 4.22.16>"
+public_cluster    = true # infra-rosa#4 decision 6120548351: public API + external default Ingress
+
+# infra-rosa#11 output 4. Extract with `git show 70bdb92:<path>` (no line-ending conversion) and verify the hash.
+# Source: fds-project-evidence evidence/DEC-P2-REG-01/infra-rosa-issue-11-registry-ca-json-20261008/rosa-hcp-registry-additional-trusted-ca.json
+registry_trust = {
+  json_path       = "<local path to the extracted JSON>"
+  expected_sha256 = "4d86507ecd81789e376669940f68b2dbb27f5989e6fd4315238c9f61a2401da4"
+}
+
+# Paste `terraform output -json network_handoff` from the reviewed network root (non-secret).
+network_handoff = {
+  region   = "ap-northeast-2"
+  vpc_id   = "<vpc-...>"
+  vpc_cidr = "10.20.0.0/16"
+  subnets = {
+    private_a          = { id = "<subnet-...>", cidr = "10.20.10.0/24", zone_id = "apne2-az1", route_table_id = "<rtb-...>" }
+    private_b          = { id = "<subnet-...>", cidr = "10.20.20.0/24", zone_id = "apne2-az2", route_table_id = "<rtb-...>" }
+    private_c          = { id = "<subnet-...>", cidr = "10.20.30.0/24", zone_id = "apne2-az3", route_table_id = "<rtb-...>" }
+    public_transport_a = { id = "<subnet-...>", cidr = "10.20.110.0/24", zone_id = "apne2-az1", route_table_id = "<rtb-...>" }
+  }
+}
+
+# Paste `terraform output -json rosa_prereq_handoff` after rosa-prereq stage 2 readback (non-secret).
+rosa_prereq_handoff = {
+  account_role_prefix  = "fds-rosa"
+  installer_role_arn   = "arn:aws:iam::774055931866:role/fds-rosa-HCP-ROSA-Installer-Role"
+  support_role_arn     = "arn:aws:iam::774055931866:role/fds-rosa-HCP-ROSA-Support-Role"
+  worker_role_arn      = "arn:aws:iam::774055931866:role/fds-rosa-HCP-ROSA-Worker-Role"
+  oidc_config_id       = "<managed OIDC config id>"
+  operator_role_prefix = "fds-rosa"
+}

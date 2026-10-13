@@ -1,0 +1,4 @@
+{
+  "10.1.93.54": "-----BEGIN CERTIFICATE-----\nMOCK-ONLY-NOT-A-CERTIFICATE\n-----END CERTIFICATE-----\n",
+  "harbor.fds.internal": "-----BEGIN CERTIFICATE-----\nMOCK-ONLY-NOT-A-CERTIFICATE\n-----END CERTIFICATE-----\n"
+}
