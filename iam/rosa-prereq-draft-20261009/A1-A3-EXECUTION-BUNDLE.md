@@ -9,7 +9,7 @@
 |---|---|---|
 | A1 활성화 | AWS Marketplace에서 ROSA 구독 | ROSA를 쓰겠다고 가입 |
 | A2 연결 | AWS 계정 ↔ 이하영 Red Hat 조직 청구 연결 | 가입 정보를 Red Hat에 등록 |
-| A3 역할·OIDC | ocm-role·user-role(CLI), account role 3 + managed OIDC + OIDC provider(Terraform 단계 1), operator role 8(Terraform 단계 2) | Red Hat이 우리 AWS에서 쓸 출입증과 신분 확인 창구 |
+| A3 역할·OIDC | 기본 ocm-role(CLI, user-role 제외), account role 3 + managed OIDC + OIDC provider(Terraform 단계 1), operator role 8(Terraform 단계 2) | Red Hat이 우리 AWS에서 쓸 출입증과 신분 확인 창구 |
 
 **기준 소스(모두 main 병합·독립 승인 완료)**
 
@@ -31,7 +31,7 @@
 | D3 | Guardrails v1 → v2 전환 | 승인 요청 (NotAction +11, IAM 쓰기 없음) | `rosa_grant.py guardrails-v2` |
 | D4 | 정책 2개 생성·부착 | Subscribe(A1 동안만), RosaPrereq(조회 전용) | `rosa_grant.py` |
 | D5 | A1 활성화, A2 연결 실행 | 승인 요청 | 하영 실행 |
-| D6 | A3 중앙 apply(ocm-role/user-role, 단계 1, 단계 2) | 승인 요청 | plan 대조기 PASS일 때만 |
+| D6 | A3를 4개로 나눠 판정 | **OCM basic**: 기승인(#12 6121083000, 역할1+정책1+부착1+연결1, 직전 확인 조건부) / **user-role**: 미요청, 필요·범위 별도 검토 전 실행 안 함 / **A3-1(단계 1)**: Plan 기승인, Apply는 saved Plan 독립 검토·명시 GO 후 / **A3-2(단계 2)**: 같은 방식 | 대조기 PASS는 기계 검사이며 실행 GO가 아님. 별도 티켓·중복 Plan은 만들지 않음 |
 | D7 | 이권욱·이재환 Red Hat 조직 초대 | A2 직후 | v3 §3 ② |
 
 ### 1-1. D1 — 중앙 실행 주체 (결정 필요)
@@ -79,11 +79,11 @@
 | 6 | **A2** | 하영 | 같은 콘솔에서 "Red Hat으로 계속" → 이하영 Red Hat 로그인 → 연결 | console.redhat.com에 AWS `774055931866` 청구 연결 표시 + AWS 콘솔 연결 상태(캡처) | STOP |
 | 7 | A2 후속 | 하영 | 이권욱·이재환 조직 초대(최소 역할) | 각자 본인 로그인으로 `rosa whoami` | 초대만 보류, 다음 진행 가능 |
 | 8 | A3 준비 | 중앙 | `$G prereq-create` → `--execute`, `$G prereq-attach` → `--execute` | 각 VERIFIED, RosaPrereq(조회 전용) 부착 | STOP |
-| 9 | **A3** CLI | 하영 → 중앙 | 하영: `rosa create ocm-role --prefix fds-rosa --mode manual`, `rosa create user-role --prefix fds-rosa --mode manual` 출력 저장. 중앙: 10-09 확인본과 이름·정책·trust가 같은지 대조 후 **출력된 aws 명령만** 실행(`--mode auto` 금지). 하영: `rosa link ocm-role/user-role --role-arn ...` | `rosa list ocm-role`·`user-role` Linked, `aws iam get-role` trust ExternalId 일치 | STOP |
-| 10 | **A3** 단계 1 | 중앙 | `terraform/rosa-prereq`: `init -backend-config=backend.hcl` → `plan -var execution_enabled=true -var-file=<비공개> -out=stage1.plan` → `terraform show -json stage1.plan > stage1.plan.json` → `python3 tools/rosa_prereq_check.py plan --stage 1 --support-principal <값> stage1.plan.json` | **대조기 `result=PASS`(exit 0)일 때만** `apply stage1.plan` | apply 안 함 |
+| 9 | **A3** OCM basic | 중앙(IAM 3쓰기) → 하영(link) | **기승인 basic ocm-role만** 수행한다. 직전에 고정본 3파일(trust·permission·manual 명령) 재해시, 같은 계정 1866·Red Hat production 조직·로그인 fresh 확인, exact role/policy·조직 연결 상태 조회(NoSuchEntity와 조회 실패 구분, 이미 있으면 재생성하지 않고 대조·보고), OrgAdmin unlink 담당·접근 확인. 중앙: manual 출력의 aws 명령 3개만 실행(`--mode auto` 금지). 하영: 본인 Red Hat 로그인으로 `rosa link ocm-role --role-arn ...`. **user-role은 필요·범위 별도 검토 전 실행하지 않는다.** | trust·policy 원문 구조가 고정본과 일치, attached 1·inline 0·boundary 0, admin 권한 없음, RoleId/PolicyId/default version, `rosa list ocm-role` Linked | STOP. 연결 이후 원복은 unlink → 연결 부재 readback → 정책 분리/역할·정책 정리 |
+| 10 | **A3** 단계 1 | 중앙 | `terraform/rosa-prereq`: `init -backend-config=backend.hcl` → `plan -var execution_enabled=true -var-file=<비공개> -out=stage1.plan` → `terraform show -json stage1.plan > stage1.plan.json` → `python3 tools/rosa_prereq_check.py plan --stage 1 --support-principal <값> stage1.plan.json` | saved Plan(`stage1.plan`)·plan JSON·해시·source/lock/입력·state 기준을 제출한다. **대조기 PASS + 이 saved Plan의 독립 검토·명시 GO + 작업창**이 모두 충족될 때만 정확히 그 Plan을 apply한다 | apply 안 함 |
 | 11 | A3 단계 1 확인 | 중앙(또는 하영 조회) | `python3 tools/rosa_prereq_check.py readback --stage 1 --support-principal <값>`, `rosa list account-roles`, `rosa list oidc-config` | PASS, `oidc_host` 기록(=`oidc.op1.openshiftapps.com/<id>`) | 단계 2 금지 |
 | 12 | A3 단계 2 전 대조 | 하영 | `rosa create operator-roles --hosted-cp --prefix fds-rosa --oidc-config-id <id> --installer-role-arn <installer arn> --mode manual` | 이름·namespace·service account·정책이 `main.tf` `operator_roles`와 같음 | 다르면 코드 수정 → 리뷰 → 재승인 |
-| 13 | **A3** 단계 2 | 중앙 | `plan -var execution_enabled=true -var create_operator_roles=true ...` → show -json → `rosa_prereq_check.py plan --stage 2 --oidc-host <11번 값> ...` | PASS(생성 8+8, 단계 1 no-op, 변경·삭제 0)일 때만 apply | apply 안 함 |
+| 13 | **A3** 단계 2 | 중앙 | `plan -var execution_enabled=true -var create_operator_roles=true ...` → show -json → `rosa_prereq_check.py plan --stage 2 --oidc-host <11번 값> ...` | 단계 2 saved Plan·plan JSON·해시·source/lock/입력·state 기준을 제출한다. **대조기 PASS(생성 8+8, 단계 1 no-op, 변경·삭제 0) + 이 saved Plan의 독립 검토·명시 GO + 작업창**이 모두 충족될 때만 정확히 그 Plan을 apply한다 | apply 안 함 |
 | 14 | A3 단계 2 확인 | 중앙(또는 하영 조회) | `rosa_prereq_check.py readback --stage 2 ...`, `rosa list operator-roles` | PASS | 보고 |
 | 15 | 정리 | 하영 | 증적 정리(§5) → 증적 PR | — | — |
 
@@ -93,7 +93,7 @@
 
 - **공통 STOP**: 도구 exit≠0, readback 불일치, 예상 밖 권한 거부, 승인 표에 없는 자원·principal·정책, 미확정 회차, 비용 Hard Stop 신호(판정 이권욱).
 - **미확정 회차**: `$G reconcile --run-id <id>`. 결과가 AMBIGUOUS면 그대로 두고 보고한다. "반영 안 됨"은 CloudTrail 등 증거를 검토자가 확인한 뒤에만 `confirm-not-applied --evidence ... --reviewer ...`로 기록한다(PR24 B3).
-- **되돌림 순서**(필요할 때만, 각각 별도 판단): Terraform 단계 2 → 단계 1 destroy(중앙) → ocm-role·user-role 연결 해제·삭제 → `$G prereq-detach` → `prereq-delete` → `subscribe-delete` → `guardrails-v1`. 클러스터가 없을 때만 IAM·OIDC를 회수한다(실행 자료 §2). Marketplace 구독 해지는 이 묶음 범위가 아니다.
+- **되돌림 순서**(필요할 때만, 각각 별도 판단): Terraform 단계 2 → 단계 1 destroy(중앙) → ocm-role 연결 해제(unlink)·연결 부재 확인·정책 분리·삭제 → `$G prereq-detach` → `prereq-delete` → `subscribe-delete` → `guardrails-v1`. 클러스터가 없을 때만 IAM·OIDC를 회수한다(실행 자료 §2). Marketplace 구독 해지는 이 묶음 범위가 아니다.
 - **하지 않는 것**: 기존 역할 덮어쓰기, 일괄 삭제, `--mode auto`, 승인 밖 권한 임시 부여, 실패 후 무조건 재실행.
 
 ## 5. 증적
@@ -104,11 +104,11 @@
 | plan·대조 | `stage1/2.plan.json` 해시, `rosa_prereq_check.py` 출력(조직 ID 마스킹) |
 | CLI | `--mode manual` 출력 원문, 실행한 aws 명령·RC, `rosa list ...` 출력 |
 | 콘솔 | A1 활성화, A2 연결 화면(계정·시각 포함) |
-| 역할 대응표 | account/operator role ARN, OIDC config ID, OIDC provider ARN, ocm-role/user-role ARN |
+| 역할 대응표 | account/operator role ARN, OIDC config ID, OIDC provider ARN, ocm-role ARN(user-role은 생성 시에만) |
 | 제외 | 토큰·비밀키·이메일·Red Hat 사용자명·조직 External ID 원문 |
 | 편입 | `321Team/fds-project-evidence` `evidence/P2-IAC-01/` 증적 PR, 독립 리뷰 |
 
-#12 완료 조건 대응: ① A1~A3 실행 묶음 리뷰 승인 = 이 문서 승인(D1~D7) ② role·OIDC readback = 11·14번 PASS ③ 증적 = §5 증적 PR.
+#12 완료 조건 대응: ① A1~A3 실행 묶음 리뷰 승인 = 이 문서 승인과 D6의 4개 판정(OCM basic / user-role / A3-1 / A3-2)을 각각 해당 단계 조건으로 충족 ② role·OIDC readback = 9·11·14번 PASS(각 단계는 자기 GO가 난 범위만) ③ 증적 = §5 증적 PR.
 
 ## 6. 실행 경계
 
