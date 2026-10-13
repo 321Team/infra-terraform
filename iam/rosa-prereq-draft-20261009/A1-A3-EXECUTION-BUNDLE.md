@@ -2,6 +2,7 @@
 
 대상: [infra-terraform#12](https://github.com/321Team/infra-terraform/issues/12) (#35 Sub-task 5/6) · G4 입력 5(ROSA 생성 준비)
 상태: **문서 / 실행 승인 요청. 이 문서 자체로는 아무것도 실행하지 않는다.**
+개정: 2026-10-13 — PR28 리뷰([6141088957](https://github.com/321Team/infra-terraform/pull/28#issuecomment-6141088957)) 반영. 초기 설치와 재개 경로를 분리하고(§3-1), 권한 유지·회수 기준을 최신 결정으로 바꿨다(§4-1).
 
 ## 0. 한눈에 보기
 
@@ -26,28 +27,20 @@
 
 | # | 결정할 것 | 제안 | 비고 |
 |---|---|---|---|
-| D1 | **중앙 실행 주체(IAM 쓰기 identity)** | 아래 §1-1 참고 | ⚠️ 핵심 미결 |
-| D2 | 작업창 | 10-13(월) 중 1회, 하영·중앙 실행자 동시 접속 | G4 10-14 전 |
-| D3 | Guardrails v1 → v2 전환 | 승인 요청 (NotAction +11, IAM 쓰기 없음) | `rosa_grant.py guardrails-v2` |
-| D4 | 정책 2개 생성·부착 | Subscribe(A1 동안만), RosaPrereq(조회 전용) | `rosa_grant.py` |
-| D5 | A1 활성화, A2 연결 실행 | 승인 요청 | 하영 실행 |
+| D1 | **중앙 실행 주체(IAM 쓰기 identity)** | 교육장 중앙 관리 경로의 기승인 한정 사용(§1-1) | 실행 때마다 caller ARN 확인·기록 |
+| D2 | 작업창 | 단계별 승인과 실제 준비·비중첩 조건으로 판단. A1/A2는 10-13(화) 17:30~18:30 KST 한정 승인([6141012088](https://github.com/321Team/infra-terraform/issues/12#issuecomment-6141012088), [6141247655](https://github.com/321Team/infra-terraform/issues/12#issuecomment-6141247655)) | D7 초대 미완료는 A1 차단 사유가 아님 |
+| D3 | Guardrails v1 → v2 전환 | 기승인([6120545216](https://github.com/321Team/infra-terraform/issues/12#issuecomment-6120545216)) · **실행 완료** 10-12 18:47 VERIFIED([6122063075](https://github.com/321Team/infra-terraform/issues/12#issuecomment-6122063075)) | 재개 때 다시 실행하지 않음 |
+| D4 | 정책 2개 생성·부착 | 기승인 · **실행 완료** 10-12: Subscribe 생성 후 미부착 보관, RosaPrereq 생성·부착([6122063075](https://github.com/321Team/infra-terraform/issues/12#issuecomment-6122063075)) | 재개 때는 Subscribe attach만(§3-1) |
+| D5 | A1 활성화, A2 연결 실행 | 기승인([6120545216](https://github.com/321Team/infra-terraform/issues/12#issuecomment-6120545216)) · 10-12 실제 준비 완료 · 10-13 재개 작업창 승인. **A1/A2 실제 성공은 아직 미확인** | 하영 실행 |
 | D6 | A3를 4개로 나눠 판정 | **OCM basic**: 기승인(#12 6121083000, 역할1+정책1+부착1+연결1, 직전 확인 조건부) / **user-role**: 미요청, 필요·범위 별도 검토 전 실행 안 함 / **A3-1(단계 1)**: Plan 기승인, Apply는 saved Plan 독립 검토·명시 GO 후 / **A3-2(단계 2)**: 같은 방식 | 대조기 PASS는 기계 검사이며 실행 GO가 아님. 별도 티켓·중복 Plan은 만들지 않음 |
 | D7 | 이권욱·이재환 Red Hat 조직 초대 | A2 직후 | v3 §3 ② |
 
-### 1-1. D1 — 중앙 실행 주체 (결정 필요)
+### 1-1. D1 — 중앙 실행 주체
 
 - 설계상 IAM 쓰기(정책 생성·부착, Guardrails 버전 변경, A3 역할·OIDC 생성)는 **위임 역할 `FDS-IaC-Operator`가 하지 않는다**(PR21 rev2, 리뷰 차단 1 대응).
-- `phase2/rosa-prereq` state 쓰기는 bucket policy상 `FDS-IaC-Operator`와 root만 허용된다.
-- 그런데 10-09 이권욱 확인에 따르면 **root는 IaC IAM 초기 설정에만 쓰고 이후 사용하지 않는다.**
-- 따라서 지금 문서들만으로는 **A3를 실제로 누가 어떤 identity로 실행할지가 비어 있다.** 선택지:
-
-| 안 | 내용 | 장단점 |
-|---|---|---|
-| ① root 1회 예외 | 교육장 root로 이 묶음의 IAM 쓰기만 1회 수행, 이후 미사용 | 가장 간단. "root 미사용" 원칙에 명시적 예외 승인 필요 |
-| ② 임시 중앙 역할 | root로 최소권한 임시 역할 1개를 만들고 그 역할로 실행, 끝나면 회수 | 원칙에 더 맞음. 역할·정책·state 접근 설계와 리뷰가 추가로 필요해 일정 부담 |
-| ③ 교육장 지정 경로 | 교육장이 제공하는 다른 관리 경로 | 존재·조건 확인 필요 |
-
-→ **이권욱 판단 요청.** 정해지면 그 ARN을 `rosa_grant.py --expected-caller`와 plan 대조 기록에 고정한다.
+- 결정: 교육장 **중앙 관리 경로의 이미 승인된 한정 사용**으로 IAM 쓰기를 수행한다. 10-12 권한 준비 6쓰기가 이 경로로 수행됐다([6122063075](https://github.com/321Team/infra-terraform/issues/12#issuecomment-6122063075)).
+- 실행 때마다 caller ARN을 확인해 `rosa_grant.py --expected-caller`와 ledger에 고정한다.
+- 이 결정은 A1~A3 권한 준비 단계에 한정한다. **A3 Terraform Apply를 root로 포괄 승인하는 것이 아니다.** A3 Apply는 saved Plan 독립 검토·명시 GO를 따로 받는다(D6).
 
 ## 2. 선행 조건 (실행 당일 시작 전 전부 확인)
 
@@ -55,8 +48,8 @@
 |---|---|---|---|
 | P1 | PR21·PR24 병합본 = 실행 SHA | `git rev-parse HEAD`, `sha256sum -c iam/rosa-prereq-draft-20261009/SHA256SUMS` | 실행일 |
 | P2 | D1~D7 승인 | #35 댓글 | 대기 |
-| P3 | `FDS-IaC-Operator` 존재, 기본 부착 4개·inline 0 | `rosa_grant.py status` | 실행일 |
-| P4 | live Guardrails = v1 원문 | `rosa_grant.py status`(guardrails_default=v1) | 실행일 |
+| P3 | `FDS-IaC-Operator` 존재. **초기:** 기본 부착 4개·inline 0 / **재개:** §3-1 기대값 | `rosa_grant.py status` | 실행일 |
+| P4 | **초기:** live Guardrails = v1 원문 / **재개:** v2 원문(되돌리지 않음) | `rosa_grant.py status` | 실행일 |
 | P5 | 도구 고정 | Terraform 1.16.4·ROSA CLI 1.2.53 바이너리 SHA-256(README 표), provider lock | 실행일 |
 | P6 | 하영 Red Hat 로그인 가능, Org Admin | `rosa login --use-device-code`, `rosa whoami`(조직 `2042****`) | 실행일 |
 | P7 | 비공개 tfvars(`rh_support_principal_arn`) 준비 | CLI `sts_support_trust_policy.json` 값과 동일 | 실행일 |
@@ -70,12 +63,12 @@
 
 | 순서 | 묶음 | 누가 | 명령 / 동작 | readback (통과 기준) | 실패 시 |
 |---|---|---|---|---|---|
-| 0 | 사전 | 중앙 | `$G status` | guardrails_default=v1, role 기본 4·inline 0, 미확정 회차 0 | 시작 안 함 |
+| 0 | 사전(초기 설치 전용, 재개는 §3-1) | 중앙 | `$G status` | guardrails_default=v1, role 기본 4·inline 0, 미확정 회차 0 | 시작 안 함 |
 | 1 | 준비 | 중앙 | `$G guardrails-v2` → `--execute` | `result=VERIFIED`, 기본 버전=v2 원문 | STOP → `reconcile` |
 | 2 | A1 | 중앙 | `$G subscribe-create` → `--execute` | VERIFIED, 미부착 | STOP |
 | 3 | A1 | 중앙 | `$G subscribe-attach` → `--execute` | VERIFIED, FDS-IaC-Operator에만 부착 | STOP |
-| 4 | **A1** | 하영 | 콘솔에서 `FDS-IaC-Operator`(본인 MFA)로 전환 → ROSA 콘솔 "ROSA HCP 활성화" | 콘솔에 활성화 완료 표시(계정·시각 캡처). 추가 권한 거부가 나오면 그 Action만 기록하고 STOP | STOP, 3번까지 유지한 채 보고 |
-| 5 | A1 | 중앙 | `$G subscribe-detach` → `--execute` | VERIFIED, 분리됨 | STOP |
+| 4 | **A1** | 하영 | 콘솔에서 `FDS-IaC-Operator`(본인 MFA)로 전환 → ROSA 콘솔 "ROSA HCP 활성화" | 콘솔에 활성화 완료 표시(계정·시각 캡처)와 실제 활성 상태 readback. 추가 권한 거부가 나오면 그 Action만 기록하고 STOP. 응답이 불명확하면 버튼을 다시 누르지 않고 실제 활성 상태부터 조회 | STOP. Subscribe 처리는 §4-1 |
+| 5 | A1 | 중앙 | **A1 성공 readback + 이권욱 검증 종료·재시험 불필요 판정 후에만** `$G subscribe-detach` → `--execute` | VERIFIED, 역할/사용자/그룹 연결 0. 정책 객체는 기존 PolicyId로 미부착 보관 | STOP. 판정 전에는 §4-1에 따라 유지 |
 | 6 | **A2** | 하영 | 같은 콘솔에서 "Red Hat으로 계속" → 이하영 Red Hat 로그인 → 연결 | console.redhat.com에 AWS `774055931866` 청구 연결 표시 + AWS 콘솔 연결 상태(캡처) | STOP |
 | 7 | A2 후속 | 하영 | 이권욱·이재환 조직 초대(최소 역할) | 각자 본인 로그인으로 `rosa whoami` | 초대만 보류, 다음 진행 가능 |
 | 8 | A3 준비 | 중앙 | `$G prereq-create` → `--execute`, `$G prereq-attach` → `--execute` | 각 VERIFIED, RosaPrereq(조회 전용) 부착 | STOP |
@@ -87,13 +80,43 @@
 | 14 | A3 단계 2 확인 | 중앙(또는 하영 조회) | `rosa_prereq_check.py readback --stage 2 ...`, `rosa list operator-roles` | PASS | 보고 |
 | 15 | 정리 | 하영 | 증적 정리(§5) → 증적 PR | — | — |
 
-예상 소요: 0~8번 약 1시간, 9~14번 약 1~2시간(IAM 반영 대기 포함). 같은 작업창에서 끝내지 못하면 **완료된 단계까지만 유지**하고 다음 작업창에서 0번(status)부터 다시 시작한다.
+예상 소요: 0~8번 약 1시간, 9~14번 약 1~2시간(IAM 반영 대기 포함). 위 표의 0·1·2·8번은 **초기 상태 전용**이다. 같은 작업창에서 끝내지 못하면 완료된 단계까지만 유지하고, 다음 작업창은 §3-1 재개 경로로 시작한다.
+
+### 3-1. 재개 경로 (이미 일부 단계를 수행한 뒤)
+
+기준: 마지막 승인 receipt [6122063075](https://github.com/321Team/infra-terraform/issues/12#issuecomment-6122063075) — Guardrails v2 / 기본 4 + RosaPrereq 1 / inline 0 / Subscribe 객체 존재·미부착 / 미확정 회차 0. 이 값은 그때의 결과이며 **당일 상태를 대신하지 않는다.**
+
+| 위치 | 재개 경로에서 하는 일 |
+|---|---|
+| P3/P4·순서 0 | 당일 `$G status`로 위 기대값을 확인한다. **rc 0만으로 PASS 처리하지 않는다**(UNRESOLVED가 있어도 rc 0) — 출력의 미확정 회차 0을 확인한다. 다르면 원인을 확인하고 멈춘다. 과거 기록으로 현재 PASS를 대신하지 않는다 |
+| 순서 1·2·8 | 이미 끝난 Guardrails 전환·정책 생성·RosaPrereq 부착은 원문·PolicyId·ledger·현재 연결을 대조해 **재사용**한다. 다시 실행하지 않는다. 문서에 맞추려고 v1으로 되돌리거나 검증 중인 권한을 지우지 않는다 |
+| 순서 3 | 기존 ledger의 Subscribe(고정 해시 `d3dca1500541ff3b12ccf0bcd69c31e8174a5e5978a554124e09090d5b052644`)가 **미부착일 때만** dry-run/precheck → attach → VERIFIED. 승인된 역할에 이미 정확히 붙어 있으면 PolicyId·원문·다른 연결 부재를 확인하고 재사용한다. 원문·소유 불일치나 미확정이면 STOP. 새 ledger로 이름만 같은 정책을 채택하지 않는다 |
+| 순서 4~7 | 위 표와 같다. 중앙 VERIFIED 알림 뒤 승인 작업창 안에서만 시작한다 |
+
 
 ## 4. 멈춤·되돌림
 
 - **공통 STOP**: 도구 exit≠0, readback 불일치, 예상 밖 권한 거부, 승인 표에 없는 자원·principal·정책, 미확정 회차, 비용 Hard Stop 신호(판정 이권욱).
 - **미확정 회차**: `$G reconcile --run-id <id>`. 결과가 AMBIGUOUS면 그대로 두고 보고한다. "반영 안 됨"은 CloudTrail 등 증거를 검토자가 확인한 뒤에만 `confirm-not-applied --evidence ... --reviewer ...`로 기록한다(PR24 B3).
-- **되돌림 순서**(필요할 때만, 각각 별도 판단): Terraform 단계 2 → 단계 1 destroy(중앙) → ocm-role 연결 해제(unlink)·연결 부재 확인·정책 분리·삭제 → `$G prereq-detach` → `prereq-delete` → `subscribe-delete` → `guardrails-v1`. 클러스터가 없을 때만 IAM·OIDC를 회수한다(실행 자료 §2). Marketplace 구독 해지는 이 묶음 범위가 아니다.
+- **되돌림 순서**(필요할 때만, 각각 별도 판단): Terraform 단계 2 → 단계 1 destroy(중앙) → ocm-role 연결 해제(unlink)·연결 부재 확인·정책 분리·삭제 → `$G prereq-detach` → `prereq-delete` → `subscribe-detach` → 연결 0 readback → `subscribe-delete` → `guardrails-v1`. Subscribe가 이미 미부착이면 detach를 다시 실행하지 않고 조회 결과를 쓴다. 정상 회수는 미부착 보관까지이며 객체 삭제·Guardrails v1 전환을 자동 실행하지 않는다. 다른 승인된 검증이 쓰는 RosaPrereq/v2는 A1 완료만으로 함께 회수하지 않는다. 클러스터가 없을 때만 IAM·OIDC를 회수한다(실행 자료 §2). Marketplace 구독 해지는 이 묶음 범위가 아니다.
+### 4-1. 권한 유지·회수 기준 (B2, 최신 결정 적용)
+
+[검증기간 권한 유지 결정](https://github.com/321Team/infra-terraform/issues/12#issuecomment-6122519296)을 적용한다. 새 포괄 권한 허용이 아니다.
+
+- A1 성공을 readback하고 이권욱이 검증 종료·재시험 불필요를 판정하면 Subscribe를 분리하고 모든 연결 부재를 확인한다.
+- 실패·미완료·단순 대기·일과/작업창 종료만으로는 승인된 재시험에 필요한 최소 권한을 반복 회수·재부여하지 않는다. 실제 부착 상태·사용 목적·잔여와 종료 판정자(이권욱)를 ledger/작업 기록에 남긴다.
+- 작업창 종료 뒤 새 쓰기는 멈춘다. 권한 유지가 다음 실행 GO를 뜻하지 않는다.
+- 응답이 불명확하면 활성화 실제 상태를 먼저 조회하고 재실행하지 않는다. IAM 미확정 회차는 별도로 reconcile한다. 활성화 UI의 불명확을 IAM ledger reconcile만으로 해소했다고 하지 않는다.
+- 오부여·보안 사고가 확인되거나 검증 중단/종료로 판정되면 회수한다.
+- 실패가 곧 검증 종료는 아니다. 반대로 성공 버튼 응답만으로 실제 상태 확인과 종료 판정을 생략하지 않는다.
+
+| 경로 | Subscribe 처리 |
+|---|---|
+| 성공 + 실제 활성 확인 + 종료 판정 | detach → 연결 0 readback, 객체는 미부착 보관 |
+| 재시험 대기(실패·미완료) | 최소 권한 유지, 목적·잔여·판정자 기록, 새 쓰기는 다음 승인 창까지 중지 |
+| 응답 불명확 | 재실행 금지, 활성 상태 조회 → IAM 미확정은 reconcile |
+| 작업창 종료 | 신규 쓰기 착수 중지, 진행 중 결과 확인·증적 보존. 시각만으로 자동 회수·자동 재개하지 않음 |
+
 - **하지 않는 것**: 기존 역할 덮어쓰기, 일괄 삭제, `--mode auto`, 승인 밖 권한 임시 부여, 실패 후 무조건 재실행.
 
 ## 5. 증적
