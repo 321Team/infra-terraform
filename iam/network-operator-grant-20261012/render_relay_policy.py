@@ -14,7 +14,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 TEMPLATE = REPO / "iam/full-policy-draft-20261009/policies/FDS-Network-Operator-Relay.template.json"
-TEMPLATE_SHA256 = "d4c94fc90e3a7ffd46964883f69743befdd0241d2a58068d62ba45bd6ebba2f6"
+TEMPLATE_SHA256 = "bf6bb817c15633253023f449134331ddf6d8d8e430b0cea8aab9997649f62122"
 PLACEHOLDER = "__RELAY_INSTANCE_ID__"
 PLACEHOLDER_COUNT = 5
 INSTANCE_ID = re.compile(r"^i-[0-9a-f]{17}$")

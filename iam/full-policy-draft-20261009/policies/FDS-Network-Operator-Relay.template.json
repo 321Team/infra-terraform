@@ -10,7 +10,7 @@
         "StringEquals": {
           "aws:RequestedRegion": "ap-northeast-2"
         },
-        "Bool": {
+        "BoolIfExists": {
           "ssm:SessionDocumentAccessCheck": "true"
         }
       }

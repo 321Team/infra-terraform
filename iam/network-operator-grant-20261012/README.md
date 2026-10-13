@@ -18,7 +18,7 @@
 
 | 파일 | 역할 | SHA256 | 출처 |
 |---|---|---|---|
-| `iam/full-policy-draft-20261009/policies/FDS-Network-Operator-Relay.template.json` | Relay 한정 세션·복구·진단. **Relay ID 자리표시자 `__RELAY_INSTANCE_ID__` 5곳** | `d4c94fc90e3a7ffd46964883f69743befdd0241d2a58068d62ba45bd6ebba2f6` | PR15 병합, baseline `20261006-network-final-candidate` 원문 |
+| `iam/full-policy-draft-20261009/policies/FDS-Network-Operator-Relay.template.json` | Relay 한정 세션·복구·진단. **Relay ID 자리표시자 `__RELAY_INSTANCE_ID__` 5곳** | `bf6bb817c15633253023f449134331ddf6d8d8e430b0cea8aab9997649f62122` (2026-10-13 `Bool`→`BoolIfExists` 후보, 5-1절. 이전 `d4c94fc9…62ba45bd6ebba2f6`) | PR15 병합, baseline `20261006-network-final-candidate` 원문 + 5-1절 변경 |
 | `iam/full-policy-draft-20261009/policies/FDS-Network-Operator-StateDeny.json` | state 버킷 전체 Deny + 서울 밖 Deny | `e222cddb82a388be6f7c565f3e670ee761575a3cbd994cdbf56a6a29fb4a6e77` | PR15 병합 |
 | `iam/full-policy-draft-20261009/trust/trust-FDS-Network-Operator.json` | 권욱·재환 사용자만, **MFA=true + 본인 RoleSessionName** | `13e134a09d309e58ad6e6c7d04a5ca14605b629caf5d7feff8eb2305e2c11e10` | PR15 병합(baseline 20261006 work-role-precheck 원문) |
 | `iam/vpn-probe-20261009/policies/FDS-Network-Operator-Probe.json` | (선택) #37 probe 시험 인스턴스 세션 | `33053efe4e9ab326b3dcffe2541442ffd71faa7af371b6a9b3ebb004de5e2dcd` | PR25 병합. **probe 시험창에만 붙이고 끝나면 분리** |
@@ -64,7 +64,8 @@ python3 iam/network-operator-grant-20261012/render_relay_policy.py <RELAY_INSTAN
 
 | ID | Action | Resource / context | 기대 |
 |---|---|---|---|
-| P1 | ssm:StartSession | `instance/<RELAY>`, SessionDocumentAccessCheck=true | allowed |
+| P1a | ssm:StartSession | `instance/<RELAY>`, SessionDocumentAccessCheck=true | allowed |
+| P1b | ssm:StartSession | `instance/<RELAY>`, SessionDocumentAccessCheck **부재** | allowed (후보 `BoolIfExists`. 현행 `Bool`은 implicitDeny) |
 | P2 | ssm:StartSession | `document/SSM-SessionManagerRunShell` | allowed |
 | P3 | ssm:TerminateSession | `session/*`, tag session-id=`${aws:userid}`, target-id=`<RELAY>` | allowed |
 | P4 | ec2:RebootInstances / StopInstances / StartInstances | `instance/<RELAY>` | allowed |
@@ -75,7 +76,57 @@ python3 iam/network-operator-grant-20261012/render_relay_policy.py <RELAY_INSTAN
 | N4 | ec2:TerminateInstances | `instance/<RELAY>` | implicitDeny |
 | N5 | s3:GetObject / ListBucket | state 버킷 | explicitDeny |
 | N6 | ec2:DescribeInstances | us-east-1 | explicitDeny |
-| N7 | iam:* / ec2:Create* | 임의 | implicitDeny |
+| N1b | ssm:StartSession | `instance/<RELAY>`, SessionDocumentAccessCheck=**false** | implicitDeny (현행·후보 같음) |
+| N7-IAM | iam:ListRoles | `*`, IAM 글로벌 endpoint (`aws:RequestedRegion=us-east-1`) | **explicitDeny** (StateDeny `DenyOutsideSeoul`) |
+| N7-EC2 | ec2:CreateVpc | `*`, 서울, **시뮬레이션만** | implicitDeny |
+
+### 5-1. `Bool` → `BoolIfExists` 변경 후보 (2026-10-13)
+
+[권욱 #11 6139933906](https://github.com/321Team/infra-terraform/issues/11#issuecomment-6139933906) 지시에 따른 **수정 후보**입니다. 병합만으로 IAM 반영·Runtime GO가 되지 않습니다.
+
+**바꾼 것:** Relay 템플릿 `StartSessionOnExactRelayWithDocumentCheck`(instance 대상 StartSession)의 조건 연산자 1개만 `Bool` → `BoolIfExists`. 값(`"true"`), 리전 조건, Resource(Relay 1대), 다른 statement는 그대로입니다.
+
+**왜:** 부여 뒤 권욱(문서 명시)·재환(문서 생략) 두 계정의 StartSession이 같은 instance ARN에서 거부됐습니다([재환 6124959403](https://github.com/321Team/infra-terraform/issues/11#issuecomment-6124959403)). `Bool`은 조건 키가 요청에 없으면 불일치로 평가되고, `...IfExists`는 키가 없을 때 그 조건을 통과시킵니다([IAM 조건 연산자](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_condition_operators.html)). **실제 요청의 키 부재는 관측하지 않았습니다.** `Bool`은 유력 원인 후보이며, 수정 전후 실제 시험으로 개선 효과와 제한 범위를 확인합니다([권욱 R1 6126405407](https://github.com/321Team/infra-terraform/issues/11#issuecomment-6126405407)). 시뮬레이션은 입력한 조건에서의 정책 평가일 뿐입니다.
+
+**조건 키 비교표** (instance statement 기준, 서울 요청. `tests/test_network_operator_condition_matrix.py` 단순 모형)
+
+| `ssm:SessionDocumentAccessCheck` | 현행 `Bool` | 후보 `BoolIfExists` |
+|---|---|---|
+| `true` | 일치 → allowed | 일치 → allowed |
+| `false` | 불일치 → implicitDeny | 불일치 → implicitDeny |
+| 부재 | 불일치 → implicitDeny | **일치 → allowed** |
+| (모든 경우) 서울 밖 요청 | 불일치 | 불일치 |
+
+**그대로 유지되는 제한** (이번 변경으로 넓어지지 않음)
+| 제한 | 근거 statement | 확인 |
+|---|---|---|
+| 대상 = Relay 1대 | instance Resource 고정 ARN, `instance/*` 0 | N1 |
+| 문서 = `SSM-SessionManagerRunShell`만 | `StartOnlyApprovedDefaultShellDocument` (다른 문서 Allow 없음) | N2 |
+| 본인 세션만 재개·종료 | `ManageOnlyOwnSessionsOnExactRelay` session-id=`${aws:userid}`·target-id=Relay | N3 |
+| 서울만 | 각 Allow의 `aws:RequestedRegion` + StateDeny `DenyOutsideSeoul` | N6, N7-IAM |
+| state 버킷 접근 불가 | StateDeny explicit Deny | N5 |
+
+**중앙 시뮬레이션 기대표 추가분:** P1a·P1b·N1b(위 5절). 나머지 P2~P5·N1~N6 기대는 변경 없음. N7은 N7-IAM / N7-EC2로 분리(IAM Allow 확대·서울 외 거부 해제 없음, 실제 EC2 생성 시험 없음).
+
+**IAM 반영 후 실제 시험안** (권욱·재환 각자, 비용 없음. 정확한 명령·RC·`aws --version`·`session-manager-plugin --version`·정책 `DefaultVersionId` 보존)
+| # | 시험 | 기대 |
+|---|---|---|
+| T4a | `aws ssm start-session --target <RELAY>` (문서 생략) → `exit` | 셸 연결 성공 |
+| T4b | `--document-name SSM-SessionManagerRunShell` 명시 | 셸 연결 성공 |
+| T5 | 본인 세션 `resume-session`·`terminate-session` | 성공 |
+| N1 | 다른 instance ID 대상 start-session | AccessDenied (대상 부재 오류면 판정 불가로 기록) |
+| N2 | `--document-name AWS-StartPortForwardingSession` | AccessDenied |
+| N3 | 상대방(권욱↔재환) 세션 terminate | AccessDenied |
+| N6 | `--region us-east-1` start-session | AccessDenied |
+| T6 | state 버킷 `s3api list-objects-v2` | AccessDenied |
+- 기존 통과 결과(T1·T2·T3·state·리전·IAM 거부)는 재사용하고 반복하지 않습니다.
+- 첫 셸에서는 기존 계획대로 NEVRA·firewalld·SELinux·`ip_forward=0`·bootstrap 상태를 **읽기로만** 확인합니다.
+
+**한정 반영 범위(제안, 판단은 권욱):** 대상 `FDS-Network-Operator-Relay` 관리형 정책만, `create-policy-version --set-as-default`로 새 버전 1개. 변경 전 기본 버전 원문·버전 ID 보존, 실패 시 `set-default-policy-version`으로 이전 버전 복귀. trust·StateDeny·역할·다른 정책 변경 없음.
+
+**이번 PR에서 바꾸지 않은 것**
+- `iam/vpn-probe-20261009/policies/FDS-Network-Operator-Probe.json`에도 같은 `Bool` 패턴이 있습니다. 현재 미부착 정책이므로 수정·부착하지 않았고, probe 시험창 전 같은 판단이 필요합니다.
+- 관찰: AWS 예시는 본인 세션 조건에 `StringLike` + `${aws:userid}*`를 씁니다. 현행 `StringEquals` + `${aws:userid}`가 AssumedRole 세션 태그와 맞는지는 T5 실제 시험으로 확인합니다(이번 PR 미변경).
 
 ## 6. 부여 후 본인 시험 (재환·권욱 각자)
 
