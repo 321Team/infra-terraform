@@ -7,7 +7,8 @@
 
 | 자원 | 값 | 근거 |
 |---|---|---|
-| `rhcs_cluster_rosa_hcp.this` | HCP, `ap-northeast-2`, 1 AZ(`ap-northeast-2a`), `private = !public_cluster` | infra-rosa#3, #4 |
+| `rhcs_cluster_rosa_hcp.this` | HCP, `ap-northeast-2`, 1 AZ(`ap-northeast-2a`), `private = !public_cluster` — **API 공개 여부만** 정한다(rhcs v1.7.9 `SetAPIPrivacy`) | infra-rosa#3, #4 |
+| `rhcs_hcp_default_ingress.default` | 클러스터가 이미 가진 기본 Ingress의 `listening_method`를 `external`(public) / `internal`(private)로 고정. **LB를 새로 만들지 않는다** | infra-rosa#4 결정 [6120548351](https://github.com/321Team/infra-rosa/issues/4#issuecomment-6120548351) §3, rhcs `resources/hcp_default_ingress.md` |
 | 초기 worker pool | m5.xlarge × 3, autoscaling off, 300 GiB, IMDSv2 required | infra-rosa#3 |
 | `rhcs_hcp_machine_pool.workers` | 기본 pool `workers`를 apply 때 가져와(magic import) 관리. `max_surge=1`, `max_unavailable=0` | rhcs `guides/worker-machine-pool.md`, infra-rosa#4 C1(최대 4대) |
 | registry trust | `registry_config.additional_trusted_ca` = Harbor CA JSON (key `10.1.93.54`·`harbor.fds.internal`) | infra-rosa#11 출력 4 |
@@ -36,7 +37,7 @@ ROSA가 우리 계정에 함께 만드는 것(예상, 생성 후 readback으로 
 | `execution_enabled` | `false` | Create GO 작업창에서만 `true` |
 | `cluster_name` | 없음 | 생성 후 변경 불가 |
 | `openshift_version` | 없음 | #34 Freeze 값. Plan 전에 `rosa list versions --hosted-cp`로 확인 |
-| `public_cluster` | 없음 | public/public 제안. 최종 선택은 이권욱 리뷰 |
+| `public_cluster` | 없음 | `true` = public API + external Ingress (승인된 방식). `false`(private/private)는 시험용 분기이며 선택·GO가 아니다 |
 | `registry_trust` | 없음 (`null` 허용) | Harbor CA JSON 경로와 기대 SHA256 `4d86507e…1da4`. D22가 사설 CA가 필요 없는 registry를 고르면 `null` |
 | `network_handoff` | 없음 | network root output |
 | `rosa_prereq_handoff` | 없음 | rosa-prereq stage 2 readback 후 output |
@@ -50,15 +51,16 @@ Red Hat 인증은 환경변수(`RHCS_CLIENT_ID`/`RHCS_CLIENT_SECRET` 또는 `RHC
 1. 선행 확인: network 태그 apply·readback, rosa-prereq stage 1·2 readback, G4·Freeze·ROSA Cost GO·Create GO 기록
 2. CA JSON 추출: `git show 70bdb92:evidence/DEC-P2-REG-01/infra-rosa-issue-11-registry-ca-json-20261008/rosa-hcp-registry-additional-trusted-ca.json > <path>` → `sha256sum`이 `4d86507e…1da4`인지 확인
 3. `terraform init -backend-config=backend.hcl` (state `phase2/rosa-runtime/terraform.tfstate`)
-4. `terraform plan -var-file=<비공개>.tfvars -out=create.plan` → 기대: **create 2** (`rhcs_cluster_rosa_hcp.this`, `rhcs_hcp_machine_pool.workers`), update·delete 0. 값이 위 표와 다르면 STOP
+4. `terraform plan -var-file=<비공개>.tfvars -out=create.plan` → 기대: **create 3** (`rhcs_cluster_rosa_hcp.this`, `rhcs_hcp_machine_pool.workers`, `rhcs_hcp_default_ingress.default`), update·delete 0. 3개 중 새 AWS 과금 자원을 직접 만드는 것은 클러스터뿐이다. pool은 기본 pool을 가져오는 것이고, ingress는 기본 Ingress 설정을 바꾸는 것이다. Plan에서 `private = false`, `listening_method = "external"`를 확인한다. 값이 위 표와 다르면 STOP
 5. 독립 리뷰 → 별도 Apply GO → `terraform apply create.plan` (유료, 클러스터 Ready까지 대기)
-6. readback: `rosa describe cluster`, `rosa list machinepools`, `oc get nodes -o wide`, 예상 자원 실측(infra-rosa#4 A1). 결과는 infra-rosa#4 Ready 확인과 Basic Ready Handoff에 연결
+6. readback: `rosa describe cluster`(API listening), `rosa list ingress -c <cluster>`(기본 Ingress 1개, external), `rosa list machinepools`·`rosa describe machinepool workers`(3대, surge 1 / unavailable 0), `oc get nodes -o wide`, 예상 자원 실측(infra-rosa#4 A1 — 기본 NLB 1 외 **추가 LB 없음** 확인). 결과는 infra-rosa#4 Ready 확인과 Basic Ready Handoff에 연결
 
 ## 삭제
 
 infra-rosa#8 v3.1 단계별 가드를 따른다: namespace 삭제 receipt → `delete_protection=false` apply → `terraform destroy` → 클러스터 소유 자원 ID별 `DELETED` 확인. IAM role·OIDC·network는 이 root가 지우지 않는다(`RETAINED_SHARED_APPROVED`).
 
 기본 pool은 클러스터의 마지막 pool이라 destroy 때 Terraform 기록에서만 빠지고, 실제로는 클러스터 삭제와 함께 정리된다(rhcs guide).
+`rhcs_hcp_default_ingress`도 destroy 때 기본 Ingress를 지우지 않는다. 경고("Cannot delete default ingress")를 내고 기록에서만 빠지며, 기본 Ingress와 그 NLB는 클러스터 삭제와 함께 정리된다(rhcs v1.7.9 `provider/defaultingress/hcp/resource.go` Delete). 삭제 후 NLB ID가 `DELETED`인지 #8 inventory로 확인한다.
 
 ## 로컬 검사 (비용 없음)
 
@@ -72,7 +74,6 @@ terraform test
 
 ## 확인되지 않은 것 (UNVERIFIED)
 
-- magic import가 `management`(max_surge/max_unavailable)를 기본 pool에 그대로 적용하는지 → 첫 apply 후 `rosa describe machinepool`로 확인
-- HCP에서 API·Ingress 공개 범위를 서로 다르게 지정할 수 있는지 → 이 코드는 `private` 하나로 함께 바꾼다
 - Route 53 private hosted zone·image registry S3 생성 여부 → 생성 후 readback
+- 실제 적용 결과(API listening, 기본 Ingress external, pool 3대·surge 1/unavailable 0) → 소스 경로는 리뷰에서 확인했으나 첫 apply 후 readback으로 확정한다. magic import의 management 반영 경로는 rhcs v1.7.9 `machine_pool_resource.go`(readState→doUpdate)로 확인됨(PR #29 리뷰)
 - HCP 최소 worker 수 → 이권욱 리뷰에서 Red Hat 구조 문서의 최소 EC2 footprint 2대로 보완. 이 코드는 3대 고정

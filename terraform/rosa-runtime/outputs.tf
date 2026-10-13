@@ -9,7 +9,11 @@ output "rosa_runtime_handoff" {
     console_url     = rhcs_cluster_rosa_hcp.this.console_url
     domain          = rhcs_cluster_rosa_hcp.this.domain
     private         = rhcs_cluster_rosa_hcp.this.private
-    subnet_ids      = rhcs_cluster_rosa_hcp.this.aws_subnet_ids
+    ingress = {
+      id               = rhcs_hcp_default_ingress.default.id
+      listening_method = rhcs_hcp_default_ingress.default.listening_method
+    }
+    subnet_ids = rhcs_cluster_rosa_hcp.this.aws_subnet_ids
     machine_pool = {
       id            = rhcs_hcp_machine_pool.workers.id
       name          = rhcs_hcp_machine_pool.workers.name

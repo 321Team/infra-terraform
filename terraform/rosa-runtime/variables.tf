@@ -77,11 +77,12 @@ variable "openshift_version" {
   }
 }
 
-# Explicit choice from infra-rosa#4: true = public API + public Ingress (proposal), false = private/private.
+# infra-rosa#4 decision 6120548351: true = public API + external default Ingress (approved).
+# false = private API + internal default Ingress (not selected; kept for review only, no GO).
 variable "public_cluster" {
   type        = bool
   nullable    = false
-  description = "Reviewed API/Ingress exposure. No default so the choice is always recorded in tfvars."
+  description = "Sets both cluster `private` (API) and rhcs_hcp_default_ingress listening_method. No default so the choice is always recorded in tfvars."
 }
 
 # Harbor registry trust (infra-rosa#11 output 4). null only when D22 selects a registry that needs no private CA.

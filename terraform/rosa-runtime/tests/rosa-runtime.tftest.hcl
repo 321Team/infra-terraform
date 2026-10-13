@@ -78,11 +78,15 @@ run "disabled_without_execution_switch" {
 run "public_public_single_az_shape" {
   command = plan
   assert {
-    condition     = rhcs_cluster_rosa_hcp.this.aws_subnet_ids == ["subnet-00000000000000004", "subnet-00000000000000001"] && !rhcs_cluster_rosa_hcp.this.private
+    condition     = rhcs_cluster_rosa_hcp.this.aws_subnet_ids == tolist(["subnet-00000000000000004", "subnet-00000000000000001"]) && !rhcs_cluster_rosa_hcp.this.private
     error_message = "public/public must pass public_transport_a then private_a, with private=false."
   }
   assert {
-    condition     = rhcs_cluster_rosa_hcp.this.availability_zones == ["ap-northeast-2a"] && rhcs_cluster_rosa_hcp.this.cloud_region == "ap-northeast-2"
+    condition     = rhcs_hcp_default_ingress.default.listening_method == "external" && rhcs_hcp_default_ingress.default.cluster == rhcs_cluster_rosa_hcp.this.id
+    error_message = "public/public must pin the existing default Ingress to external."
+  }
+  assert {
+    condition     = rhcs_cluster_rosa_hcp.this.availability_zones == tolist(["ap-northeast-2a"]) && rhcs_cluster_rosa_hcp.this.cloud_region == "ap-northeast-2"
     error_message = "Cluster must be single AZ ap-northeast-2a."
   }
   assert {
@@ -150,8 +154,12 @@ run "private_private_uses_private_subnet_only" {
     public_cluster = false
   }
   assert {
-    condition     = rhcs_cluster_rosa_hcp.this.aws_subnet_ids == ["subnet-00000000000000001"] && rhcs_cluster_rosa_hcp.this.private
+    condition     = rhcs_cluster_rosa_hcp.this.aws_subnet_ids == tolist(["subnet-00000000000000001"]) && rhcs_cluster_rosa_hcp.this.private
     error_message = "private/private must use private_a only, with private=true."
+  }
+  assert {
+    condition     = rhcs_hcp_default_ingress.default.listening_method == "internal"
+    error_message = "private/private must pin the existing default Ingress to internal."
   }
 }
 

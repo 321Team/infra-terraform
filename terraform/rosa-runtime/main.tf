@@ -167,3 +167,11 @@ resource "rhcs_hcp_machine_pool" "workers" {
     max_unavailable = "0"
   }
 }
+
+# `private` above sets API listening only (rhcs v1.7.9 SetAPIPrivacy). The apps Ingress exposure is pinned here
+# so it shows in Plan (infra-rosa#4 decision 6120548351 §3). This edits the default Ingress the cluster already has;
+# it creates no extra load balancer. Create waits for cluster Ready; destroy only drops it from state (rhcs warning).
+resource "rhcs_hcp_default_ingress" "default" {
+  cluster          = rhcs_cluster_rosa_hcp.this.id
+  listening_method = var.public_cluster ? "external" : "internal"
+}
