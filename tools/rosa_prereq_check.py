@@ -240,7 +240,10 @@ def check_plan(plan, stage, support_arn, oidc_host=None):
             r.check('oidc provider url host', url.startswith('https://' + OIDC_PREFIX), url)
     else:
         # Stage 2: stage 1 objects are in state; their values must match the stage 1 readback exactly.
-        r.check('stage2 oidc provider url == stage 1 readback', url == 'https://' + oidc_host, f'got {url}')
+        # IAM stores the provider URL without the scheme and the AWS provider keeps that in state
+        # (config `https://<host>` plans as no-op), so compare with an optional `https://` removed.
+        bare = url[len('https://'):] if isinstance(url, str) and url.startswith('https://') else url
+        r.check('stage2 oidc provider url == stage 1 readback', bare == oidc_host, f'got {url}')
 
     exp = expected_roles(stage, support_arn, oidc_host)
     # Stage 2 also re-checks the no-op stage 1 roles and attachments as they are in state.
