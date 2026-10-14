@@ -69,7 +69,7 @@ def account_changes(action):
     out.append(rc('rhcs_rosa_oidc_config.managed', [action], {'managed': True}))
     prov = {'client_id_list': ['openshift', 'sts.amazonaws.com']}
     if action == 'no-op':
-        prov['url'] = 'https://' + HOST
+        prov['url'] = HOST  # as stored by IAM / AWS provider state: no scheme
     out.append(rc('aws_iam_openid_connect_provider.rosa', [action], prov,
                   {'url': True} if action == 'create' else {}))
     return out
@@ -211,6 +211,24 @@ class Plan(unittest.TestCase):
         find(p, 'aws_iam_openid_connect_provider.rosa')['change']['after']['url'] = (
             'https://oidc.op1.openshiftapps.com/other000')
         self.assertTrue(self.stops(p, 2))
+
+    def test_stage2_oidc_url_with_scheme_passes(self):
+        p = plan(2)
+        find(p, 'aws_iam_openid_connect_provider.rosa')['change']['after']['url'] = 'https://' + HOST
+        self.assertEqual(self.stops(p, 2), [])
+
+    def test_stage2_oidc_url_other_id_without_scheme_stops(self):
+        p = plan(2)
+        find(p, 'aws_iam_openid_connect_provider.rosa')['change']['after']['url'] = (
+            'oidc.op1.openshiftapps.com/other000')
+        self.assertTrue(self.stops(p, 2))
+
+    def test_stage2_oidc_url_other_scheme_or_missing_stops(self):
+        for bad in ('http://' + HOST, None, ''):
+            with self.subTest(url=bad):
+                p = plan(2)
+                find(p, 'aws_iam_openid_connect_provider.rosa')['change']['after']['url'] = bad
+                self.assertTrue(self.stops(p, 2))
 
     def test_stage2_oidc_not_managed_stops(self):
         p = plan(2)
