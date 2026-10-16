@@ -10,9 +10,11 @@
         "StringEquals": {
           "aws:RequestedRegion": "ap-northeast-2",
           "ssm:resourceTag/Purpose": "vpn-probe",
-          "ssm:resourceTag/Ticket": "P2-VPN-01"
+          "ssm:resourceTag/Ticket": "P2-VPN-01",
+          "ssm:resourceTag/Project": "fds-hybrid",
+          "ssm:resourceTag/ManagedBy": "terraform"
         },
-        "Bool": {
+        "BoolIfExists": {
           "ssm:SessionDocumentAccessCheck": "true"
         }
       }
