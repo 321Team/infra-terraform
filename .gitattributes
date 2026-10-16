@@ -6,6 +6,7 @@
 *.yaml text eol=lf
 *.md text eol=lf
 *.json text eol=lf
+iam/rosa-own-key-20261016/SHA256SUMS text eol=lf
 *.tf text eol=lf
 *.tfvars text eol=lf
 *.hcl text eol=lf
