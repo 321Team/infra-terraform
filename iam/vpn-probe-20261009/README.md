@@ -52,6 +52,6 @@
   - 정책·Terraform·시험의 세 곳이 같은 ID인지는 `tests/test_vpn_probe_policy.py`가 대조합니다.
   - 생성 직전에는 같은 ID가 `available`인지만 확인합니다(Terraform `data.aws_ami` postcondition). 파라미터가 새 ID로 바뀌었다는 이유만으로 고정값을 바꾸지 않습니다. 바꿀 때는 새 PR로 합니다.
 - 중앙 검증·실제 IAM 반영은 [2026-10-16 기록](./VALIDATION-20261016.md)으로 연결합니다. IAM 설정과 실제 probe 생성·SSM 접속 성공은 별개입니다.
-- 태그 기반 StartSession: `FDS-IaC-Vpn`의 `MutateOwnedRelayResources`가 소유 인스턴스의 `CreateTags`를 허용합니다. 그래서 IaC 역할은 Relay에도 `Purpose=vpn-probe`를 붙일 수 있습니다. 다만 재환은 이미 Relay 세션 대상자(Network-Operator Relay 템플릿)라 권한이 넓어지지는 않습니다.
+- 태그 기반 StartSession: `FDS-IaC-Vpn`의 `MutateOwnedRelayResources`가 소유 인스턴스의 `CreateTags`를 허용합니다. 그래서 IaC 역할은 Relay에도 `Purpose=vpn-probe`를 붙일 수 있습니다. 다만 재환·권욱은 이미 Relay 세션 대상자(Network-Operator Relay 템플릿)라 권한이 넓어지지는 않습니다.
 - `ssm:SessionDocumentAccessCheck`는 `BoolIfExists=true`입니다. 조건 키가 없으면 이 조건만으로 막지 않고, 명시적 false는 거부합니다. StartSession의 대상 태그·서울 리전 및 허용 shell 문서 범위는 유지합니다. 이 변경이나 합성 조건 시뮬레이션으로 실제 요청의 조건 키 부재를 확정하지 않습니다. 생성 승인 회차에 기본 문서/명시적 문서 정상 및 허용 밖 문서/태그·타인 세션 거부를 확인합니다.
 - Resume/Terminate는 `aws:userid`와 세션 소유 태그가 같은 본인 세션으로 제한합니다. 이 statement 자체에 probe instance ID 조건은 없습니다. 현재 역할의 시작 대상은 기존 Relay와 승인 태그 probe이며, 후속 StartSession 범위를 추가할 때 세션 관리 범위도 함께 재검토합니다. 미생성 probe ID를 임의 합성하여 정책에 넣지 않습니다.
