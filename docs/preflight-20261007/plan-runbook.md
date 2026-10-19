@@ -63,6 +63,7 @@ vpn은 live `aws_vpc`/`aws_subnet` data를 조회한다. **network Apply 전 합
 | relay_egress + egress_contract_reference | #37 TCP443 world 확정6041369929. 명시 입력/근거 연결 필요 |
 | http_repository_evidence_reference | TCP80을 넣을 때만 실제 repo/mirror HTTP 근거·수용 필수. 기본 추가 안 함 |
 | worker_subnet_key + worker_source_reference | 실제 private key1개/수용 근거. 초기 빈값이면 inner ingress 없음·route OFF; 선택 시 live VPC/CIDR/AZ 대조 |
+| harbor_path_reference | 기본 빈값 = worker TCP443 수신 없음. infra-rosa#12 창 B에서만 fds-project-baseline#13 Harbor Runtime 승인·#37 `FDS_HARBOR=on` 판단·창 공지를 넣음. worker_subnet_key 없이 넣으면 Plan 실패. 창 B 원복 Plan은 빈값으로 되돌려 삭제1 확인 |
 | execution_enabled | 현재 default false. Gate 통과한 plan 회차만 true |
 | activate_onprem_routes / onprem_route_keys | 초기 생성은 **false / []** |
 | create_session_document | 초기 기본 false. 실제 부재/소유 수용 없는 생성·import 금지 |
