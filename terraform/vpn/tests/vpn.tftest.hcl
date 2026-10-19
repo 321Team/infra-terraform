@@ -225,7 +225,7 @@ override_data {
 run "stream9_and_no_unselected_worker" {
   command = plan
   assert {
-    condition     = aws_instance.relay.ami == "ami-08d855918a18d0cf9" && length(aws_vpc_security_group_ingress_rule.worker_db) == 0
+    condition     = aws_instance.relay.ami == "ami-08d855918a18d0cf9" && length(aws_vpc_security_group_ingress_rule.worker_db) == 0 && length(aws_vpc_security_group_ingress_rule.worker_harbor) == 0
     error_message = "Stream9 candidate and empty worker boundary must be preserved."
   }
 }
@@ -246,6 +246,43 @@ run "accepted_single_worker_subnet" {
     )
     error_message = "Only the exact worker subnet DB ingress may be added before separate route acceptance."
   }
+}
+run "harbor_ingress_absent_by_default" {
+  command = plan
+  variables {
+    worker_subnet_key       = "private_a"
+    worker_source_reference = "MOCK-ONLY"
+  }
+  assert {
+    condition     = length(aws_vpc_security_group_ingress_rule.worker_harbor) == 0
+    error_message = "Worker TCP443 ingress must stay absent without a window B reference."
+  }
+}
+run "harbor_ingress_exact_with_reference" {
+  command = plan
+  variables {
+    worker_subnet_key       = "private_a"
+    worker_source_reference = "MOCK-ONLY"
+    harbor_path_reference   = "MOCK-ONLY-NOT-AN-APPROVAL"
+  }
+  assert {
+    condition = (
+      length(aws_vpc_security_group_ingress_rule.worker_harbor) == 1 &&
+      aws_vpc_security_group_ingress_rule.worker_harbor[0].cidr_ipv4 == "10.20.10.0/24" &&
+      aws_vpc_security_group_ingress_rule.worker_harbor[0].from_port == 443 &&
+      aws_vpc_security_group_ingress_rule.worker_harbor[0].to_port == 443 &&
+      aws_vpc_security_group_ingress_rule.worker_harbor[0].ip_protocol == "tcp" &&
+      length(aws_vpc_security_group_ingress_rule.worker_db) == 1 &&
+      length(aws_vpc_security_group_ingress_rule.ike) == 2 &&
+      length(aws_route.onprem) == 0
+    )
+    error_message = "Only the exact worker subnet TCP443 ingress is added; DB/IKE unchanged and no route without separate activation."
+  }
+}
+run "harbor_reference_without_worker_rejected" {
+  command = plan
+  variables { harbor_path_reference = "MOCK-ONLY-NOT-AN-APPROVAL" }
+  expect_failures = [aws_security_group.relay]
 }
 run "worker_without_reference_rejected" {
   command = plan

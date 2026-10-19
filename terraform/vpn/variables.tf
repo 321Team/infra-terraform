@@ -127,6 +127,12 @@ variable "worker_subnet_key" {
   }
 }
 
+variable "harbor_path_reference" {
+  type        = string
+  default     = ""
+  description = "infra-rosa#12 window B: fds-project-baseline#13 Harbor Runtime approval + #37 FDS_HARBOR=on decision + window notice. Empty keeps worker TCP443 ingress absent. A reference is not Runtime evidence."
+}
+
 variable "worker_source_reference" {
   type        = string
   default     = ""

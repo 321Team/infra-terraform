@@ -74,6 +74,10 @@ resource "aws_security_group" "relay" {
       error_message = "Disabled candidate, wrong workspace, or missing reviewed egress contract. Existing GO/role/Freeze requirements still apply."
     }
     precondition {
+      condition     = length(trimspace(var.harbor_path_reference)) == 0 || var.worker_subnet_key != ""
+      error_message = "Harbor TCP443 ingress needs the accepted single worker subnet; it never falls back to a wider source."
+    }
+    precondition {
       condition = (
         data.aws_vpc.network.cidr_block == "10.20.0.0/16" &&
         data.aws_subnet.transport.vpc_id == var.network_handoff.vpc_id &&
@@ -113,6 +117,19 @@ resource "aws_vpc_security_group_ingress_rule" "worker_db" {
   from_port         = 5432
   to_port           = 5432
   description       = "Reviewed worker subnet to DB path; destination enforced by host FORWARD and DB controls"
+}
+
+# infra-rosa#12 window B (cold-pull): worker subnet -> Harbor 10.1.93.54:443 only, opt-in per window.
+# The SG cannot see the inner destination; Relay nft (FDS_HARBOR=on: 10.20.10.0/24 -> 10.1.93.54 tcp/443 ct new)
+# and the Harbor AC-04 guard P2 overlay restrict it. Other Harbor ports (22/80) stay without any SG rule.
+resource "aws_vpc_security_group_ingress_rule" "worker_harbor" {
+  count             = var.worker_subnet_key != "" && length(trimspace(var.harbor_path_reference)) > 0 ? 1 : 0
+  security_group_id = aws_security_group.relay.id
+  cidr_ipv4         = data.aws_subnet.worker[0].cidr_block
+  ip_protocol       = "tcp"
+  from_port         = 443
+  to_port           = 443
+  description       = "Window B worker subnet to Harbor 443; destination enforced by Relay nft and Harbor guard"
 }
 
 resource "aws_vpc_security_group_egress_rule" "reviewed" {
@@ -183,7 +200,7 @@ resource "aws_route" "onprem" {
   route_table_id         = var.network_handoff.subnets[each.key].route_table_id
   destination_cidr_block = "10.1.93.0/24"
   network_interface_id   = aws_instance.relay.primary_network_interface_id
-  depends_on             = [aws_eip_association.relay, aws_vpc_security_group_ingress_rule.worker_db]
+  depends_on             = [aws_eip_association.relay, aws_vpc_security_group_ingress_rule.worker_db, aws_vpc_security_group_ingress_rule.worker_harbor]
   lifecycle {
     precondition {
       condition = (
