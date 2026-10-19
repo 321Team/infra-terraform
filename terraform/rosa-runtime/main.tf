@@ -95,7 +95,11 @@ resource "rhcs_cluster_rosa_hcp" "this" {
   }
 
   # Changing registry config after creation recreates every machine pool node (infra-rosa#11 ②), so it is a create input.
+  # registry_sources = {} is required: rhcs 1.7.9 decodes registry_config into a struct whose RegistrySources field is
+  # a value (not a pointer), so a null registry_sources fails at apply with "Value Conversion Error" (infra-rosa#4,
+  # 2026-10-17 22:32 KST, 0 resources created). An empty object leaves allowed/blocked/insecure lists null = not sent.
   registry_config = local.registry_additional_trusted_ca == null ? null : {
+    registry_sources      = {}
     additional_trusted_ca = local.registry_additional_trusted_ca
   }
 

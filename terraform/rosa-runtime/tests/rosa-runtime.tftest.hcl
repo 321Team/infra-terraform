@@ -114,6 +114,11 @@ run "public_public_single_az_shape" {
     error_message = "Registry trust must carry exactly the reviewed IP and FQDN keys."
   }
   assert {
+    condition     = rhcs_cluster_rosa_hcp.this.registry_config.registry_sources != null
+    error_message = "registry_sources must be an object (rhcs 1.7.9 cannot decode a null registry_sources at apply)."
+  }
+
+  assert {
     condition     = rhcs_cluster_rosa_hcp.this.sts.operator_role_prefix == "fds-rosa" && rhcs_cluster_rosa_hcp.this.sts.oidc_config_id == "mockoidcconfigid0000000000000000"
     error_message = "STS input must come from the rosa-prereq handoff."
   }
