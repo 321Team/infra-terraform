@@ -49,14 +49,16 @@ class RenderTest(unittest.TestCase):
             self.assertTrue((Path(d) / f"FDS-Network-Operator-Relay.{GOOD}.json").exists())
             self.assertEqual(R.main(["i-bad", "--out", d]), 1)
 
-    def test_companion_policies_unchanged(self):
+    def test_companion_policies_match_reviewed_baselines(self):
         expected = {
             "iam/full-policy-draft-20261009/policies/FDS-Network-Operator-StateDeny.json":
                 "e222cddb82a388be6f7c565f3e670ee761575a3cbd994cdbf56a6a29fb4a6e77",
             "iam/full-policy-draft-20261009/trust/trust-FDS-Network-Operator.json":
                 "13e134a09d309e58ad6e6c7d04a5ca14605b629caf5d7feff8eb2305e2c11e10",
             "iam/vpn-probe-20261009/policies/FDS-Network-Operator-Probe.json":
-                "33053efe4e9ab326b3dcffe2541442ffd71faa7af371b6a9b3ebb004de5e2dcd",
+                # PR33 reviewed source alignment, merge ef74f689. The Relay
+                # renderer still does not modify this companion policy.
+                "3f130fc84875d9ad6ecae473ce3af38befb4c6d5015bfd3abbb46c476524cbef",
         }
         for path, h in expected.items():
             with self.subTest(path=path):

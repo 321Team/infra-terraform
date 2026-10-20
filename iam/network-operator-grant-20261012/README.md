@@ -21,10 +21,10 @@
 | `iam/full-policy-draft-20261009/policies/FDS-Network-Operator-Relay.template.json` | Relay 한정 세션·복구·진단. **Relay ID 자리표시자 `__RELAY_INSTANCE_ID__` 5곳** | `bf6bb817c15633253023f449134331ddf6d8d8e430b0cea8aab9997649f62122` (2026-10-13 `Bool`→`BoolIfExists` 후보, 5-1절. 이전 `d4c94fc9…62ba45bd6ebba2f6`) | PR15 병합, baseline `20261006-network-final-candidate` 원문 + 5-1절 변경 |
 | `iam/full-policy-draft-20261009/policies/FDS-Network-Operator-StateDeny.json` | state 버킷 전체 Deny + 서울 밖 Deny | `e222cddb82a388be6f7c565f3e670ee761575a3cbd994cdbf56a6a29fb4a6e77` | PR15 병합 |
 | `iam/full-policy-draft-20261009/trust/trust-FDS-Network-Operator.json` | 권욱·재환 사용자만, **MFA=true + 본인 RoleSessionName** | `13e134a09d309e58ad6e6c7d04a5ca14605b629caf5d7feff8eb2305e2c11e10` | PR15 병합(baseline 20261006 work-role-precheck 원문) |
-| `iam/vpn-probe-20261009/policies/FDS-Network-Operator-Probe.json` | (선택) #37 probe 시험 인스턴스 세션 | `33053efe4e9ab326b3dcffe2541442ffd71faa7af371b6a9b3ebb004de5e2dcd` | PR25 병합. **probe 시험창에만 붙이고 끝나면 분리** |
+| `iam/vpn-probe-20261009/policies/FDS-Network-Operator-Probe.json` | (선택) #37 probe 시험 인스턴스 세션 | `3f130fc84875d9ad6ecae473ce3af38befb4c6d5015bfd3abbb46c476524cbef` | [PR33](https://github.com/321Team/infra-terraform/pull/33) 승인·소스 정합 병합본. 기승인 범위의 준비→시험→결함 재시험→증적 반출·검토 완료까지 유지하며 작업창 종료마다 분리하지 않음. 새 부착 승인은 아님 |
 | `iam/grant-plan-20261009/trust-closed.json` | 생성 직후 잠긴 trust(전부 거부) | — | PR18 병합. 같은 패턴 재사용 |
 
-`tests/test_network_operator_render.py`가 위 4개 원본의 해시가 그대로인지 확인합니다.
+`tests/test_network_operator_render.py`가 위 4개 원본을 각각의 승인 기준 해시와 대조합니다. StateDeny·Trust·Relay 원본 기준은 유지하고, probe 기준만 PR33의 기승인 변경을 반영했습니다. `test_vpn_probe_policy.py`는 probe의 Action·Resource·서울 리전·태그4개·BoolIfExists 조건을 별도로 대조합니다. 해시·정적 시험은 실제 IAM 동작이나 AC 충족의 증거가 아닙니다.
 
 ## 3. Relay ID 채우기 — `render_relay_policy.py`
 
