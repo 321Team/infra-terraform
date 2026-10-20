@@ -89,7 +89,10 @@ class ProbePolicyTests(unittest.TestCase):
         cond = by_sid(self.net)["StartSessionOnTaggedProbeWithDocumentCheck"]["Condition"]["StringEquals"]
         self.assertIn(f'Purpose = "{cond["ssm:resourceTag/Purpose"]}"', self.main)
         self.assertIn(f'Ticket  = "{cond["ssm:resourceTag/Ticket"]}"', self.main)
-        self.assertEqual(by_sid(self.net)["StartSessionOnTaggedProbeWithDocumentCheck"]["Condition"]["Bool"]
+        versions = (ROOT / "versions.tf").read_text(encoding="utf-8")
+        for tag in ["Project", "ManagedBy"]:
+            self.assertRegex(versions, rf'{tag}\s*=\s*"{cond["ssm:resourceTag/" + tag]}"')
+        self.assertEqual(by_sid(self.net)["StartSessionOnTaggedProbeWithDocumentCheck"]["Condition"]["BoolIfExists"]
                          ["ssm:SessionDocumentAccessCheck"], "true")
 
     def test_backend_key_matches_policy(self):
