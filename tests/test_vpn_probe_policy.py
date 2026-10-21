@@ -95,6 +95,26 @@ class ProbePolicyTests(unittest.TestCase):
         self.assertEqual(by_sid(self.net)["StartSessionOnTaggedProbeWithDocumentCheck"]["Condition"]["BoolIfExists"]
                          ["ssm:SessionDocumentAccessCheck"], "true")
 
+    def test_probe_start_scope_matches_pr33_reviewed_contract(self):
+        # Semantic scope remains visible even when a future PR updates a byte
+        # pin. This is a static contract check, not IAM evaluation/Runtime proof.
+        statement = by_sid(self.net)["StartSessionOnTaggedProbeWithDocumentCheck"]
+        self.assertEqual(statement, {
+            "Sid": "StartSessionOnTaggedProbeWithDocumentCheck",
+            "Effect": "Allow", "Action": "ssm:StartSession",
+            "Resource": "arn:aws:ec2:ap-northeast-2:774055931866:instance/*",
+            "Condition": {
+                "StringEquals": {
+                    "aws:RequestedRegion": "ap-northeast-2",
+                    "ssm:resourceTag/Purpose": "vpn-probe",
+                    "ssm:resourceTag/Ticket": "P2-VPN-01",
+                    "ssm:resourceTag/Project": "fds-hybrid",
+                    "ssm:resourceTag/ManagedBy": "terraform",
+                },
+                "BoolIfExists": {"ssm:SessionDocumentAccessCheck": "true"},
+            },
+        })
+
     def test_backend_key_matches_policy(self):
         for path in (ROOT / "backend.hcl.example", REPO / "terraform/backends/vpn-probe.hcl.example"):
             self.assertIn('key                 = "phase2/vpn-probe/terraform.tfstate"', path.read_text(encoding="utf-8"))

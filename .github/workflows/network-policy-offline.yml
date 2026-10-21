@@ -1,0 +1,43 @@
+name: Network and probe policy offline checks
+
+on:
+  pull_request:
+    paths:
+      - 'iam/network-operator-grant-20261012/**'
+      - 'iam/full-policy-draft-20261009/**'
+      - 'iam/vpn-probe-20261009/**'
+      - 'terraform/vpn-probe/**'
+      - 'terraform/backends/vpn-probe.hcl.example'
+      - 'tests/test_network_operator_*.py'
+      - 'tests/test_vpn_probe_policy.py'
+      - '.github/workflows/network-policy-offline.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'iam/network-operator-grant-20261012/**'
+      - 'iam/full-policy-draft-20261009/**'
+      - 'iam/vpn-probe-20261009/**'
+      - 'terraform/vpn-probe/**'
+      - 'terraform/backends/vpn-probe.hcl.example'
+      - 'tests/test_network_operator_*.py'
+      - 'tests/test_vpn_probe_policy.py'
+      - '.github/workflows/network-policy-offline.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  offline-policy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+          # The condition matrix also checks the original reviewed Bool blob.
+          fetch-depth: 0
+      - name: Offline Relay/probe regression checks without AWS or Terraform
+        run: |
+          python3 --version
+          python3 -m unittest discover -s tests -p 'test_network_operator_*.py' -v
+          python3 -m unittest discover -s tests -p 'test_vpn_probe_policy.py' -v
