@@ -1,0 +1,42 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CreateOwnKeyForApprovedRosaDateWithMFA",
+      "Effect": "Allow",
+      "Action": "iam:CreateAccessKey",
+      "Resource": "arn:aws:iam::774055931866:user/321team-hayeoung",
+      "Condition": {
+        "ArnEquals": {
+          "aws:PrincipalArn": "arn:aws:iam::774055931866:user/321team-hayeoung"
+        },
+        "Bool": {
+          "aws:MultiFactorAuthPresent": "true"
+        },
+        "DateGreaterThanEquals": {
+          "aws:CurrentTime": "2026-10-26T07:59:38.796033+00:00"
+        },
+        "DateLessThan": {
+          "aws:CurrentTime": "2026-10-26T15:00:00+00:00"
+        }
+      }
+    },
+    {
+      "Sid": "ManageOwnKeyForApprovedCleanupWithMFA",
+      "Effect": "Allow",
+      "Action": [
+        "iam:UpdateAccessKey",
+        "iam:DeleteAccessKey"
+      ],
+      "Resource": "arn:aws:iam::774055931866:user/321team-hayeoung",
+      "Condition": {
+        "ArnEquals": {
+          "aws:PrincipalArn": "arn:aws:iam::774055931866:user/321team-hayeoung"
+        },
+        "Bool": {
+          "aws:MultiFactorAuthPresent": "true"
+        }
+      }
+    }
+  ]
+}
